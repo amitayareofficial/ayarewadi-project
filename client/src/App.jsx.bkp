@@ -6,7 +6,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/events")
+      .get("https://ayarewadi-project.onrender.com/events")
       .then((res) => setEvents(res.data));
   }, []);
 
