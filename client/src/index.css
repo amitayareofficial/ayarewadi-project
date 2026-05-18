@@ -1,28 +1,19 @@
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9fbe7;
+  color: #1a1a1a;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-img {
-  display: block;
-  max-width: 100%;
-}
+img { max-width: 100%; display: block; }
 
-a {
-  text-decoration: none;
-}
-
-button {
-  font-family: inherit;
-}
+button, input { font-family: inherit; }
