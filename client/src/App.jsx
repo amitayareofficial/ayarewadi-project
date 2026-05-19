@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
-import heroImg from "./assets/images/ayarewadi_home_image.jpg";
+import heroImg from "./assets/images/main_image_home.png";
 
 // ── BACKEND API URL — change this if your Render URL changes ──────────
 const API = "https://ayarewadi-project.onrender.com";
@@ -127,73 +127,220 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
 /* ═══════════════════════════════════════════════════════════
    HOME PAGE — modular sub-components
 ═══════════════════════════════════════════════════════════ */
-function Hero({ nav }) {
+function Hero() {
   return (
     <section className="hero">
       <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
       <div className="hero-overlay" />
-      <div className="hero-content">
+      <div className="hero-content hero-content-top">
         <span className="hero-eyebrow">सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र</span>
-        <h1>आयरेवाडी</h1>
         <p className="hero-tagline">"एक गाव, एक ओळख, एक नातं – आयरेवाडी!"</p>
-        <p className="hero-sub">आमची संस्कृती, वंशवृक्ष, कार्यक्रम आणि बरेच काही मोबाईल-अनुकूल स्वरूपात शोधा व अनुभव घ्या.</p>
-        <div className="hero-btns">
-          <button className="btn-accent" onClick={() => nav("events")}>कार्यक्रम पाहा</button>
-          <button className="btn-outline-white" onClick={() => nav("gallery")}>Gallery</button>
-        </div>
       </div>
-      <div className="hero-scroll-hint">↓</div>
     </section>
   );
 }
 
-function FeatureStrip() {
+function SloganMarquee() {
+  const slogans = [
+    "आपलं गाव, आपली जबाबदारी",
+    "सुंदर विचार, सुंदर गाव",
+    "सर्वांनी मिळून सुंदर गाव घडवूया",
+    "एकतेतून गावाचा विकास",
+    "शिक्षित गाव, विकसित गाव",
+    "पाणी अडवा, पाणी जिरवा",
+    "एकजुटीतून घडेल सुंदर गाव",
+  ];
+  const items = [...slogans, ...slogans];
   return (
-    <div className="feature-strip">
-      {[
-        { icon: "🌿", title: "Pure Konkan",     sub: "Western Ghats village" },
-        { icon: "🛕", title: "Heritage Temple",  sub: "Ravalnath Mandir" },
-        { icon: "👨‍👩‍👧", title: "1,264 Residents", sub: "One big family" },
-        { icon: "📚", title: "69% Literacy",    sub: "Growing education" },
-        { icon: "🏔️", title: "Sindhudurg",      sub: "Maharashtra Coast" },
-      ].map(f => (
-        <div className="feature-item" key={f.title}>
-          <span className="feature-icon">{f.icon}</span>
-          <div>
-            <strong>{f.title}</strong>
-            <span>{f.sub}</span>
-          </div>
+    <div className="marquee-wrap slogan-marquee">
+      <span className="marquee-label">सुविचार</span>
+      <div className="marquee-track">
+        <div className="marquee-inner">
+          {items.map((s, i) => (
+            <span key={i} className="marquee-item">
+              {s}&nbsp;<span className="marquee-sep">✦</span>&nbsp;
+            </span>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
 
-function ServiceTiles({ nav }) {
+function EmergencySVG() {
   return (
-    <section className="service-tiles-section">
-      <div className="service-tiles-header">
-        <span className="eyebrow">Explore</span>
-        <h2>Village Services</h2>
-      </div>
-      <div className="service-tiles-grid">
-        {[
-          { img: IMG.ruralHosp, label: "Emergency", sub: "Hospitals & contacts",  s: "emergency", tag: "Help & Safety" },
-          { img: IMG.festival1, label: "Events",    sub: "Upcoming programs",      s: "events",    tag: "Stay Updated" },
-          { img: IMG.temple,    label: "Gallery",   sub: "Village memories",       s: "gallery",   tag: "Photos" },
-          { img: IMG.nature1,   label: "Portal",    sub: "Family tree & budget",   s: "portal",    tag: "Members" },
-        ].map(t => (
-          <div className="service-tile" key={t.s} onClick={() => nav(t.s)}
-            style={{ backgroundImage: `url(${t.img})` }}>
-            <div className="service-tile-overlay" />
-            <div className="service-tile-body">
-              <span className="service-tile-tag">{t.tag}</span>
-              <h3>{t.label}</h3>
-              <p>{t.sub}</p>
-              <span className="service-tile-arrow">→</span>
+    <svg viewBox="0 0 360 230" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="295" cy="48" r="70" fill="#FFCCC5" opacity="0.45"/>
+      <circle cx="52" cy="195" r="55" fill="#FFCCC5" opacity="0.35"/>
+      <rect x="118" y="50" width="142" height="155" rx="10" fill="#FFB8AD"/>
+      <rect x="118" y="50" width="142" height="28" rx="10" fill="#FF8F82"/>
+      <rect x="118" y="65" width="142" height="13" fill="#FF8F82"/>
+      <rect x="136" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
+      <rect x="168" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
+      <rect x="200" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
+      <rect x="136" y="127" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
+      <rect x="200" y="127" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
+      <rect x="160" y="159" width="36" height="46" rx="6" fill="#FF8F82"/>
+      <rect x="167" y="55" width="24" height="7" rx="3" fill="#D94030"/>
+      <rect x="173" y="49" width="7" height="24" rx="3" fill="#D94030"/>
+      <circle cx="75" cy="150" r="13" fill="#FFD5CE"/>
+      <rect x="62" y="163" width="26" height="30" rx="10" fill="#E05040"/>
+      <rect x="50" y="166" width="12" height="7" rx="3" fill="#FFD5CE"/>
+      <rect x="88" y="166" width="12" height="7" rx="3" fill="#FFD5CE"/>
+      <rect x="222" y="170" width="90" height="38" rx="8" fill="#FF9B8F"/>
+      <rect x="230" y="158" width="56" height="24" rx="6" fill="#FFB8AD"/>
+      <circle cx="238" cy="212" r="8" fill="#C03020"/>
+      <circle cx="296" cy="212" r="8" fill="#C03020"/>
+      <rect x="244" y="172" width="18" height="6" rx="3" fill="white"/>
+      <rect x="250" y="166" width="6" height="18" rx="3" fill="white"/>
+      <rect x="28" y="68" width="14" height="5" rx="2" fill="#FFB8AD"/>
+      <rect x="33" y="63" width="5" height="14" rx="2" fill="#FFB8AD"/>
+      <rect x="306" y="102" width="10" height="4" rx="2" fill="#FFB8AD"/>
+      <rect x="309" y="98" width="4" height="10" rx="2" fill="#FFB8AD"/>
+      <circle cx="44" cy="102" r="5" fill="#FFCCC5"/>
+      <circle cx="322" cy="60" r="4" fill="#FFB8AD"/>
+    </svg>
+  );
+}
+
+function EventsSVG() {
+  return (
+    <svg viewBox="0 0 260 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="212" cy="42" r="55" fill="#D4CCFF" opacity="0.45"/>
+      <circle cx="40" cy="212" r="45" fill="#D4CCFF" opacity="0.35"/>
+      <rect x="58" y="62" width="152" height="142" rx="14" fill="#C4B5FD"/>
+      <rect x="58" y="62" width="152" height="38" rx="14" fill="#8B75E8"/>
+      <rect x="58" y="85" width="152" height="15" fill="#8B75E8"/>
+      <rect x="98" y="50" width="10" height="22" rx="5" fill="#6B5BD4"/>
+      <rect x="160" y="50" width="10" height="22" rx="5" fill="#6B5BD4"/>
+      <rect x="92" y="70" width="84" height="7" rx="3" fill="rgba(255,255,255,0.85)"/>
+      <rect x="70" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="94" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="118" y="113" width="18" height="14" rx="4" fill="#6B5BD4"/>
+      <rect x="142" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="166" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="70" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="94" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="118" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="142" y="135" width="18" height="14" rx="4" fill="#8B75E8"/>
+      <rect x="166" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="70" y="157" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <rect x="94" y="157" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="212" cy="152" r="18" fill="#D4CCFF"/>
+      <rect x="200" y="170" width="24" height="35" rx="10" fill="#8B75E8"/>
+      <rect x="22" y="88" width="8" height="8" rx="2" fill="#C4B5FD" transform="rotate(15,22,88)"/>
+      <rect x="237" y="84" width="7" height="7" rx="2" fill="#8B75E8" transform="rotate(-20,237,84)"/>
+      <circle cx="34" cy="130" r="5" fill="#D4CCFF"/>
+      <circle cx="240" cy="132" r="4" fill="#C4B5FD"/>
+      <rect x="216" y="58" width="6" height="6" rx="1" fill="#C4B5FD" transform="rotate(30,216,58)"/>
+      <circle cx="48" cy="64" r="4" fill="#D4CCFF"/>
+      <rect x="44" y="162" width="8" height="8" rx="2" fill="#C4B5FD" transform="rotate(-10,44,162)"/>
+    </svg>
+  );
+}
+
+function GallerySVG() {
+  return (
+    <svg viewBox="0 0 360 195" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="292" cy="42" r="62" fill="#B8F0D8" opacity="0.5"/>
+      <circle cx="58" cy="172" r="52" fill="#B8F0D8" opacity="0.4"/>
+      <rect x="28" y="50" width="68" height="52" rx="8" fill="#A8E8C8"/>
+      <rect x="34" y="56" width="56" height="36" rx="5" fill="#7FCEAC"/>
+      <rect x="34" y="85" width="56" height="12" rx="3" fill="#A8E8C8"/>
+      <polygon points="38,83 55,60 72,83" fill="#5FBFA0"/>
+      <polygon points="56,83 68,67 82,83" fill="#3D9E80"/>
+      <circle cx="47" cy="67" r="5" fill="#FFD96A" opacity="0.85"/>
+      <rect x="272" y="60" width="62" height="48" rx="8" fill="#A8E8C8"/>
+      <rect x="278" y="66" width="50" height="32" rx="5" fill="#7FCEAC"/>
+      <rect x="278" y="91" width="50" height="12" rx="3" fill="#A8E8C8"/>
+      <polygon points="282,90 295,72 308,90" fill="#5FBFA0"/>
+      <polygon points="302,90 314,76 326,90" fill="#3D9E80"/>
+      <rect x="120" y="58" width="132" height="98" rx="16" fill="#5FBFA0"/>
+      <rect x="125" y="53" width="52" height="18" rx="8" fill="#3D9E80"/>
+      <circle cx="186" cy="108" r="34" fill="#3D9E80"/>
+      <circle cx="186" cy="108" r="25" fill="#2A7D62"/>
+      <circle cx="186" cy="108" r="16" fill="#1D6550"/>
+      <circle cx="186" cy="108" r="8" fill="#124D3C"/>
+      <circle cx="178" cy="100" r="4" fill="rgba(255,255,255,0.35)"/>
+      <rect x="222" y="64" width="22" height="14" rx="5" fill="#A8E8C8"/>
+      <circle cx="148" cy="64" r="6" fill="#7FCEAC"/>
+      <circle cx="68" cy="138" r="14" fill="#B8F0D8"/>
+      <rect x="56" y="153" width="24" height="30" rx="10" fill="#3D9E80"/>
+      <rect x="72" y="145" width="28" height="20" rx="5" fill="#5FBFA0"/>
+      <circle cx="312" cy="152" r="5" fill="#B8F0D8"/>
+      <circle cx="332" cy="132" r="3" fill="#A8E8C8"/>
+      <circle cx="24" cy="120" r="4" fill="#B8F0D8"/>
+    </svg>
+  );
+}
+
+function PortalSVG() {
+  return (
+    <svg viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="212" cy="42" r="55" fill="#FFE8A0" opacity="0.5"/>
+      <circle cx="44" cy="178" r="46" fill="#FFE8A0" opacity="0.4"/>
+      <rect x="52" y="38" width="162" height="112" rx="12" fill="#F5C842"/>
+      <rect x="60" y="46" width="146" height="92" rx="8" fill="#FFF8E0"/>
+      <rect x="116" y="150" width="34" height="18" rx="4" fill="#E8A030"/>
+      <rect x="98" y="166" width="70" height="8" rx="4" fill="#E8A030"/>
+      <rect x="73" y="55" width="58" height="8" rx="4" fill="#F5D080"/>
+      <rect x="136" y="55" width="38" height="8" rx="4" fill="#FFECA0"/>
+      <polyline points="73,84 95,70 117,76 139,62 161,67 183,57" stroke="#E8A030" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="73" cy="84" r="3" fill="#C27820"/>
+      <circle cx="117" cy="76" r="3" fill="#C27820"/>
+      <circle cx="161" cy="67" r="3" fill="#C27820"/>
+      <line x1="70" y1="130" x2="186" y2="130" stroke="#F5D080" strokeWidth="2"/>
+      <rect x="73" y="110" width="16" height="20" rx="3" fill="#F5C842"/>
+      <rect x="95" y="98" width="16" height="32" rx="3" fill="#E8A030"/>
+      <rect x="117" y="86" width="16" height="44" rx="3" fill="#F5C842"/>
+      <rect x="139" y="102" width="16" height="28" rx="3" fill="#C27820"/>
+      <rect x="161" y="94" width="16" height="36" rx="3" fill="#E8A030"/>
+      <circle cx="220" cy="136" r="16" fill="#FFE8A0"/>
+      <rect x="208" y="152" width="24" height="28" rx="10" fill="#E8A030"/>
+      <rect x="48" y="174" width="224" height="8" rx="4" fill="#F5C842"/>
+      <rect x="22" y="72" width="22" height="8" rx="4" fill="#FFE8A0"/>
+      <rect x="22" y="86" width="16" height="8" rx="4" fill="#F5D080"/>
+      <rect x="22" y="100" width="19" height="8" rx="4" fill="#FFE8A0"/>
+      <circle cx="242" cy="86" r="4" fill="#FFE8A0"/>
+      <circle cx="232" cy="102" r="3" fill="#F5D080"/>
+    </svg>
+  );
+}
+
+function ServiceTiles({ nav }) {
+  const tiles = [
+    { label: "Emergency", sub: "Hospitals & emergency contacts", s: "emergency", tag: "Help & Safety",  icon: "🚨", bg: "linear-gradient(145deg,#FFF5F4 0%,#FFE4DF 100%)", accent: "#D94030", svg: <EmergencySVG /> },
+    { label: "Events",    sub: "Upcoming village programs",      s: "events",    tag: "Stay Updated",   icon: "🎉", bg: "linear-gradient(145deg,#F6F4FF 0%,#EBE5FF 100%)", accent: "#6B5BD4", svg: <EventsSVG />    },
+    { label: "Gallery",   sub: "Village photo memories",         s: "gallery",   tag: "Photos",         icon: "📸", bg: "linear-gradient(145deg,#F0FFF8 0%,#DDFAF0 100%)", accent: "#2A8F72", svg: <GallerySVG />   },
+    { label: "Portal",    sub: "Family tree & village budget",   s: "portal",    tag: "Members Only",   icon: "👤", bg: "linear-gradient(145deg,#FFFBF0 0%,#FFF3D0 100%)", accent: "#C27820", svg: <PortalSVG />    },
+  ];
+  return (
+    <section className="svc-section">
+      <div className="svc-inner">
+        <div className="svc-header">
+          <span className="eyebrow svc-eyebrow">Explore</span>
+          <h2 className="svc-title">Village Services</h2>
+          <p className="svc-subtitle">Everything you need from Ayarewadi — always at your fingertips.</p>
+        </div>
+        <div className="svc-bento">
+          {tiles.map((t, i) => (
+            <div className={`svc-card svc-card-${i}`} key={t.s} onClick={() => nav(t.s)}
+              style={{ background: t.bg, "--svc-accent": t.accent }}>
+              <div className="svc-illustration">{t.svg}</div>
+              <div className="svc-content">
+                <span className="svc-tag">{t.tag}</span>
+                <div className="svc-glass-panel">
+                  <span className="svc-icon">{t.icon}</span>
+                  <div className="svc-text">
+                    <h3>{t.label}</h3>
+                    <p>{t.sub}</p>
+                  </div>
+                  <div className="svc-arrow">→</div>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -293,6 +440,115 @@ function EventsPreview({ events, nav }) {
   );
 }
 
+function TeamSection() {
+  const team = [
+    {
+      name: "Bhalchandra Ayare",
+      roleMr: "अध्यक्ष",
+      roleEn: "President",
+      initials: "BA",
+      gradient: "linear-gradient(135deg, #0d5c30 0%, #1aad5c 100%)",
+      quote: "आयरेवाडी गावाचा विकास हे आमचे ध्येय. प्रत्येक निर्णय गावाच्या भविष्यासाठी घेतो.",
+    },
+    {
+      name: "Anant Ayare",
+      roleMr: "सचिव",
+      roleEn: "Secretary",
+      initials: "AA",
+      gradient: "linear-gradient(135deg, #0d3d5c 0%, #1a7db8 100%)",
+      quote: "गावाचे सर्व उपक्रम व्यवस्थित चालावेत यासाठी सतत प्रयत्नशील असतो.",
+    },
+    {
+      name: "Pawan Ayare",
+      roleMr: "खजिनदार",
+      roleEn: "Treasurer",
+      initials: "PA",
+      gradient: "linear-gradient(135deg, #5c200d 0%, #b84020 100%)",
+      quote: "गावाचा प्रत्येक पैसा योग्य कामी लागावा यासाठी पारदर्शकतेने काम करतो.",
+    },
+    {
+      name: "Amit Ayare",
+      roleMr: "सभासद",
+      roleEn: "Member",
+      initials: "AA",
+      gradient: "linear-gradient(135deg, #3a0d5c 0%, #7a2db8 100%)",
+      quote: "गावातील युवापिढीसाठी नवीन संधी निर्माण करणे हे आमचे स्वप्न आहे.",
+    },
+  ];
+
+  const allMembers = [
+    ...team,
+    { name: "Raju Ayare",     roleMr: "सभासद", roleEn: "Member" },
+    { name: "Ganesh Ayare",   roleMr: "सभासद", roleEn: "Member" },
+    { name: "Mahendra Ayare", roleMr: "सभासद", roleEn: "Member" },
+    { name: "Avinash Ayare",  roleMr: "सभासद", roleEn: "Member" },
+    { name: "Akshay Ayare",   roleMr: "सभासद", roleEn: "Member" },
+    { name: "Sandeep Ayare",  roleMr: "सभासद", roleEn: "Member" },
+    { name: "Sidhesh Ayare",  roleMr: "सभासद", roleEn: "Member" },
+  ];
+  const marqueeItems = [...allMembers, ...allMembers];
+
+  return (
+    <section className="team-section">
+      {/* Scrolling name marquee */}
+      <div className="team-marquee">
+        <div className="team-marquee-inner">
+          {marqueeItems.map((m, i) => (
+            <span key={i} className="team-marquee-item">
+              <span className="team-marquee-name">{m.name}</span>
+              <span className="team-marquee-badge">{m.roleMr} · {m.roleEn}</span>
+              <span className="team-marquee-sep">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Section header */}
+      <div className="team-header">
+        <span className="eyebrow team-eyebrow">Our Team</span>
+        <h2 className="team-title">ग्राम समिती</h2>
+        <p className="team-subtitle">Ayarewadi Gram Panchayat — Dedicated leaders serving our village with pride and transparency.</p>
+      </div>
+
+      {/* Glassmorphism cards */}
+      <div className="team-grid">
+        {team.map((m, i) => (
+          <div className="team-card" key={i}>
+            <div className="team-avatar" style={{ background: m.gradient }}>
+              {m.initials}
+            </div>
+            <div className="team-name">{m.name}</div>
+            <div className="team-role-mr">{m.roleMr}</div>
+            <div className="team-role-en">{m.roleEn}</div>
+            <div className="team-divider" />
+            <p className="team-quote">"{m.quote}"</p>
+            <div className="team-socials">
+              <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" className="team-social-btn" title="WhatsApp">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </a>
+              <a href="mailto:contact@ayarewadi.in" className="team-social-btn" title="Email">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </a>
+              <a href="#" className="team-social-btn" title="Village Portal">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function StatsBar() {
   return (
     <div className="stats-strip">
@@ -337,13 +593,15 @@ function JoinCommunity() {
 function Home({ nav, events }) {
   return (
     <>
-      <Hero nav={nav} />
-      <FeatureStrip />
+      <SloganMarquee />
+      <Hero />
+      <SloganMarquee />
       <ServiceTiles nav={nav} />
       <VillageStory nav={nav} />
       <Initiatives />
       <Festivals />
       {events.length > 0 && <EventsPreview events={events} nav={nav} />}
+      <TeamSection />
       <StatsBar />
       <JoinCommunity />
     </>
