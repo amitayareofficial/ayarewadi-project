@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
-import heroImg from "./assets/images/main_image_home.png";
+import heroImg      from "./assets/images/main_image_home.png";
+import emergencyImg from "./assets/images/emergency.png";
+import eventsImg    from "./assets/images/news.png";
+import galleryImg   from "./assets/images/gallery.png";
+import portalImg    from "./assets/images/portal.png";
+import templeImg    from "./assets/images/ravalnath_temple.png";
+import villageInfoImg from "./assets/images/village_info_iamge.png";
 
 // ── BACKEND API URL — change this if your Render URL changes ──────────
 const API = "https://ayarewadi-project.onrender.com";
@@ -13,7 +19,7 @@ const IMG = {
   hero: heroImg,
 
   // TEMPLE: Side image in About section — your Ravalnath temple photo
-  temple: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=964,fit=crop/YNq2a76xB3Ip7LZZ/img_20231008_171703-YBgbklJZkwuXBwnj.jpg",
+  temple: templeImg,
 
   // INITIATIVES: 3 cards below hero — replace with your village work photos
   templeReno: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=165.20076481835565;0;479.08221797323137;0/YNq2a76xB3Ip7LZZ/img_20231008_171637-AMq8ka5gQ9T49MZn.jpg",
@@ -58,16 +64,16 @@ export default function App() {
 
   return (
     <div className="app">
-      <Navbar section={section} nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <Navigation_Bar section={section} nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
-        {section === "home"      && <Home nav={nav} events={events} />}
-        {section === "emergency" && <Emergency />}
-        {section === "portal"    && <Portal />}
-        {section === "gallery"   && <Gallery />}
-        {section === "events"    && <Events events={events} />}
+        {section === "home"      && <Home_Page nav={nav} events={events} />}
+        {section === "emergency" && <Emergency_Page />}
+        {section === "portal"    && <Portal_Page />}
+        {section === "gallery"   && <Gallery_Page />}
+        {section === "events"    && <Events_Page events={events} />}
         {section === "admin"     && <Admin />}
       </main>
-      <Footer nav={nav} />
+      <Footer_Section nav={nav} />
     </div>
   );
 }
@@ -77,7 +83,7 @@ export default function App() {
    - Logo auto-inverts to white
    - Transparent on hero, solid on scroll
 ═══════════════════════════════════════════════════════════ */
-function Navbar({ section, nav, menuOpen, setMenuOpen }) {
+function Navigation_Bar({ section, nav, menuOpen, setMenuOpen }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -127,7 +133,7 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
 /* ═══════════════════════════════════════════════════════════
    HOME PAGE — modular sub-components
 ═══════════════════════════════════════════════════════════ */
-function Hero() {
+function Hero_Section() {
   return (
     <section className="hero">
       <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
@@ -140,7 +146,7 @@ function Hero() {
   );
 }
 
-function SloganMarquee() {
+function Slogan_Marquee() {
   const slogans = [
     "आपलं गाव, आपली जबाबदारी",
     "सुंदर विचार, सुंदर गाव",
@@ -167,152 +173,12 @@ function SloganMarquee() {
   );
 }
 
-function EmergencySVG() {
-  return (
-    <svg viewBox="0 0 360 230" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="295" cy="48" r="70" fill="#FFCCC5" opacity="0.45"/>
-      <circle cx="52" cy="195" r="55" fill="#FFCCC5" opacity="0.35"/>
-      <rect x="118" y="50" width="142" height="155" rx="10" fill="#FFB8AD"/>
-      <rect x="118" y="50" width="142" height="28" rx="10" fill="#FF8F82"/>
-      <rect x="118" y="65" width="142" height="13" fill="#FF8F82"/>
-      <rect x="136" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
-      <rect x="168" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
-      <rect x="200" y="94" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
-      <rect x="136" y="127" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
-      <rect x="200" y="127" width="22" height="22" rx="4" fill="rgba(255,245,244,0.85)"/>
-      <rect x="160" y="159" width="36" height="46" rx="6" fill="#FF8F82"/>
-      <rect x="167" y="55" width="24" height="7" rx="3" fill="#D94030"/>
-      <rect x="173" y="49" width="7" height="24" rx="3" fill="#D94030"/>
-      <circle cx="75" cy="150" r="13" fill="#FFD5CE"/>
-      <rect x="62" y="163" width="26" height="30" rx="10" fill="#E05040"/>
-      <rect x="50" y="166" width="12" height="7" rx="3" fill="#FFD5CE"/>
-      <rect x="88" y="166" width="12" height="7" rx="3" fill="#FFD5CE"/>
-      <rect x="222" y="170" width="90" height="38" rx="8" fill="#FF9B8F"/>
-      <rect x="230" y="158" width="56" height="24" rx="6" fill="#FFB8AD"/>
-      <circle cx="238" cy="212" r="8" fill="#C03020"/>
-      <circle cx="296" cy="212" r="8" fill="#C03020"/>
-      <rect x="244" y="172" width="18" height="6" rx="3" fill="white"/>
-      <rect x="250" y="166" width="6" height="18" rx="3" fill="white"/>
-      <rect x="28" y="68" width="14" height="5" rx="2" fill="#FFB8AD"/>
-      <rect x="33" y="63" width="5" height="14" rx="2" fill="#FFB8AD"/>
-      <rect x="306" y="102" width="10" height="4" rx="2" fill="#FFB8AD"/>
-      <rect x="309" y="98" width="4" height="10" rx="2" fill="#FFB8AD"/>
-      <circle cx="44" cy="102" r="5" fill="#FFCCC5"/>
-      <circle cx="322" cy="60" r="4" fill="#FFB8AD"/>
-    </svg>
-  );
-}
-
-function EventsSVG() {
-  return (
-    <svg viewBox="0 0 260 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="212" cy="42" r="55" fill="#D4CCFF" opacity="0.45"/>
-      <circle cx="40" cy="212" r="45" fill="#D4CCFF" opacity="0.35"/>
-      <rect x="58" y="62" width="152" height="142" rx="14" fill="#C4B5FD"/>
-      <rect x="58" y="62" width="152" height="38" rx="14" fill="#8B75E8"/>
-      <rect x="58" y="85" width="152" height="15" fill="#8B75E8"/>
-      <rect x="98" y="50" width="10" height="22" rx="5" fill="#6B5BD4"/>
-      <rect x="160" y="50" width="10" height="22" rx="5" fill="#6B5BD4"/>
-      <rect x="92" y="70" width="84" height="7" rx="3" fill="rgba(255,255,255,0.85)"/>
-      <rect x="70" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="94" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="118" y="113" width="18" height="14" rx="4" fill="#6B5BD4"/>
-      <rect x="142" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="166" y="113" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="70" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="94" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="118" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="142" y="135" width="18" height="14" rx="4" fill="#8B75E8"/>
-      <rect x="166" y="135" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="70" y="157" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <rect x="94" y="157" width="18" height="14" rx="4" fill="rgba(255,255,255,0.7)"/>
-      <circle cx="212" cy="152" r="18" fill="#D4CCFF"/>
-      <rect x="200" y="170" width="24" height="35" rx="10" fill="#8B75E8"/>
-      <rect x="22" y="88" width="8" height="8" rx="2" fill="#C4B5FD" transform="rotate(15,22,88)"/>
-      <rect x="237" y="84" width="7" height="7" rx="2" fill="#8B75E8" transform="rotate(-20,237,84)"/>
-      <circle cx="34" cy="130" r="5" fill="#D4CCFF"/>
-      <circle cx="240" cy="132" r="4" fill="#C4B5FD"/>
-      <rect x="216" y="58" width="6" height="6" rx="1" fill="#C4B5FD" transform="rotate(30,216,58)"/>
-      <circle cx="48" cy="64" r="4" fill="#D4CCFF"/>
-      <rect x="44" y="162" width="8" height="8" rx="2" fill="#C4B5FD" transform="rotate(-10,44,162)"/>
-    </svg>
-  );
-}
-
-function GallerySVG() {
-  return (
-    <svg viewBox="0 0 360 195" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="292" cy="42" r="62" fill="#B8F0D8" opacity="0.5"/>
-      <circle cx="58" cy="172" r="52" fill="#B8F0D8" opacity="0.4"/>
-      <rect x="28" y="50" width="68" height="52" rx="8" fill="#A8E8C8"/>
-      <rect x="34" y="56" width="56" height="36" rx="5" fill="#7FCEAC"/>
-      <rect x="34" y="85" width="56" height="12" rx="3" fill="#A8E8C8"/>
-      <polygon points="38,83 55,60 72,83" fill="#5FBFA0"/>
-      <polygon points="56,83 68,67 82,83" fill="#3D9E80"/>
-      <circle cx="47" cy="67" r="5" fill="#FFD96A" opacity="0.85"/>
-      <rect x="272" y="60" width="62" height="48" rx="8" fill="#A8E8C8"/>
-      <rect x="278" y="66" width="50" height="32" rx="5" fill="#7FCEAC"/>
-      <rect x="278" y="91" width="50" height="12" rx="3" fill="#A8E8C8"/>
-      <polygon points="282,90 295,72 308,90" fill="#5FBFA0"/>
-      <polygon points="302,90 314,76 326,90" fill="#3D9E80"/>
-      <rect x="120" y="58" width="132" height="98" rx="16" fill="#5FBFA0"/>
-      <rect x="125" y="53" width="52" height="18" rx="8" fill="#3D9E80"/>
-      <circle cx="186" cy="108" r="34" fill="#3D9E80"/>
-      <circle cx="186" cy="108" r="25" fill="#2A7D62"/>
-      <circle cx="186" cy="108" r="16" fill="#1D6550"/>
-      <circle cx="186" cy="108" r="8" fill="#124D3C"/>
-      <circle cx="178" cy="100" r="4" fill="rgba(255,255,255,0.35)"/>
-      <rect x="222" y="64" width="22" height="14" rx="5" fill="#A8E8C8"/>
-      <circle cx="148" cy="64" r="6" fill="#7FCEAC"/>
-      <circle cx="68" cy="138" r="14" fill="#B8F0D8"/>
-      <rect x="56" y="153" width="24" height="30" rx="10" fill="#3D9E80"/>
-      <rect x="72" y="145" width="28" height="20" rx="5" fill="#5FBFA0"/>
-      <circle cx="312" cy="152" r="5" fill="#B8F0D8"/>
-      <circle cx="332" cy="132" r="3" fill="#A8E8C8"/>
-      <circle cx="24" cy="120" r="4" fill="#B8F0D8"/>
-    </svg>
-  );
-}
-
-function PortalSVG() {
-  return (
-    <svg viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="212" cy="42" r="55" fill="#FFE8A0" opacity="0.5"/>
-      <circle cx="44" cy="178" r="46" fill="#FFE8A0" opacity="0.4"/>
-      <rect x="52" y="38" width="162" height="112" rx="12" fill="#F5C842"/>
-      <rect x="60" y="46" width="146" height="92" rx="8" fill="#FFF8E0"/>
-      <rect x="116" y="150" width="34" height="18" rx="4" fill="#E8A030"/>
-      <rect x="98" y="166" width="70" height="8" rx="4" fill="#E8A030"/>
-      <rect x="73" y="55" width="58" height="8" rx="4" fill="#F5D080"/>
-      <rect x="136" y="55" width="38" height="8" rx="4" fill="#FFECA0"/>
-      <polyline points="73,84 95,70 117,76 139,62 161,67 183,57" stroke="#E8A030" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="73" cy="84" r="3" fill="#C27820"/>
-      <circle cx="117" cy="76" r="3" fill="#C27820"/>
-      <circle cx="161" cy="67" r="3" fill="#C27820"/>
-      <line x1="70" y1="130" x2="186" y2="130" stroke="#F5D080" strokeWidth="2"/>
-      <rect x="73" y="110" width="16" height="20" rx="3" fill="#F5C842"/>
-      <rect x="95" y="98" width="16" height="32" rx="3" fill="#E8A030"/>
-      <rect x="117" y="86" width="16" height="44" rx="3" fill="#F5C842"/>
-      <rect x="139" y="102" width="16" height="28" rx="3" fill="#C27820"/>
-      <rect x="161" y="94" width="16" height="36" rx="3" fill="#E8A030"/>
-      <circle cx="220" cy="136" r="16" fill="#FFE8A0"/>
-      <rect x="208" y="152" width="24" height="28" rx="10" fill="#E8A030"/>
-      <rect x="48" y="174" width="224" height="8" rx="4" fill="#F5C842"/>
-      <rect x="22" y="72" width="22" height="8" rx="4" fill="#FFE8A0"/>
-      <rect x="22" y="86" width="16" height="8" rx="4" fill="#F5D080"/>
-      <rect x="22" y="100" width="19" height="8" rx="4" fill="#FFE8A0"/>
-      <circle cx="242" cy="86" r="4" fill="#FFE8A0"/>
-      <circle cx="232" cy="102" r="3" fill="#F5D080"/>
-    </svg>
-  );
-}
-
-function ServiceTiles({ nav }) {
+function Village_Services({ nav }) {
   const tiles = [
-    { label: "Emergency", sub: "Hospitals & emergency contacts", s: "emergency", tag: "Help & Safety",  icon: "🚨", bg: "linear-gradient(145deg,#FFF5F4 0%,#FFE4DF 100%)", accent: "#D94030", svg: <EmergencySVG /> },
-    { label: "Events",    sub: "Upcoming village programs",      s: "events",    tag: "Stay Updated",   icon: "🎉", bg: "linear-gradient(145deg,#F6F4FF 0%,#EBE5FF 100%)", accent: "#6B5BD4", svg: <EventsSVG />    },
-    { label: "Gallery",   sub: "Village photo memories",         s: "gallery",   tag: "Photos",         icon: "📸", bg: "linear-gradient(145deg,#F0FFF8 0%,#DDFAF0 100%)", accent: "#2A8F72", svg: <GallerySVG />   },
-    { label: "Portal",    sub: "Family tree & village budget",   s: "portal",    tag: "Members Only",   icon: "👤", bg: "linear-gradient(145deg,#FFFBF0 0%,#FFF3D0 100%)", accent: "#C27820", svg: <PortalSVG />    },
+    { img: emergencyImg, label: "Emergency", sub: "Hospitals & emergency contacts", s: "emergency", tag: "Help & Safety", icon: "🚨" },
+    { img: eventsImg,    label: "Events",    sub: "Upcoming village programs",      s: "events",    tag: "Stay Updated",  icon: "🎉" },
+    { img: galleryImg,   label: "Gallery",   sub: "Village photo memories",         s: "gallery",   tag: "Photos",        icon: "📸" },
+    { img: portalImg,    label: "Portal",    sub: "Family tree & village budget",   s: "portal",    tag: "Members Only",  icon: "👤" },
   ];
   return (
     <section className="svc-section">
@@ -325,8 +191,8 @@ function ServiceTiles({ nav }) {
         <div className="svc-bento">
           {tiles.map((t, i) => (
             <div className={`svc-card svc-card-${i}`} key={t.s} onClick={() => nav(t.s)}
-              style={{ background: t.bg, "--svc-accent": t.accent }}>
-              <div className="svc-illustration">{t.svg}</div>
+              style={{ backgroundImage: `url(${t.img})` }}>
+              <div className="svc-overlay" />
               <div className="svc-content">
                 <span className="svc-tag">{t.tag}</span>
                 <div className="svc-glass-panel">
@@ -346,32 +212,149 @@ function ServiceTiles({ nav }) {
   );
 }
 
-function VillageStory({ nav }) {
+function Village_Details({ nav }) {
   return (
-    <section className="about-strip">
-      <div className="about-img-wrap">
-        <img src={IMG.temple} alt="Shri Dev Ravalnath Mandir" />
-        <div className="about-img-label">🛕 श्री देव रवळनाथ मंदिर</div>
-      </div>
-      <div className="about-text">
-        <span className="eyebrow">आमचं गाव</span>
-        <h2>🌿 कोकणातलं सुंदर गाव – आयरेवाडी</h2>
-        <p className="about-location">मांगवली · वैभववाडी · सिंधुदुर्ग · महाराष्ट्र</p>
-        <p>कोकण प्रदेशातील <strong>सिंधुदुर्ग जिल्ह्यात</strong> वसलेले आयरेवाडी हे एक सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा बोलल्या जातात व गावाची लोकसंख्या अंदाजे <strong>1,264</strong> इतकी आहे. 2011 च्या जनगणनेनुसार साक्षरता दर 69% असून, स्त्री-पुरूष गुणोत्तर 1,175 आहे.</p>
-        <p>गाव आसपासील गावे — <strong>उपले, कोळपे, नेटल, एचेट</strong> — जवळ आहेत.</p>
-        <div className="about-stats-row">
-          <div className="about-stat"><strong>1,264</strong><span>लोकसंख्या</span></div>
-          <div className="about-stat"><strong>69%</strong><span>Literacy</span></div>
-          <div className="about-stat"><strong>1,175</strong><span>Sex Ratio</span></div>
+    <section className="vd-section">
+      <div className="vd-grid">
+
+        {/* Left — temple image */}
+        <div className="vd-image-col">
+          <div className="vd-img-wrap">
+            <img src={villageInfoImg} alt="आयरेवाडी गाव" />
+            <div className="vd-img-badge">
+              <span>🛕</span>
+              <span>श्री देव रवळनाथ मंदिर · आयरेवाडी</span>
+            </div>
+          </div>
         </div>
-        <p className="about-note">🚉 वैभववाडी रोड रेल्वे स्टेशन जवळ &nbsp;·&nbsp; 🛣️ NH‑166E / NH‑748 मार्गे सहज पोहोचता येते.</p>
-        <button className="btn-accent-sm" onClick={() => nav("gallery")}>Photos →</button>
+
+        {/* Right — village info cards */}
+        <div className="vd-info-col">
+          <div className="vd-eyebrow">
+            <span className="vd-eyebrow-dot" />
+            आमचं गाव · Our Village
+          </div>
+
+          <h2 className="vd-title">
+            आयरेवाडी <span className="vd-title-accent">गाव</span>
+          </h2>
+
+          <div className="vd-location-row">
+            <span className="vd-location-chip">📍 मांगवली</span>
+            <span className="vd-location-chip">🏛️ वैभववाडी</span>
+            <span className="vd-location-chip">🗺️ सिंधुदुर्ग</span>
+            <span className="vd-location-chip">🇮🇳 महाराष्ट्र</span>
+          </div>
+
+          <p className="vd-desc">
+            कोकण प्रदेशातील सिंधुदुर्ग जिल्ह्यात वसलेले आयरेवाडी हे एक
+            सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा
+            बोलल्या जातात. गाव आसपासील उपले, कोळपे, नेटल, एचेट या गावांजवळ आहे.
+          </p>
+
+          <div className="vd-stats-grid">
+            <div className="vd-stat-card">
+              <span className="vd-stat-icon">👥</span>
+              <strong>1,264</strong>
+              <span>लोकसंख्या</span>
+            </div>
+            <div className="vd-stat-card">
+              <span className="vd-stat-icon">📚</span>
+              <strong>69%</strong>
+              <span>Literacy Rate</span>
+            </div>
+            <div className="vd-stat-card">
+              <span className="vd-stat-icon">⚖️</span>
+              <strong>1,175</strong>
+              <span>Ratio</span>
+            </div>
+            <div className="vd-stat-card">
+              <span className="vd-stat-icon">🏘️</span>
+              <strong>280+</strong>
+              <span>Households</span>
+            </div>
+          </div>
+
+          <div className="vd-transport-row">
+            <div className="vd-transport-card">
+              <span className="vd-transport-icon">🚉</span>
+              <div>
+                <strong>रेल्वे स्टेशन</strong>
+                <p>वैभववाडी रोड (जवळ)</p>
+              </div>
+            </div>
+            <div className="vd-transport-card">
+              <span className="vd-transport-icon">🛣️</span>
+              <div>
+                <strong>महामार्ग</strong>
+                <p>NH‑166E · NH‑748</p>
+              </div>
+            </div>
+          </div>
+
+          <button className="vd-cta" onClick={() => nav("gallery")}>
+            📸 गाव फोटो पाहा →
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-function Initiatives() {
+function Ravalnath_Temple() {
+  return (
+    <section className="rt-section">
+      <div className="rt-deco">🕉️</div>
+
+      <div className="rt-container">
+
+        {/* Left — framed temple image */}
+        <div className="rt-img-col">
+          <div className="rt-img-frame">
+            <img src={IMG.temple} alt="श्री देव रवळनाथ मंदिर" />
+            <div className="rt-img-glow" />
+          </div>
+          <div className="rt-img-caption">
+            <span>🛕</span>
+            श्री देव रवळनाथ मंदिर · आयरेवाडी
+          </div>
+        </div>
+
+        {/* Right — temple history & content */}
+        <div className="rt-content-col">
+          <span className="rt-eyebrow">ग्रामदैवत · Village Deity</span>
+
+          <div className="rt-heading">
+            <span className="rt-heading-sub">श्री देव</span>
+            <span className="rt-heading-main">रवळनाथ मंदिर</span>
+          </div>
+
+          <div className="rt-rule" />
+
+          <div className="rt-body">
+            <p>श्री देव रवळनाथ हे दक्षिण कोकणातील एक प्रसिद्ध दैवत आहे. आमच्या गावातलं रवळनाथ मंदिर खूप जुनं आहे आणि वर्षानुवर्षं आम्ही त्यांची पूजा करत आलो आहोत. रवळनाथ देव आमच्या गावाचे <strong>ग्रामदैवत</strong> असून ते गावाचं, शेताचं आणि जनावरांचं रक्षण करतात.</p>
+            <p>श्रद्धेनुसार, रवळनाथ देव हे <strong>भगवान शिव किंवा भैरव</strong> यांचे उग्र रूप मानले जाते. त्यांच्या हातात तलवार आणि बाजूला त्रिशूल ही त्यांची मुख्य प्रतीकं आहेत. कोकणातील लोकांचा विश्वास आहे की रवळनाथ देव वाईट शक्ती, रोगराई आणि संकटं यापासून गावाचं संरक्षण करतात.</p>
+            <p>दरवर्षी <strong>रवळनाथ जत्रा</strong> मोठ्या उत्साहात साजरी केली जाते. त्या दिवशी ढोल-ताशांचा गजर, मिरवणुका आणि देवाला नैवेद्य अर्पण करण्यासाठी दूरदूरून भक्त येतात. मंदिर परिसर फुलांनी सजवला जातो आणि वातावरण भक्तीभावाने भारून जातं.</p>
+          </div>
+
+          <blockquote className="rt-blockquote">
+            "आमच्यासाठी रवळनाथ देव म्हणजे केवळ देव नाही, तर{" "}
+            <strong>गावाचा अभिमान आणि बळ आहे.</strong>"
+          </blockquote>
+
+          <div className="rt-tags">
+            <span className="rt-tag">🏛️ प्राचीन मंदिर</span>
+            <span className="rt-tag">🔱 ग्रामदैवत</span>
+            <span className="rt-tag">🎉 वार्षिक जत्रा</span>
+            <span className="rt-tag">🙏 दक्षिण कोकण</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Member_Initiatives() {
   return (
     <section className="initiatives-section">
       <div className="sec-header">
@@ -399,7 +382,7 @@ function Initiatives() {
   );
 }
 
-function Festivals() {
+function Village_Festivals() {
   return (
     <section className="page-section">
       <div className="sec-header">
@@ -417,7 +400,7 @@ function Festivals() {
   );
 }
 
-function EventsPreview({ events, nav }) {
+function Events_Preview({ events, nav }) {
   return (
     <section className="page-section" style={{ paddingTop: 0 }}>
       <div className="sec-header">
@@ -440,7 +423,7 @@ function EventsPreview({ events, nav }) {
   );
 }
 
-function TeamSection() {
+function Team_Members() {
   const team = [
     {
       name: "Bhalchandra Ayare",
@@ -549,25 +532,8 @@ function TeamSection() {
   );
 }
 
-function StatsBar() {
-  return (
-    <div className="stats-strip">
-      {[
-        { n: "1,264", label: "लोकसंख्या" },
-        { n: "69%",   label: "Literacy Rate" },
-        { n: "1,175", label: "Sex Ratio" },
-        { n: "2025",  label: "ayarewadi.in" },
-      ].map(s => (
-        <div className="stat" key={s.label}>
-          <strong>{s.n}</strong>
-          <span>{s.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
-function JoinCommunity() {
+function Join_Community() {
   return (
     <section className="join-section">
       <div className="join-content">
@@ -590,20 +556,19 @@ function JoinCommunity() {
   );
 }
 
-function Home({ nav, events }) {
+function Home_Page({ nav, events }) {
   return (
     <>
-      <SloganMarquee />
-      <Hero />
-      <SloganMarquee />
-      <ServiceTiles nav={nav} />
-      <VillageStory nav={nav} />
-      <Initiatives />
-      <Festivals />
-      {events.length > 0 && <EventsPreview events={events} nav={nav} />}
-      <TeamSection />
-      <StatsBar />
-      <JoinCommunity />
+      <Hero_Section />
+      <Slogan_Marquee />
+      <Village_Services nav={nav} />
+      <Village_Details nav={nav} />
+      <Ravalnath_Temple />
+      <Member_Initiatives />
+      <Village_Festivals />
+      {events.length > 0 && <Events_Preview events={events} nav={nav} />}
+      <Team_Members />
+      <Join_Community />
     </>
   );
 }
@@ -613,7 +578,7 @@ function Home({ nav, events }) {
    Real hospital data from ayarewadi.in
    Add more hospitals by copying an object in the array below.
 ═══════════════════════════════════════════════════════════ */
-function Emergency() {
+function Emergency_Page() {
   // TO ADD A HOSPITAL: copy one object and fill in details
   const hospitals = [
     {
@@ -703,7 +668,7 @@ function Emergency() {
    Demo: AYR001 / village
    When backend is ready: real login via POST /login
 ═══════════════════════════════════════════════════════════ */
-function Portal() {
+function Portal_Page() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [id, setId]       = useState("");
   const [pass, setPass]   = useState("");
@@ -843,7 +808,7 @@ const GALLERY_DEFAULTS = [
   { src: IMG.nature3,    fullSrc: IMG.nature3,    label: "Village" },
 ];
 
-function Gallery() {
+function Gallery_Page() {
   const [photos, setPhotos] = useState([]);
   const [query, setQuery]   = useState("");
 
@@ -945,7 +910,7 @@ function Gallery() {
    Fallback events shown if DB is empty or API is down.
    TO ADD EVENTS: insert rows in your Supabase events table.
 ═══════════════════════════════════════════════════════════ */
-function Events({ events }) {
+function Events_Page({ events }) {
   // FALLBACK EVENTS — shown when DB has no data
   const fallback = [
     { id: 1, title: "रवळनाथ जत्रा",               description: "Annual Ravalnath Jatra — ढोल-ताशांचा गजर, मिरवणुका.", date: "2025-11-15", tag: "Festival" },
@@ -989,7 +954,7 @@ function Events({ events }) {
    FOOTER
    Change contact email, social links, village name below.
 ═══════════════════════════════════════════════════════════ */
-function Footer({ nav }) {
+function Footer_Section({ nav }) {
   return (
     <footer className="footer">
       <div className="footer-grid">
