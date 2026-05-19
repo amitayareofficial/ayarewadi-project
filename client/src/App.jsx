@@ -416,15 +416,13 @@ function Emergency() {
       </div>
 
       {/* AMBULANCE STRIP */}
-      <div className="hosp-card" style={{ marginTop: "20px", flexDirection: "row", gap: "20px" }}>
-        <img src={IMG.ambulance} alt="Ambulance"
-          style={{ width: "160px", height: "140px", objectFit: "cover", borderRadius: "10px", flexShrink: 0 }} />
-        <div style={{ padding: "12px 0" }}>
+      <div className="hosp-card ambulance-card" style={{ marginTop: "20px" }}>
+        <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
+        <div className="ambulance-body">
           <h3 style={{ color: "var(--accent)", marginBottom: "10px" }}>🚑 Toll-Free Numbers</h3>
-          {/* EMERGENCY NUMBERS — update if changed */}
           <p><strong>108</strong> — Free emergency ambulance</p>
-          <p style={{ marginTop: "6px" }}><strong>102</strong> — Ambulance helpline</p>
-          <p style={{ marginTop: "6px" }}><strong>Sindhudurg:</strong> 8149822015 / 7030397514</p>
+          <p><strong>102</strong> — Ambulance helpline</p>
+          <p><strong>Sindhudurg:</strong> 8149822015 / 7030397514</p>
         </div>
       </div>
 
@@ -537,6 +535,7 @@ function Portal() {
       {/* BUDGET TABLE — replace static data with API when ready */}
       <div className="info-card" style={{ marginTop: "20px" }}>
         <h3>💰 Village Budget | गावाचा अर्थसंकल्प</h3>
+        <div className="budget-table-wrap">
         <table className="budget-table">
           <thead><tr><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
           <tbody>
@@ -549,6 +548,7 @@ function Portal() {
             ))}
           </tbody>
         </table>
+        </div>
         {/* BALANCE — change ₹50,000 to real balance from DB */}
         <div className="balance-bar">
           <span>💰 Current Balance | शिल्लक</span>
