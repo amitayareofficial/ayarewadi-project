@@ -7,21 +7,6 @@ const API = "https://ayarewadi-project.onrender.com"; // ← change if URL chang
 const getToken = () => localStorage.getItem("admin_token");
 const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
-
-// 1. At the TOP of App.jsx, add this import:
-import Admin from "./Admin.jsx";
-
-// 2. In the Navbar links array, add the admin link at the end:
-const links = [
-  { id: "home",      label: "Home" },
-  { id: "emergency", label: "Emergency" },
-  { id: "portal",    label: "Portal" },
-  { id: "gallery",   label: "Gallery" },
-  { id: "events",    label: "Events" },
-  { id: "admin",     label: "⚙️ Admin" },  // ← ADD THIS
-];
-
-
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
   const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements

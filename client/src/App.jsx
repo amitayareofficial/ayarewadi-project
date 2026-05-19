@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
+import Admin from "./pages/Admin.jsx";
 
 // ── BACKEND API URL — change this if your Render URL changes ──────────
 const API = "https://ayarewadi-project.onrender.com";
@@ -63,6 +64,7 @@ export default function App() {
         {section === "portal"    && <Portal />}
         {section === "gallery"   && <Gallery />}
         {section === "events"    && <Events events={events} />}
+        {section === "admin"     && <Admin />}
       </main>
       <Footer nav={nav} />
     </div>
@@ -88,6 +90,7 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
     { id: "portal",    label: "Portal" },
     { id: "gallery",   label: "Gallery" },
     { id: "events",    label: "Events" },
+    { id: "admin",     label: "⚙️ Admin" },
   ];
 
   return (
@@ -394,14 +397,19 @@ function Portal() {
   const [err, setErr]     = useState("");
   const [member, setMember] = useState(null);
   const [family, setFamily] = useState([]);
+  const [budget, setBudget] = useState([]);
 
   const login = async () => {
     try {
       // REAL LOGIN — calls your backend API
       const res = await axios.post(`${API}/login`, { member_id: id, password: pass });
       setMember(res.data.member);
-      const fam = await axios.get(`${API}/family/${id}`);
+      const [fam, bud] = await Promise.all([
+        axios.get(`${API}/family/${id}`),
+        axios.get(`${API}/budget`),
+      ]);
       setFamily(fam.data);
+      setBudget(bud.data);
       setLoggedIn(true); setErr("");
     } catch {
       // DEMO FALLBACK — remove this block when real backend login is ready
@@ -413,6 +421,14 @@ function Portal() {
           { id: 3, name: "Akash Patil",   role: "Son",       phone: "9876543212" },
           { id: 4, name: "Priya Patil",   role: "Daughter",  phone: null },
         ]);
+        setBudget([
+          { id: 1, description: "Gram Panchayat Fund",   type: "income",  amount: 150000 },
+          { id: 2, description: "Festival Collection",   type: "income",  amount: 45000 },
+          { id: 3, description: "Water Pipeline Repair", type: "expense", amount: 38000 },
+          { id: 4, description: "Road Maintenance",      type: "expense", amount: 52000 },
+          { id: 5, description: "School Renovation",     type: "expense", amount: 30000 },
+          { id: 6, description: "Festival Expenses",     type: "expense", amount: 25000 },
+        ]);
         setLoggedIn(true); setErr("");
       } else {
         setErr("Invalid ID or password.");
@@ -420,15 +436,8 @@ function Portal() {
     }
   };
 
-  // BUDGET DATA — replace with real API call when ready
-  const budget = [
-    { desc: "Gram Panchayat Fund",    type: "income",  amt: "₹1,50,000" },
-    { desc: "Festival Collection",    type: "income",  amt: "₹45,000" },
-    { desc: "Water Pipeline Repair",  type: "expense", amt: "₹38,000" },
-    { desc: "Road Maintenance",       type: "expense", amt: "₹52,000" },
-    { desc: "School Renovation",      type: "expense", amt: "₹30,000" },
-    { desc: "Festival Expenses",      type: "expense", amt: "₹25,000" },
-  ];
+  const balance = budget.reduce((acc, e) =>
+    e.type === "income" ? acc + Number(e.amount) : acc - Number(e.amount), 0);
 
   if (!loggedIn) return (
     <section className="page-section center-section">
@@ -475,10 +484,10 @@ function Portal() {
           <thead><tr><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
           <tbody>
             {budget.map(b => (
-              <tr key={b.desc}>
-                <td>{b.desc}</td>
+              <tr key={b.id}>
+                <td>{b.description}</td>
                 <td><span className={`tag ${b.type}`}>{b.type}</span></td>
-                <td>{b.amt}</td>
+                <td>₹{Number(b.amount).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
@@ -486,7 +495,9 @@ function Portal() {
         {/* BALANCE — change ₹50,000 to real balance from DB */}
         <div className="balance-bar">
           <span>💰 Current Balance | शिल्लक</span>
-          <strong>₹50,000</strong>
+          <strong style={{ color: balance >= 0 ? "#2e7d32" : "#c62828" }}>
+            ₹{balance.toLocaleString()}
+          </strong>
         </div>
       </div>
 
@@ -504,45 +515,108 @@ function Portal() {
    Real village photos preloaded from ayarewadi.in
    Users can also upload their own photos (stored in memory).
 ═══════════════════════════════════════════════════════════ */
-function Gallery() {
-  // TO ADD MORE DEFAULT PHOTOS: add { src: "URL", label: "Name" } here
-  const defaults = [
-    { src: IMG.templeReno, label: "Temple Renovation" },
-    { src: IMG.busStand,   label: "Bus Stand" },
-    { src: IMG.sports,     label: "Sports Events" },
-    { src: IMG.temple,     label: "Ravalnath Temple" },
-    { src: IMG.festival1,  label: "Festival" },
-    { src: IMG.festival2,  label: "Festival" },
-    { src: IMG.festival3,  label: "Celebration" },
-    { src: IMG.nature1,    label: "Village Life" },
-    { src: IMG.nature2,    label: "Village" },
-    { src: IMG.nature3,    label: "Village" },
-  ];
-  const [photos, setPhotos] = useState(defaults);
+const GALLERY_DEFAULTS = [
+  { src: IMG.templeReno, fullSrc: IMG.templeReno, label: "Temple Renovation" },
+  { src: IMG.busStand,   fullSrc: IMG.busStand,   label: "Bus Stand" },
+  { src: IMG.sports,     fullSrc: IMG.sports,     label: "Sports Events" },
+  { src: IMG.temple,     fullSrc: IMG.temple,     label: "Ravalnath Temple" },
+  { src: IMG.festival1,  fullSrc: IMG.festival1,  label: "Festival" },
+  { src: IMG.festival2,  fullSrc: IMG.festival2,  label: "Festival" },
+  { src: IMG.festival3,  fullSrc: IMG.festival3,  label: "Celebration" },
+  { src: IMG.nature1,    fullSrc: IMG.nature1,    label: "Village Life" },
+  { src: IMG.nature2,    fullSrc: IMG.nature2,    label: "Village" },
+  { src: IMG.nature3,    fullSrc: IMG.nature3,    label: "Village" },
+];
 
-  const upload = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setPhotos(p => [{ src: ev.target.result, label: file.name }, ...p]);
-    reader.readAsDataURL(file);
+function Gallery() {
+  const [photos, setPhotos] = useState([]);
+  const [query, setQuery]   = useState("");
+
+  useEffect(() => {
+    axios.get(`${API}/gallery`)
+      .then(r => setPhotos(
+        r.data.length > 0
+          ? r.data.map(p => ({ src: p.thumbnail_url || p.url, fullSrc: p.url, label: p.caption || p.category || "" }))
+          : GALLERY_DEFAULTS
+      ))
+      .catch(() => setPhotos(GALLERY_DEFAULTS));
+  }, []);
+
+  const filtered = query
+    ? photos.filter(p => p.label.toLowerCase().includes(query.toLowerCase()))
+    : photos;
+
+  const download = async (src, label) => {
+    try {
+      const res  = await fetch(src);
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = (label || "photo") + ".jpg";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(src, "_blank");
+    }
   };
 
   return (
     <section className="page-section">
       <div className="sec-header">
         <span className="eyebrow">Memories</span>
-        <h2>🖼️ Village Gallery | गाव फोटो</h2>
+        <h2 className="gallery-heading">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Village Gallery | गाव फोटो
+        </h2>
       </div>
-      <label className="upload-label">
-        📷 Upload Photo
-        <input type="file" accept="image/*" onChange={upload} style={{ display: "none" }} />
-      </label>
+
+      <div className="gallery-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          placeholder="Search photos..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        {query && (
+          <button className="gallery-search-clear" onClick={() => setQuery("")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {filtered.length === 0 && query && (
+        <p className="gallery-empty">No photos match "{query}"</p>
+      )}
+
       <div className="gallery-grid">
-        {photos.map((p, i) => (
+        {filtered.map((p, i) => (
           <div className="gallery-item" key={i}>
-            <img src={p.src} alt={p.label} />
-            <div className="gallery-caption">{p.label}</div>
+            <img src={p.src} alt={p.label} loading="lazy" />
+            <div className="gallery-overlay">
+              <span className="gallery-caption">{p.label}</span>
+              <button
+                className="gallery-download"
+                onClick={() => download(p.fullSrc || p.src, p.label)}
+                title="Download photo"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -623,21 +697,3 @@ function Footer({ nav }) {
   );
 }
 
-
-return (
-  <div className="app">
-    <Navbar section={section} nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-    <main>
-      {section === "home"      && <Home nav={nav} events={events} />}
-      {section === "emergency" && <Emergency />}
-      {section === "portal"    && <Portal />}
-      {section === "gallery"   && <Gallery />}
-      {section === "events"    && <Events events={events} />}
-      {section === "admin"     && <Admin />}        {/* ← ADD THIS for admin page */}
-    </main>
-
-    <Footer nav={nav} />
-    <a href="https://wa.me/919594179606" className="whatsapp-float" target="_blank" rel="noreferrer">💬</a>
-  </div>
-);
-}

@@ -39,8 +39,8 @@ app.post("/admin/login", async (req, res) => {
   const r = await pool.query("SELECT * FROM admins WHERE username=$1", [username]);
   if (!r.rows.length) return res.status(401).json({ error: "Invalid credentials" });
   const admin = r.rows[0];
-  // For plain text password (change to bcrypt.compare later)
-  if (password !== admin.password) return res.status(401).json({ error: "Invalid credentials" });
+  const match = await bcrypt.compare(password, admin.password);
+  if (!match) return res.status(401).json({ error: "Invalid credentials" });
   const token = jwt.sign({ id: admin.id, username: admin.username }, SECRET, { expiresIn: "7d" });
   res.json({ token, username: admin.username });
 });
@@ -180,4 +180,10 @@ app.get("/family/:member_id", async (req, res) => {
 });
 
 app.get("/", (req, res) => res.send("Ayarewadi Backend Running ✅"));
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
 app.listen(5000, () => console.log("Server running on port 5000"));
