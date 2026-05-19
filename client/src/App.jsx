@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
+import heroImg from "./assets/images/ayarewadi_home_image.jpg";
 
 // ── BACKEND API URL — change this if your Render URL changes ──────────
 const API = "https://ayarewadi-project.onrender.com";
@@ -9,7 +10,7 @@ const API = "https://ayarewadi-project.onrender.com";
 // ── ALL IMAGES FROM ayarewadi.in — replace src URLs to use your own photos ──
 const IMG = {
   // HERO: Full-screen background on home page — replace with your best village photo
-  hero: "https://images.unsplash.com/photo-1663079156029-a170af256f67?auto=format&fit=crop&w=1920&q=80",
+  hero: heroImg,
 
   // TEMPLE: Side image in About section — your Ravalnath temple photo
   temple: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=964,fit=crop/YNq2a76xB3Ip7LZZ/img_20231008_171703-YBgbklJZkwuXBwnj.jpg",
@@ -128,7 +129,8 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
 ═══════════════════════════════════════════════════════════ */
 function Hero({ nav }) {
   return (
-    <section className="hero" style={{ backgroundImage: `url(${IMG.hero})` }}>
+    <section className="hero">
+      <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
       <div className="hero-overlay" />
       <div className="hero-content">
         <span className="hero-eyebrow">सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र</span>
