@@ -623,4 +623,22 @@ function Footer({ nav }) {
   );
 }
 
-<a href="https://wa.me/919594179606" className="whatsapp-float" target="_blank">💬</a>
+
+return (
+  <div className="app">
+    <Navbar section={section} nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+    <main>
+      {section === "home"      && <Home nav={nav} events={events} />}
+      {section === "emergency" && <Emergency />}
+      {section === "portal"    && <Portal />}
+      {section === "gallery"   && <Gallery />}
+      {section === "events"    && <Events events={events} />}
+      {section === "admin"     && <Admin />}        {/* ← ADD THIS for admin page */}
+    </main>
+    <Footer nav={nav} />
+
+    {/* ── WHATSAPP BUTTON — moved inside return, not outside component ── */}
+    <a href="https://wa.me/919594179606" className="whatsapp-float"
+       target="_blank" rel="noreferrer">💬</a>
+  </div>
+);
