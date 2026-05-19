@@ -635,10 +635,9 @@ return (
       {section === "events"    && <Events events={events} />}
       {section === "admin"     && <Admin />}        {/* ← ADD THIS for admin page */}
     </main>
-    <Footer nav={nav} />
 
-    {/* ── WHATSAPP BUTTON — moved inside return, not outside component ── */}
-    <a href="https://wa.me/919594179606" className="whatsapp-float"
-       target="_blank" rel="noreferrer">💬</a>
+    <Footer nav={nav} />
+    <a href="https://wa.me/919594179606" className="whatsapp-float" target="_blank" rel="noreferrer">💬</a>
   </div>
 );
+}
