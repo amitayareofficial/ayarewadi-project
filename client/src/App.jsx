@@ -622,3 +622,5 @@ function Footer({ nav }) {
     </footer>
   );
 }
+
+<a href="https://wa.me/919594179606" className="whatsapp-float" target="_blank">💬</a>
