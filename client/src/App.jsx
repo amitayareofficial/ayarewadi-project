@@ -2,56 +2,297 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
-import heroImg      from "./assets/images/main_image_home.png";
-import emergencyImg from "./assets/images/emergency.png";
-import eventsImg    from "./assets/images/news.png";
-import galleryImg   from "./assets/images/gallery.png";
-import portalImg    from "./assets/images/portal.png";
-import templeImg    from "./assets/images/ravalnath_temple.png";
+import heroImg        from "./assets/images/main_image_home.png";
+import emergencyImg   from "./assets/images/emergency.png";
+import eventsImg      from "./assets/images/news.png";
+import galleryImg     from "./assets/images/gallery.png";
+import portalImg      from "./assets/images/portal.png";
+import templeImg      from "./assets/images/ravalnath_temple.png";
 import villageInfoImg from "./assets/images/village_info_iamge.png";
 
-// ── BACKEND API URL — change this if your Render URL changes ──────────
 const API = "https://ayarewadi-project.onrender.com";
 
-// ── ALL IMAGES FROM ayarewadi.in — replace src URLs to use your own photos ──
 const IMG = {
-  // HERO: Full-screen background on home page — replace with your best village photo
-  hero: heroImg,
-
-  // TEMPLE: Side image in About section — your Ravalnath temple photo
-  temple: templeImg,
-
-  // INITIATIVES: 3 cards below hero — replace with your village work photos
+  hero:       heroImg,
+  temple:     templeImg,
   templeReno: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=165.20076481835565;0;479.08221797323137;0/YNq2a76xB3Ip7LZZ/img_20231008_171637-AMq8ka5gQ9T49MZn.jpg",
   busStand:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=296.7117988394584;74.3175965665236;373.15280464216636;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-06-07-at-7.06.56-pm-mePJZ51Bekfgav0a.jpeg",
   sports:     "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;83.42158859470469;0;329.5152749490835/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-1.24.58-am-mjEGa20ZkvuNlzg6.jpeg",
-
-  // FESTIVALS: 3 festival photos in festival section
   festival1:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;209.69450101832996;0;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.06.58-am-AzGNwDaNRWIk2lae.jpeg",
   festival2:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;384.54211956521743;0;362.81657608695656/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.07.00-am-1-mP4MkNVWqrTxwBb0.jpeg",
   festival3:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;117.31160896130346;0;463.3808553971487/YNq2a76xB3Ip7LZZ/img_20230923_151456-dOqDklw1xKup1yxM.jpg",
-
-  // NATURE PICS: Small grid in temple section
   nature1:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=310,fit=crop,trim=0;59.96330275229358;0;34.715596330275226/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-1.24.59-am-ALpPkJDvqQFz7l0N.jpeg",
   nature2:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=310,fit=crop,trim=425.32323232323233;0;514.1565656565656;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.06.52-am-mv0J6lZwOyiRQzkn.jpeg",
   nature3:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=337,fit=crop,trim=0;128;0;132.92307692307693/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.30.51-am-1-A0xjJrWaDDt2zOMB.jpeg",
-
-  // HOSPITALS: Photos on emergency page
   ruralHosp:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/rural-hospital-vaibhavwadi-mk3JOK95lPFqKXZx.webp",
   aaaanadi:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/anadi-hospital-A85VKX1j4xFDB4Zy.png",
   marathe:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop,trim=0;81.04735062006765;0;158.608793686584/YNq2a76xB3Ip7LZZ/marathe-clinic-hospital-YanJ8K4l8pCllDbZ.png",
   ambulance:  "https://images.unsplash.com/photo-1599700403969-f77b3aa74837?auto=format&fit=crop&w=612&h=576",
-
-  // LOGO: Shows in navbar and footer — your Ayarewadi logo
-  logo: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=44,fit=crop/YNq2a76xB3Ip7LZZ/logo-AMq8kxQE5PsQv1g4.png",
+  logo:       "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=44,fit=crop/YNq2a76xB3Ip7LZZ/logo-AMq8kxQE5PsQv1g4.png",
 };
 
+/* ═══════════════════════════════════════════════════════════
+   TRANSLATIONS  — add keys here to translate any new section
+═══════════════════════════════════════════════════════════ */
+const LANG = {
+  en: {
+    nav: {
+      home: "Home", emergency: "Emergency", portal: "Portal",
+      gallery: "Gallery", events: "Events", admin: "⚙️ Admin",
+    },
+    hero: {
+      eyebrow: "Sindhudurg · Vaibhavwadi · Konkan · Maharashtra",
+      tagline: '"One village, one identity, one bond – Ayarewadi!"',
+    },
+    marquee: {
+      label: "Thoughts",
+      slogans: [
+        "Our village, our responsibility",
+        "Beautiful thoughts, beautiful village",
+        "Let's all build a beautiful village together",
+        "Development through unity",
+        "Educated village, developed village",
+        "Conserve water, absorb water",
+        "A beautiful village blooms through unity",
+      ],
+    },
+    services: {
+      eyebrow: "Explore",
+      title: "Village Services",
+      subtitle: "Everything you need from Ayarewadi — always at your fingertips.",
+      tiles: [
+        { label: "Emergency", sub: "Hospitals & emergency contacts", tag: "Help & Safety" },
+        { label: "Events",    sub: "Upcoming village programs",      tag: "Stay Updated"  },
+        { label: "Gallery",   sub: "Village photo memories",         tag: "Photos"        },
+        { label: "Portal",    sub: "Family tree & village budget",   tag: "Members Only"  },
+      ],
+    },
+    vd: {
+      eyebrow: "Our Village",
+      title: "Ayarewadi", titleAccent: "Village",
+      chips: ["📍 Mangavli", "🏛️ Vaibhavwadi", "🗺️ Sindhudurg", "🇮🇳 Maharashtra"],
+      desc: "Ayarewadi, situated in Sindhudurg district of the Konkan region, is a culturally rich and scenic village. Marathi and Konkani languages are spoken here. The village is near the surrounding villages — Uple, Kolpe, Netal, and Echet.",
+      stats: [
+        { icon: "👥", val: "1,264", label: "Population"    },
+        { icon: "📚", val: "69%",   label: "Literacy Rate" },
+        { icon: "⚖️", val: "1,175", label: "Sex Ratio"     },
+        { icon: "🏘️", val: "280+",  label: "Households"    },
+      ],
+      transport: [
+        { icon: "🚉", strong: "Railway Station", p: "Vaibhavwadi Road (Nearby)" },
+        { icon: "🛣️", strong: "Highway",         p: "NH‑166E · NH‑748"          },
+      ],
+      badge: "🛕 Shri Dev Ravalnath Temple · Ayarewadi",
+      cta: "📸 View Village Photos →",
+    },
+    rt: {
+      eyebrow: "Village Deity",
+      sub: "Shri Dev",
+      main: "Ravalnath Temple",
+      caption: "🛕 Shri Dev Ravalnath Temple · Ayarewadi",
+      tags: ["🏛️ Ancient Temple", "🔱 Village Deity", "🎉 Annual Jatra", "🙏 South Konkan"],
+    },
+    initiatives: {
+      eyebrow: "Village Work",
+      title: "Initiatives by Members",
+      items: [
+        { title: "Temple Renovation",    sub: "Restoration of Ravalnath temple"          },
+        { title: "Bus Stand Sign Board", sub: "New sign board for village bus stand"      },
+        { title: "Organizing Sports",    sub: "Cricket & sports events for village youth" },
+      ],
+    },
+    festivals: { eyebrow: "Festivals", title: "🔱 Festivals in Ayarewadi" },
+    eventsPreview: { eyebrow: "What's On", title: "Upcoming Events", btn: "All Events →" },
+    team: {
+      eyebrow: "Our Team",
+      title: "Gram Committee",
+      subtitle: "Ayarewadi Gram Panchayat — Dedicated leaders serving our village with pride and transparency.",
+    },
+    join: {
+      eyebrow: "Community",
+      title: "Stay Connected With Us",
+      para: "Stay connected with Ayarewadi village — get updates on festivals, events, and village news directly on WhatsApp.",
+      wa: "WhatsApp Group",
+    },
+    footer: {
+      village: "Village", emergency: "Emergency", contact: "Contact",
+      home: "Home", eventsNews: "Events & News", gallery: "Gallery",
+      portal: "Member Portal", hospitals: "Hospitals",
+      copy: "© 2025 Ayarewadi.in · All rights reserved",
+    },
+    emergency: {
+      eyebrow: "Help & Safety",
+      title: "🚨 Emergency Contacts",
+      nearby: "Nearby Hospitals",
+      tollfree: "🚑 Toll-Free Numbers",
+      other: "Other Helplines",
+      police: "Police:", fire: "Fire:", women: "Women Helpline:", child: "Child Helpline:",
+      freeAmb: "Free emergency ambulance",
+      ambHelp: "Ambulance helpline",
+      district: "Sindhudurg:",
+      alertFreeAmb: "Free Ambulance",
+      alertHelpline: "Ambulance Helpline",
+      alertDistrict: "Sindhudurg",
+    },
+    portal: {
+      title: "Member Login", subtitle: "Village Member Login",
+      idLabel: "Member ID", passLabel: "Password",
+      loginBtn: "Login | प्रवेश करा",
+      demo: "Demo: AYR001 / village",
+      family: "👨‍👩‍👧‍👦 Family Tree",
+      budget: "💰 Village Budget",
+      balance: "💰 Current Balance",
+      logout: "Logout | बाहेर पडा",
+      welcome: "👤 Welcome —",
+      household: "Family", houseNo: "House No.",
+    },
+    gallery: {
+      eyebrow: "Memories",
+      title: "Village Gallery | गाव फोटो",
+      search: "Search photos...",
+      empty: "No photos match",
+    },
+    events: {
+      eyebrow: "Stay Updated",
+      title: "📅 News & Events | बातम्या व कार्यक्रम",
+      noticeTitle: "📢 Notice Board | सूचना फलक",
+    },
+  },
+
+  mr: {
+    nav: {
+      home: "मुख्यपान", emergency: "आपत्कालीन", portal: "पोर्टल",
+      gallery: "गॅलरी", events: "कार्यक्रम", admin: "⚙️ व्यवस्थापन",
+    },
+    hero: {
+      eyebrow: "सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र",
+      tagline: '"एक गाव, एक ओळख, एक नातं – आयरेवाडी!"',
+    },
+    marquee: {
+      label: "सुविचार",
+      slogans: [
+        "आपलं गाव, आपली जबाबदारी",
+        "सुंदर विचार, सुंदर गाव",
+        "सर्वांनी मिळून सुंदर गाव घडवूया",
+        "एकतेतून गावाचा विकास",
+        "शिक्षित गाव, विकसित गाव",
+        "पाणी अडवा, पाणी जिरवा",
+        "एकजुटीतून घडेल सुंदर गाव",
+      ],
+    },
+    services: {
+      eyebrow: "Explore",
+      title: "ग्राम सेवा",
+      subtitle: "आयरेवाडीतील सर्व सेवा — नेहमी तुमच्या हाताशी.",
+      tiles: [
+        { label: "आपत्कालीन", sub: "रुग्णालये व आपत्कालीन संपर्क", tag: "मदत व सुरक्षा" },
+        { label: "कार्यक्रम", sub: "येणारे गाव कार्यक्रम",          tag: "अद्ययावत राहा" },
+        { label: "गॅलरी",    sub: "गावाच्या फोटो आठवणी",            tag: "फोटो"          },
+        { label: "पोर्टल",   sub: "कुटुंब वृक्ष व गाव अर्थसंकल्प", tag: "सभासद फक्त"   },
+      ],
+    },
+    vd: {
+      eyebrow: "आमचं गाव · Our Village",
+      title: "आयरेवाडी", titleAccent: "गाव",
+      chips: ["📍 मांगवली", "🏛️ वैभववाडी", "🗺️ सिंधुदुर्ग", "🇮🇳 महाराष्ट्र"],
+      desc: "कोकण प्रदेशातील सिंधुदुर्ग जिल्ह्यात वसलेले आयरेवाडी हे एक सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा बोलल्या जातात. गाव आसपासील उपले, कोळपे, नेटल, एचेट या गावांजवळ आहे.",
+      stats: [
+        { icon: "👥", val: "1,264", label: "लोकसंख्या"    },
+        { icon: "📚", val: "69%",   label: "साक्षरता दर"   },
+        { icon: "⚖️", val: "1,175", label: "लिंग गुणोत्तर" },
+        { icon: "🏘️", val: "280+",  label: "कुटुंबे"       },
+      ],
+      transport: [
+        { icon: "🚉", strong: "रेल्वे स्टेशन", p: "वैभववाडी रोड (जवळ)" },
+        { icon: "🛣️", strong: "महामार्ग",      p: "NH‑166E · NH‑748"   },
+      ],
+      badge: "🛕 श्री देव रवळनाथ मंदिर · आयरेवाडी",
+      cta: "📸 गाव फोटो पाहा →",
+    },
+    rt: {
+      eyebrow: "ग्रामदैवत · Village Deity",
+      sub: "श्री देव",
+      main: "रवळनाथ मंदिर",
+      caption: "🛕 श्री देव रवळनाथ मंदिर · आयरेवाडी",
+      tags: ["🏛️ प्राचीन मंदिर", "🔱 ग्रामदैवत", "🎉 वार्षिक जत्रा", "🙏 दक्षिण कोकण"],
+    },
+    initiatives: {
+      eyebrow: "गाव काम",
+      title: "सभासदांचे उपक्रम",
+      items: [
+        { title: "मंदिर नूतनीकरण",     sub: "रवळनाथ मंदिराची पुनर्बांधणी"               },
+        { title: "बस स्टँड साइनबोर्ड", sub: "गावाच्या बस स्टँडसाठी नवीन साइनबोर्ड"       },
+        { title: "क्रीडा आयोजन",       sub: "गावातील युवकांसाठी क्रिकेट व क्रीडा स्पर्धा" },
+      ],
+    },
+    festivals: { eyebrow: "उत्सव", title: "🔱 आयरेवाडीतील उत्सव" },
+    eventsPreview: { eyebrow: "काय चालू आहे", title: "येणारे कार्यक्रम", btn: "सर्व कार्यक्रम →" },
+    team: {
+      eyebrow: "आमचा संघ",
+      title: "ग्राम समिती",
+      subtitle: "आयरेवाडी ग्रामपंचायत — अभिमान आणि पारदर्शकतेने गावाची सेवा करणारे समर्पित नेते.",
+    },
+    join: {
+      eyebrow: "समुदाय",
+      title: "जोडले राहा आमच्याशी",
+      para: "आयरेवाडी गावाशी जोडलेले राहा — उत्सव, कार्यक्रम आणि गावाच्या बातम्या थेट WhatsApp वर मिळवा.",
+      wa: "WhatsApp ग्रुप",
+    },
+    footer: {
+      village: "गाव", emergency: "आपत्कालीन", contact: "संपर्क",
+      home: "मुख्यपान", eventsNews: "कार्यक्रम व बातम्या", gallery: "गॅलरी",
+      portal: "सभासद पोर्टल", hospitals: "रुग्णालये",
+      copy: "© 2025 Ayarewadi.in · सर्व हक्क राखीव",
+    },
+    emergency: {
+      eyebrow: "मदत व सुरक्षा",
+      title: "🚨 आपत्कालीन संपर्क",
+      nearby: "जवळची रुग्णालये",
+      tollfree: "🚑 टोल-फ्री नंबर",
+      other: "इतर हेल्पलाइन",
+      police: "पोलीस:", fire: "अग्निशमन:", women: "महिला हेल्पलाइन:", child: "बाल हेल्पलाइन:",
+      freeAmb: "मोफत आपत्कालीन रुग्णवाहिका",
+      ambHelp: "रुग्णवाहिका हेल्पलाइन",
+      district: "सिंधुदुर्ग:",
+      alertFreeAmb: "मोफत रुग्णवाहिका",
+      alertHelpline: "रुग्णवाहिका हेल्पलाइन",
+      alertDistrict: "सिंधुदुर्ग",
+    },
+    portal: {
+      title: "सभासद लॉगिन", subtitle: "ग्राम सदस्य लॉगिन",
+      idLabel: "सभासद ID", passLabel: "पासवर्ड",
+      loginBtn: "प्रवेश करा",
+      demo: "डेमो: AYR001 / village",
+      family: "👨‍👩‍👧‍👦 कुटुंब वृक्ष",
+      budget: "💰 गावाचा अर्थसंकल्प",
+      balance: "💰 शिल्लक",
+      logout: "बाहेर पडा",
+      welcome: "👤 स्वागत —",
+      household: "कुटुंब", houseNo: "घर क्र.",
+    },
+    gallery: {
+      eyebrow: "आठवणी",
+      title: "गाव फोटो | Village Gallery",
+      search: "फोटो शोधा...",
+      empty: "कोणतेही फोटो सापडले नाहीत",
+    },
+    events: {
+      eyebrow: "अद्ययावत राहा",
+      title: "📅 बातम्या व कार्यक्रम | News & Events",
+      noticeTitle: "📢 सूचना फलक | Notice Board",
+    },
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   APP ROOT
+═══════════════════════════════════════════════════════════ */
 export default function App() {
   const [section, setSection]   = useState("home");
   const [events, setEvents]     = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lang, setLang]         = useState("mr");
 
-  // Fetch events from your backend on load
   useEffect(() => {
     axios.get(`${API}/events`).then(r => setEvents(r.data)).catch(() => {});
   }, []);
@@ -64,26 +305,28 @@ export default function App() {
 
   return (
     <div className="app">
-      <Navigation_Bar section={section} nav={nav} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <Navigation_Bar
+        section={section} nav={nav}
+        menuOpen={menuOpen} setMenuOpen={setMenuOpen}
+        lang={lang} setLang={setLang}
+      />
       <main>
-        {section === "home"      && <Home_Page nav={nav} events={events} />}
-        {section === "emergency" && <Emergency_Page />}
-        {section === "portal"    && <Portal_Page />}
-        {section === "gallery"   && <Gallery_Page />}
-        {section === "events"    && <Events_Page events={events} />}
+        {section === "home"      && <Home_Page nav={nav} events={events} lang={lang} />}
+        {section === "emergency" && <Emergency_Page lang={lang} />}
+        {section === "portal"    && <Portal_Page lang={lang} />}
+        {section === "gallery"   && <Gallery_Page lang={lang} />}
+        {section === "events"    && <Events_Page events={events} lang={lang} />}
         {section === "admin"     && <Admin />}
       </main>
-      <Footer_Section nav={nav} />
+      <Footer_Section nav={nav} lang={lang} />
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════
    NAVBAR
-   - Logo auto-inverts to white
-   - Transparent on hero, solid on scroll
 ═══════════════════════════════════════════════════════════ */
-function Navigation_Bar({ section, nav, menuOpen, setMenuOpen }) {
+function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -91,25 +334,35 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen }) {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  const t = LANG[lang].nav;
   const links = [
-    { id: "home",      label: "Home" },
-    { id: "emergency", label: "Emergency" },
-    { id: "portal",    label: "Portal" },
-    { id: "gallery",   label: "Gallery" },
-    { id: "events",    label: "Events" },
-    { id: "admin",     label: "⚙️ Admin" },
+    { id: "home",      label: t.home      },
+    { id: "emergency", label: t.emergency },
+    { id: "portal",    label: t.portal    },
+    { id: "gallery",   label: t.gallery   },
+    { id: "events",    label: t.events    },
+    { id: "admin",     label: t.admin     },
   ];
 
   return (
     <nav className={`navbar ${scrolled || section !== "home" ? "scrolled" : ""}`}>
-      {/* LOGO — replace IMG.logo to change navbar logo */}
       <div className="nav-brand" onClick={() => nav("home")}>
         <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" />
       </div>
 
-      <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? "✕" : "☰"}
-      </button>
+      <div className="nav-actions">
+        <button
+          className="lang-toggle"
+          onClick={() => setLang(lang === "en" ? "mr" : "en")}
+          title={lang === "en" ? "Switch to Marathi" : "Switch to English"}
+        >
+          {lang === "en" ? "मराठी" : "EN"}
+        </button>
+        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}>
+          {menuOpen ? "✕" : "☰"}
+        </button>
+      </div>
 
       <ul className={`nav-links ${menuOpen ? "open" : ""}`}>
         {links.map(l => (
@@ -131,35 +384,47 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen }) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HOME PAGE — modular sub-components
+   HOME PAGE
 ═══════════════════════════════════════════════════════════ */
-function Hero_Section() {
+function Home_Page({ nav, events, lang }) {
+  return (
+    <>
+      <Hero_Section lang={lang} />
+      <Slogan_Marquee lang={lang} />
+      <Village_Services nav={nav} lang={lang} />
+      <Village_Details nav={nav} lang={lang} />
+      <Ravalnath_Temple lang={lang} />
+      <Member_Initiatives lang={lang} />
+      <Village_Festivals lang={lang} />
+      {events.length > 0 && <Events_Preview events={events} nav={nav} lang={lang} />}
+      <Team_Members lang={lang} />
+      <Join_Community lang={lang} />
+    </>
+  );
+}
+
+/* ── HERO ── */
+function Hero_Section({ lang }) {
+  const t = LANG[lang].hero;
   return (
     <section className="hero">
       <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
       <div className="hero-overlay" />
       <div className="hero-content hero-content-top">
-        <span className="hero-eyebrow">सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र</span>
-        <p className="hero-tagline">"एक गाव, एक ओळख, एक नातं – आयरेवाडी!"</p>
+        <span className="hero-eyebrow">{t.eyebrow}</span>
+        <p className="hero-tagline">{t.tagline}</p>
       </div>
     </section>
   );
 }
 
-function Slogan_Marquee() {
-  const slogans = [
-    "आपलं गाव, आपली जबाबदारी",
-    "सुंदर विचार, सुंदर गाव",
-    "सर्वांनी मिळून सुंदर गाव घडवूया",
-    "एकतेतून गावाचा विकास",
-    "शिक्षित गाव, विकसित गाव",
-    "पाणी अडवा, पाणी जिरवा",
-    "एकजुटीतून घडेल सुंदर गाव",
-  ];
-  const items = [...slogans, ...slogans];
+/* ── MARQUEE ── */
+function Slogan_Marquee({ lang }) {
+  const t = LANG[lang].marquee;
+  const items = [...t.slogans, ...t.slogans];
   return (
     <div className="marquee-wrap slogan-marquee">
-      <span className="marquee-label">सुविचार</span>
+      <span className="marquee-label">{t.label}</span>
       <div className="marquee-track">
         <div className="marquee-inner">
           {items.map((s, i) => (
@@ -173,127 +438,111 @@ function Slogan_Marquee() {
   );
 }
 
-function Village_Services({ nav }) {
-  const tiles = [
-    { img: emergencyImg, label: "Emergency", sub: "Hospitals & emergency contacts", s: "emergency", tag: "Help & Safety", icon: "🚨" },
-    { img: eventsImg,    label: "Events",    sub: "Upcoming village programs",      s: "events",    tag: "Stay Updated",  icon: "🎉" },
-    { img: galleryImg,   label: "Gallery",   sub: "Village photo memories",         s: "gallery",   tag: "Photos",        icon: "📸" },
-    { img: portalImg,    label: "Portal",    sub: "Family tree & village budget",   s: "portal",    tag: "Members Only",  icon: "👤" },
+/* ── VILLAGE SERVICES ── */
+function Village_Services({ nav, lang }) {
+  const t = LANG[lang].services;
+  const tilesMeta = [
+    { img: emergencyImg, s: "emergency", icon: "🚨" },
+    { img: eventsImg,    s: "events",    icon: "🎉" },
+    { img: galleryImg,   s: "gallery",   icon: "📸" },
+    { img: portalImg,    s: "portal",    icon: "👤" },
   ];
   return (
     <section className="svc-section">
       <div className="svc-inner">
         <div className="svc-header">
-          <span className="eyebrow svc-eyebrow">Explore</span>
-          <h2 className="svc-title">Village Services</h2>
-          <p className="svc-subtitle">Everything you need from Ayarewadi — always at your fingertips.</p>
+          <span className="eyebrow svc-eyebrow">{t.eyebrow}</span>
+          <h2 className="svc-title">{t.title}</h2>
+          <p className="svc-subtitle">{t.subtitle}</p>
         </div>
         <div className="svc-bento">
-          {tiles.map((t, i) => (
-            <div className={`svc-card svc-card-${i}`} key={t.s} onClick={() => nav(t.s)}
-              style={{ backgroundImage: `url(${t.img})` }}>
-              <div className="svc-overlay" />
-              <div className="svc-content">
-                <span className="svc-tag">{t.tag}</span>
-                <div className="svc-glass-panel">
-                  <span className="svc-icon">{t.icon}</span>
-                  <div className="svc-text">
-                    <h3>{t.label}</h3>
-                    <p>{t.sub}</p>
+          {tilesMeta.map((m, i) => {
+            const tile = t.tiles[i];
+            return (
+              <div
+                className={`svc-card svc-card-${i}`} key={m.s}
+                onClick={() => nav(m.s)}
+                style={{ backgroundImage: `url(${m.img})` }}
+              >
+                <div className="svc-overlay" />
+                <div className="svc-content">
+                  <span className="svc-tag">{tile.tag}</span>
+                  <div className="svc-glass-panel">
+                    <span className="svc-icon">{m.icon}</span>
+                    <div className="svc-text">
+                      <h3>{tile.label}</h3>
+                      <p>{tile.sub}</p>
+                    </div>
+                    <div className="svc-arrow">→</div>
                   </div>
-                  <div className="svc-arrow">→</div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function Village_Details({ nav }) {
+/* ── VILLAGE DETAILS ── */
+function Village_Details({ nav, lang }) {
+  const t = LANG[lang].vd;
   return (
     <section className="vd-section">
       <div className="vd-grid">
-
-        {/* Left — temple image */}
         <div className="vd-image-col">
           <div className="vd-img-wrap">
             <img src={villageInfoImg} alt="आयरेवाडी गाव" />
             <div className="vd-img-badge">
               <span>🛕</span>
-              <span>श्री देव रवळनाथ मंदिर · आयरेवाडी</span>
+              <span>{t.badge}</span>
             </div>
           </div>
         </div>
 
-        {/* Right — village info cards */}
         <div className="vd-info-col">
           <div className="vd-eyebrow">
             <span className="vd-eyebrow-dot" />
-            आमचं गाव · Our Village
+            {t.eyebrow}
           </div>
 
           <h2 className="vd-title">
-            आयरेवाडी <span className="vd-title-accent">गाव</span>
+            {t.title} <span className="vd-title-accent">{t.titleAccent}</span>
           </h2>
 
           <div className="vd-location-row">
-            <span className="vd-location-chip">📍 मांगवली</span>
-            <span className="vd-location-chip">🏛️ वैभववाडी</span>
-            <span className="vd-location-chip">🗺️ सिंधुदुर्ग</span>
-            <span className="vd-location-chip">🇮🇳 महाराष्ट्र</span>
+            {t.chips.map((c, i) => (
+              <span className="vd-location-chip" key={i}>{c}</span>
+            ))}
           </div>
 
-          <p className="vd-desc">
-            कोकण प्रदेशातील सिंधुदुर्ग जिल्ह्यात वसलेले आयरेवाडी हे एक
-            सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा
-            बोलल्या जातात. गाव आसपासील उपले, कोळपे, नेटल, एचेट या गावांजवळ आहे.
-          </p>
+          <p className="vd-desc">{t.desc}</p>
 
           <div className="vd-stats-grid">
-            <div className="vd-stat-card">
-              <span className="vd-stat-icon">👥</span>
-              <strong>1,264</strong>
-              <span>लोकसंख्या</span>
-            </div>
-            <div className="vd-stat-card">
-              <span className="vd-stat-icon">📚</span>
-              <strong>69%</strong>
-              <span>Literacy Rate</span>
-            </div>
-            <div className="vd-stat-card">
-              <span className="vd-stat-icon">⚖️</span>
-              <strong>1,175</strong>
-              <span>Ratio</span>
-            </div>
-            <div className="vd-stat-card">
-              <span className="vd-stat-icon">🏘️</span>
-              <strong>280+</strong>
-              <span>Households</span>
-            </div>
+            {t.stats.map((s, i) => (
+              <div className="vd-stat-card" key={i}>
+                <span className="vd-stat-icon">{s.icon}</span>
+                <strong>{s.val}</strong>
+                <span>{s.label}</span>
+              </div>
+            ))}
           </div>
 
           <div className="vd-transport-row">
-            <div className="vd-transport-card">
-              <span className="vd-transport-icon">🚉</span>
-              <div>
-                <strong>रेल्वे स्टेशन</strong>
-                <p>वैभववाडी रोड (जवळ)</p>
+            {t.transport.map((tr, i) => (
+              <div className="vd-transport-card" key={i}>
+                <span className="vd-transport-icon">{tr.icon}</span>
+                <div>
+                  <strong>{tr.strong}</strong>
+                  <p>{tr.p}</p>
+                </div>
               </div>
-            </div>
-            <div className="vd-transport-card">
-              <span className="vd-transport-icon">🛣️</span>
-              <div>
-                <strong>महामार्ग</strong>
-                <p>NH‑166E · NH‑748</p>
-              </div>
-            </div>
+            ))}
           </div>
 
           <button className="vd-cta" onClick={() => nav("gallery")}>
-            📸 गाव फोटो पाहा →
+            {t.cta}
           </button>
         </div>
       </div>
@@ -301,14 +550,14 @@ function Village_Details({ nav }) {
   );
 }
 
-function Ravalnath_Temple() {
+/* ── RAVALNATH TEMPLE ── */
+function Ravalnath_Temple({ lang }) {
+  const t = LANG[lang].rt;
   return (
     <section className="rt-section">
       <div className="rt-deco">🕉️</div>
 
       <div className="rt-container">
-
-        {/* Left — framed temple image */}
         <div className="rt-img-col">
           <div className="rt-img-frame">
             <img src={IMG.temple} alt="श्री देव रवळनाथ मंदिर" />
@@ -316,37 +565,47 @@ function Ravalnath_Temple() {
           </div>
           <div className="rt-img-caption">
             <span>🛕</span>
-            श्री देव रवळनाथ मंदिर · आयरेवाडी
+            {t.caption}
           </div>
         </div>
 
-        {/* Right — temple history & content */}
         <div className="rt-content-col">
-          <span className="rt-eyebrow">ग्रामदैवत · Village Deity</span>
+          <span className="rt-eyebrow">{t.eyebrow}</span>
 
           <div className="rt-heading">
-            <span className="rt-heading-sub">श्री देव</span>
-            <span className="rt-heading-main">रवळनाथ मंदिर</span>
+            <span className="rt-heading-sub">{t.sub}</span>
+            <span className="rt-heading-main">{t.main}</span>
           </div>
 
           <div className="rt-rule" />
 
           <div className="rt-body">
-            <p>श्री देव रवळनाथ हे दक्षिण कोकणातील एक प्रसिद्ध दैवत आहे. आमच्या गावातलं रवळनाथ मंदिर खूप जुनं आहे आणि वर्षानुवर्षं आम्ही त्यांची पूजा करत आलो आहोत. रवळनाथ देव आमच्या गावाचे <strong>ग्रामदैवत</strong> असून ते गावाचं, शेताचं आणि जनावरांचं रक्षण करतात.</p>
-            <p>श्रद्धेनुसार, रवळनाथ देव हे <strong>भगवान शिव किंवा भैरव</strong> यांचे उग्र रूप मानले जाते. त्यांच्या हातात तलवार आणि बाजूला त्रिशूल ही त्यांची मुख्य प्रतीकं आहेत. कोकणातील लोकांचा विश्वास आहे की रवळनाथ देव वाईट शक्ती, रोगराई आणि संकटं यापासून गावाचं संरक्षण करतात.</p>
-            <p>दरवर्षी <strong>रवळनाथ जत्रा</strong> मोठ्या उत्साहात साजरी केली जाते. त्या दिवशी ढोल-ताशांचा गजर, मिरवणुका आणि देवाला नैवेद्य अर्पण करण्यासाठी दूरदूरून भक्त येतात. मंदिर परिसर फुलांनी सजवला जातो आणि वातावरण भक्तीभावाने भारून जातं.</p>
+            {lang === "en" ? (
+              <>
+                <p>Shri Dev Ravalnath is a famous deity of South Konkan. The Ravalnath temple in our village is very old and we have been worshipping it for generations. Ravalnath Dev is our village's <strong>Gramdevata</strong> and protects the village, fields, and livestock.</p>
+                <p>According to belief, Ravalnath Dev is considered the fierce form of <strong>Lord Shiva or Bhairav</strong>. A sword in hand and a trident by his side are his main symbols. The people of Konkan believe that Ravalnath Dev protects the village from evil forces, disease, and calamities.</p>
+                <p>Every year, the <strong>Ravalnath Jatra</strong> is celebrated with great enthusiasm. On that day, devotees come from far and wide to the beat of drums, processions, and to offer prasad to the deity. The temple premises are decorated with flowers and the atmosphere is filled with devotion.</p>
+              </>
+            ) : (
+              <>
+                <p>श्री देव रवळनाथ हे दक्षिण कोकणातील एक प्रसिद्ध दैवत आहे. आमच्या गावातलं रवळनाथ मंदिर खूप जुनं आहे आणि वर्षानुवर्षं आम्ही त्यांची पूजा करत आलो आहोत. रवळनाथ देव आमच्या गावाचे <strong>ग्रामदैवत</strong> असून ते गावाचं, शेताचं आणि जनावरांचं रक्षण करतात.</p>
+                <p>श्रद्धेनुसार, रवळनाथ देव हे <strong>भगवान शिव किंवा भैरव</strong> यांचे उग्र रूप मानले जाते. त्यांच्या हातात तलवार आणि बाजूला त्रिशूल ही त्यांची मुख्य प्रतीकं आहेत. कोकणातील लोकांचा विश्वास आहे की रवळनाथ देव वाईट शक्ती, रोगराई आणि संकटं यापासून गावाचं संरक्षण करतात.</p>
+                <p>दरवर्षी <strong>रवळनाथ जत्रा</strong> मोठ्या उत्साहात साजरी केली जाते. त्या दिवशी ढोल-ताशांचा गजर, मिरवणुका आणि देवाला नैवेद्य अर्पण करण्यासाठी दूरदूरून भक्त येतात. मंदिर परिसर फुलांनी सजवला जातो आणि वातावरण भक्तीभावाने भारून जातं.</p>
+              </>
+            )}
           </div>
 
           <blockquote className="rt-blockquote">
-            "आमच्यासाठी रवळनाथ देव म्हणजे केवळ देव नाही, तर{" "}
-            <strong>गावाचा अभिमान आणि बळ आहे.</strong>"
+            {lang === "en"
+              ? <>"For us, Ravalnath Dev is not just a deity, but the{" "}<strong>pride and strength of our village.</strong>"</>
+              : <>"आमच्यासाठी रवळनाथ देव म्हणजे केवळ देव नाही, तर{" "}<strong>गावाचा अभिमान आणि बळ आहे.</strong>"</>
+            }
           </blockquote>
 
           <div className="rt-tags">
-            <span className="rt-tag">🏛️ प्राचीन मंदिर</span>
-            <span className="rt-tag">🔱 ग्रामदैवत</span>
-            <span className="rt-tag">🎉 वार्षिक जत्रा</span>
-            <span className="rt-tag">🙏 दक्षिण कोकण</span>
+            {t.tags.map((tag, i) => (
+              <span className="rt-tag" key={i}>{tag}</span>
+            ))}
           </div>
         </div>
       </div>
@@ -354,22 +613,21 @@ function Ravalnath_Temple() {
   );
 }
 
-function Member_Initiatives() {
+/* ── MEMBER INITIATIVES ── */
+function Member_Initiatives({ lang }) {
+  const t = LANG[lang].initiatives;
+  const imgs = [IMG.templeReno, IMG.busStand, IMG.sports];
   return (
     <section className="initiatives-section">
       <div className="sec-header">
-        <span className="eyebrow">Village Work</span>
-        <h2>Initiatives by Members</h2>
+        <span className="eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
       </div>
       <div className="init-grid">
-        {[
-          { img: IMG.templeReno, title: "Temple Renovation",    sub: "Restoration of Ravalnath temple" },
-          { img: IMG.busStand,   title: "Bus Stand Sign Board", sub: "New sign board for village bus stand" },
-          { img: IMG.sports,     title: "Organizing Sports",    sub: "Cricket & sports events for village youth" },
-        ].map(e => (
-          <div className="init-card" key={e.title}>
+        {t.items.map((e, i) => (
+          <div className="init-card" key={i}>
             <div className="init-img-wrap">
-              <img src={e.img} alt={e.title} />
+              <img src={imgs[i]} alt={e.title} />
             </div>
             <div className="init-body">
               <h3>{e.title}</h3>
@@ -382,12 +640,14 @@ function Member_Initiatives() {
   );
 }
 
-function Village_Festivals() {
+/* ── FESTIVALS ── */
+function Village_Festivals({ lang }) {
+  const t = LANG[lang].festivals;
   return (
     <section className="page-section">
       <div className="sec-header">
-        <span className="eyebrow">उत्सव</span>
-        <h2>🔱 Festivals in Ayarewadi</h2>
+        <span className="eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
       </div>
       <div className="festival-grid">
         {[IMG.festival1, IMG.festival2, IMG.festival3].map((src, i) => (
@@ -400,12 +660,14 @@ function Village_Festivals() {
   );
 }
 
-function Events_Preview({ events, nav }) {
+/* ── EVENTS PREVIEW ── */
+function Events_Preview({ events, nav, lang }) {
+  const t = LANG[lang].eventsPreview;
   return (
     <section className="page-section" style={{ paddingTop: 0 }}>
       <div className="sec-header">
-        <span className="eyebrow">What's On</span>
-        <h2>Upcoming Events</h2>
+        <span className="eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
       </div>
       <div className="events-list">
         {events.slice(0, 3).map(ev => (
@@ -417,42 +679,40 @@ function Events_Preview({ events, nav }) {
         ))}
       </div>
       <button className="btn-accent-sm" style={{ marginTop: "16px" }} onClick={() => nav("events")}>
-        All Events →
+        {t.btn}
       </button>
     </section>
   );
 }
 
-function Team_Members() {
+/* ── TEAM MEMBERS ── */
+function Team_Members({ lang }) {
+  const t = LANG[lang].team;
   const team = [
     {
       name: "Bhalchandra Ayare",
-      roleMr: "अध्यक्ष",
-      roleEn: "President",
+      roleMr: "अध्यक्ष", roleEn: "President",
       initials: "BA",
       gradient: "linear-gradient(135deg, #0d5c30 0%, #1aad5c 100%)",
       quote: "आयरेवाडी गावाचा विकास हे आमचे ध्येय. प्रत्येक निर्णय गावाच्या भविष्यासाठी घेतो.",
     },
     {
       name: "Anant Ayare",
-      roleMr: "सचिव",
-      roleEn: "Secretary",
+      roleMr: "सचिव", roleEn: "Secretary",
       initials: "AA",
       gradient: "linear-gradient(135deg, #0d3d5c 0%, #1a7db8 100%)",
       quote: "गावाचे सर्व उपक्रम व्यवस्थित चालावेत यासाठी सतत प्रयत्नशील असतो.",
     },
     {
       name: "Pawan Ayare",
-      roleMr: "खजिनदार",
-      roleEn: "Treasurer",
+      roleMr: "खजिनदार", roleEn: "Treasurer",
       initials: "PA",
       gradient: "linear-gradient(135deg, #5c200d 0%, #b84020 100%)",
       quote: "गावाचा प्रत्येक पैसा योग्य कामी लागावा यासाठी पारदर्शकतेने काम करतो.",
     },
     {
       name: "Amit Ayare",
-      roleMr: "सभासद",
-      roleEn: "Member",
+      roleMr: "सभासद", roleEn: "Member",
       initials: "AA",
       gradient: "linear-gradient(135deg, #3a0d5c 0%, #7a2db8 100%)",
       quote: "गावातील युवापिढीसाठी नवीन संधी निर्माण करणे हे आमचे स्वप्न आहे.",
@@ -473,27 +733,26 @@ function Team_Members() {
 
   return (
     <section className="team-section">
-      {/* Scrolling name marquee */}
       <div className="team-marquee">
         <div className="team-marquee-inner">
           {marqueeItems.map((m, i) => (
             <span key={i} className="team-marquee-item">
               <span className="team-marquee-name">{m.name}</span>
-              <span className="team-marquee-badge">{m.roleMr} · {m.roleEn}</span>
+              <span className="team-marquee-badge">
+                {lang === "mr" ? m.roleMr : m.roleEn}
+              </span>
               <span className="team-marquee-sep">✦</span>
             </span>
           ))}
         </div>
       </div>
 
-      {/* Section header */}
       <div className="team-header">
-        <span className="eyebrow team-eyebrow">Our Team</span>
-        <h2 className="team-title">ग्राम समिती</h2>
-        <p className="team-subtitle">Ayarewadi Gram Panchayat — Dedicated leaders serving our village with pride and transparency.</p>
+        <span className="eyebrow team-eyebrow">{t.eyebrow}</span>
+        <h2 className="team-title">{t.title}</h2>
+        <p className="team-subtitle">{t.subtitle}</p>
       </div>
 
-      {/* Glassmorphism cards */}
       <div className="team-grid">
         {team.map((m, i) => (
           <div className="team-card" key={i}>
@@ -501,8 +760,8 @@ function Team_Members() {
               {m.initials}
             </div>
             <div className="team-name">{m.name}</div>
-            <div className="team-role-mr">{m.roleMr}</div>
-            <div className="team-role-en">{m.roleEn}</div>
+            <div className="team-role-mr">{lang === "mr" ? m.roleMr : m.roleEn}</div>
+            <div className="team-role-en">{lang === "mr" ? m.roleEn : m.roleMr}</div>
             <div className="team-divider" />
             <p className="team-quote">"{m.quote}"</p>
             <div className="team-socials">
@@ -532,20 +791,21 @@ function Team_Members() {
   );
 }
 
-
-function Join_Community() {
+/* ── JOIN COMMUNITY ── */
+function Join_Community({ lang }) {
+  const t = LANG[lang].join;
   return (
     <section className="join-section">
       <div className="join-content">
-        <span className="eyebrow join-eyebrow">Community</span>
-        <h2>जोडले राहा आमच्याशी</h2>
-        <p>Stay connected with Ayarewadi village — get updates on festivals, events, and village news directly on WhatsApp.</p>
+        <span className="eyebrow join-eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
+        <p>{t.para}</p>
         <div className="join-btns">
           <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" className="btn-whatsapp">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
-            WhatsApp Group
+            {t.wa}
           </a>
           <a href="mailto:contact@ayarewadi.in" className="btn-email">
             contact@ayarewadi.in
@@ -556,30 +816,11 @@ function Join_Community() {
   );
 }
 
-function Home_Page({ nav, events }) {
-  return (
-    <>
-      <Hero_Section />
-      <Slogan_Marquee />
-      <Village_Services nav={nav} />
-      <Village_Details nav={nav} />
-      <Ravalnath_Temple />
-      <Member_Initiatives />
-      <Village_Festivals />
-      {events.length > 0 && <Events_Preview events={events} nav={nav} />}
-      <Team_Members />
-      <Join_Community />
-    </>
-  );
-}
-
 /* ═══════════════════════════════════════════════════════════
    EMERGENCY PAGE
-   Real hospital data from ayarewadi.in
-   Add more hospitals by copying an object in the array below.
 ═══════════════════════════════════════════════════════════ */
-function Emergency_Page() {
-  // TO ADD A HOSPITAL: copy one object and fill in details
+function Emergency_Page({ lang }) {
+  const t = LANG[lang].emergency;
   const hospitals = [
     {
       name:  "Rural Hospital Vaibhavwadi",
@@ -607,26 +848,25 @@ function Emergency_Page() {
   return (
     <section className="page-section">
       <div className="sec-header">
-        <span className="eyebrow">Help & Safety</span>
-        <h2>🚨 Emergency Contacts</h2>
+        <span className="eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
       </div>
 
-      {/* ALERT BANNER — change numbers if needed */}
       <div className="alert-banner">
         ⚠️ &nbsp;
-        <strong>108</strong> – Free Ambulance &nbsp;|&nbsp;
-        <strong>102</strong> – Ambulance Helpline &nbsp;|&nbsp;
-        Sindhudurg: <strong>8149822015</strong> / <strong>7030397514</strong>
+        <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
+        <strong>102</strong> – {t.alertHelpline} &nbsp;|&nbsp;
+        {t.alertDistrict}: <strong>8149822015</strong> / <strong>7030397514</strong>
       </div>
 
-      <h3 className="sub-title">Nearby Hospitals</h3>
+      <h3 className="sub-title">{t.nearby}</h3>
       <div className="hosp-cards">
         {hospitals.map(h => (
           <div className="hosp-card" key={h.name}>
             <img src={h.img} alt={h.name} />
             <div className="hosp-body">
               <h3>{h.name}</h3>
-              <div className="tags">{h.tags.map(t => <span className="tag" key={t}>{t}</span>)}</div>
+              <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
               <p>{h.addr}</p>
               {h.phone && (
                 <a href={`tel:${h.phone}`} className="btn-call" style={{ marginTop: "10px", display: "inline-block" }}>
@@ -638,24 +878,23 @@ function Emergency_Page() {
         ))}
       </div>
 
-      {/* AMBULANCE STRIP */}
       <div className="hosp-card ambulance-card" style={{ marginTop: "20px" }}>
         <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
         <div className="ambulance-body">
-          <h3 style={{ color: "var(--accent)", marginBottom: "10px" }}>🚑 Toll-Free Numbers</h3>
-          <p><strong>108</strong> — Free emergency ambulance</p>
-          <p><strong>102</strong> — Ambulance helpline</p>
-          <p><strong>Sindhudurg:</strong> 8149822015 / 7030397514</p>
+          <h3 style={{ color: "var(--accent)", marginBottom: "10px" }}>{t.tollfree}</h3>
+          <p><strong>108</strong> — {t.freeAmb}</p>
+          <p><strong>102</strong> — {t.ambHelp}</p>
+          <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
         </div>
       </div>
 
       <div className="info-card" style={{ marginTop: "20px" }}>
-        <h3>Other Helplines</h3>
+        <h3>{t.other}</h3>
         <ul>
-          <li>Police: <strong>100</strong></li>
-          <li>Fire: <strong>101</strong></li>
-          <li>Women Helpline: <strong>1091</strong></li>
-          <li>Child Helpline: <strong>1098</strong></li>
+          <li>{t.police} <strong>100</strong></li>
+          <li>{t.fire} <strong>101</strong></li>
+          <li>{t.women} <strong>1091</strong></li>
+          <li>{t.child} <strong>1098</strong></li>
           <li>Email: <strong>contact@ayarewadi.in</strong></li>
         </ul>
       </div>
@@ -664,11 +903,10 @@ function Emergency_Page() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MEMBER PORTAL / LOGIN
-   Demo: AYR001 / village
-   When backend is ready: real login via POST /login
+   PORTAL / MEMBER LOGIN
 ═══════════════════════════════════════════════════════════ */
-function Portal_Page() {
+function Portal_Page({ lang }) {
+  const t = LANG[lang].portal;
   const [loggedIn, setLoggedIn] = useState(false);
   const [id, setId]       = useState("");
   const [pass, setPass]   = useState("");
@@ -679,7 +917,6 @@ function Portal_Page() {
 
   const login = async () => {
     try {
-      // REAL LOGIN — calls your backend API
       const res = await axios.post(`${API}/login`, { member_id: id, password: pass });
       setMember(res.data.member);
       const [fam, bud] = await Promise.all([
@@ -690,7 +927,6 @@ function Portal_Page() {
       setBudget(bud.data);
       setLoggedIn(true); setErr("");
     } catch {
-      // DEMO FALLBACK — remove this block when real backend login is ready
       if (id === "AYR001" && pass === "village") {
         setMember({ household_name: "Patil", house_no: "12" });
         setFamily([
@@ -709,7 +945,7 @@ function Portal_Page() {
         ]);
         setLoggedIn(true); setErr("");
       } else {
-        setErr("Invalid ID or password.");
+        setErr(lang === "mr" ? "चुकीचा ID किंवा पासवर्ड." : "Invalid ID or password.");
       }
     }
   };
@@ -721,15 +957,15 @@ function Portal_Page() {
     <section className="page-section center-section">
       <div className="login-box">
         <img src={IMG.logo} alt="Ayarewadi" style={{ height: "38px", marginBottom: "16px" }} />
-        <h2>Member Login<br /><small>ग्राम सदस्य लॉगिन</small></h2>
-        <label>Member ID</label>
+        <h2>{t.title}<br /><small>{t.subtitle}</small></h2>
+        <label>{t.idLabel}</label>
         <input value={id} onChange={e => setId(e.target.value)} placeholder="e.g. AYR001" />
-        <label>Password</label>
+        <label>{t.passLabel}</label>
         <input type="password" value={pass} onChange={e => setPass(e.target.value)}
-          placeholder="Password" onKeyDown={e => e.key === "Enter" && login()} />
+          placeholder={t.passLabel} onKeyDown={e => e.key === "Enter" && login()} />
         {err && <p className="err">{err}</p>}
-        <button className="btn-green" onClick={login}>Login | प्रवेश करा</button>
-        <p className="hint">Demo: AYR001 / village</p>
+        <button className="btn-green" onClick={login}>{t.loginBtn}</button>
+        <p className="hint">{t.demo}</p>
       </div>
     </section>
   );
@@ -737,12 +973,11 @@ function Portal_Page() {
   return (
     <section className="page-section">
       <h2 className="section-title">
-        👤 Welcome — {member?.household_name} कुटुंब (घर क्र. {member?.house_no})
+        {t.welcome} {member?.household_name} {t.household} ({t.houseNo} {member?.house_no})
       </h2>
 
-      {/* FAMILY TREE — populated from DB after login */}
       <div className="info-card">
-        <h3>👨‍👩‍👧‍👦 Family Tree | कुटुंब वृक्ष</h3>
+        <h3>{t.family}</h3>
         <div className="family-list">
           {family.map(m => (
             <div className="family-row" key={m.id}>
@@ -755,26 +990,24 @@ function Portal_Page() {
         </div>
       </div>
 
-      {/* BUDGET TABLE — replace static data with API when ready */}
       <div className="info-card" style={{ marginTop: "20px" }}>
-        <h3>💰 Village Budget | गावाचा अर्थसंकल्प</h3>
+        <h3>{t.budget}</h3>
         <div className="budget-table-wrap">
-        <table className="budget-table">
-          <thead><tr><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
-          <tbody>
-            {budget.map(b => (
-              <tr key={b.id}>
-                <td>{b.description}</td>
-                <td><span className={`tag ${b.type}`}>{b.type}</span></td>
-                <td>₹{Number(b.amount).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <table className="budget-table">
+            <thead><tr><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
+            <tbody>
+              {budget.map(b => (
+                <tr key={b.id}>
+                  <td>{b.description}</td>
+                  <td><span className={`tag ${b.type}`}>{b.type}</span></td>
+                  <td>₹{Number(b.amount).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        {/* BALANCE — change ₹50,000 to real balance from DB */}
         <div className="balance-bar">
-          <span>💰 Current Balance | शिल्लक</span>
+          <span>{t.balance}</span>
           <strong style={{ color: balance >= 0 ? "#2e7d32" : "#c62828" }}>
             ₹{balance.toLocaleString()}
           </strong>
@@ -784,7 +1017,7 @@ function Portal_Page() {
       <button className="btn-green"
         style={{ marginTop: "16px", width: "auto", padding: "10px 28px" }}
         onClick={() => { setLoggedIn(false); setId(""); setPass(""); }}>
-        Logout | बाहेर पडा
+        {t.logout}
       </button>
     </section>
   );
@@ -792,8 +1025,6 @@ function Portal_Page() {
 
 /* ═══════════════════════════════════════════════════════════
    GALLERY PAGE
-   Real village photos preloaded from ayarewadi.in
-   Users can also upload their own photos (stored in memory).
 ═══════════════════════════════════════════════════════════ */
 const GALLERY_DEFAULTS = [
   { src: IMG.templeReno, fullSrc: IMG.templeReno, label: "Temple Renovation" },
@@ -808,7 +1039,8 @@ const GALLERY_DEFAULTS = [
   { src: IMG.nature3,    fullSrc: IMG.nature3,    label: "Village" },
 ];
 
-function Gallery_Page() {
+function Gallery_Page({ lang }) {
+  const t = LANG[lang].gallery;
   const [photos, setPhotos] = useState([]);
   const [query, setQuery]   = useState("");
 
@@ -844,14 +1076,14 @@ function Gallery_Page() {
   return (
     <section className="page-section">
       <div className="sec-header">
-        <span className="eyebrow">Memories</span>
+        <span className="eyebrow">{t.eyebrow}</span>
         <h2 className="gallery-heading">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>
             <polyline points="21 15 16 10 5 21"/>
           </svg>
-          Village Gallery | गाव फोटो
+          {t.title}
         </h2>
       </div>
 
@@ -861,7 +1093,7 @@ function Gallery_Page() {
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
-          placeholder="Search photos..."
+          placeholder={t.search}
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
@@ -876,7 +1108,7 @@ function Gallery_Page() {
       </div>
 
       {filtered.length === 0 && query && (
-        <p className="gallery-empty">No photos match "{query}"</p>
+        <p className="gallery-empty">{t.empty} "{query}"</p>
       )}
 
       <div className="gallery-grid">
@@ -906,12 +1138,9 @@ function Gallery_Page() {
 
 /* ═══════════════════════════════════════════════════════════
    EVENTS PAGE
-   Events load from your Supabase DB via backend.
-   Fallback events shown if DB is empty or API is down.
-   TO ADD EVENTS: insert rows in your Supabase events table.
 ═══════════════════════════════════════════════════════════ */
-function Events_Page({ events }) {
-  // FALLBACK EVENTS — shown when DB has no data
+function Events_Page({ events, lang }) {
+  const t = LANG[lang].events;
   const fallback = [
     { id: 1, title: "रवळनाथ जत्रा",               description: "Annual Ravalnath Jatra — ढोल-ताशांचा गजर, मिरवणुका.", date: "2025-11-15", tag: "Festival" },
     { id: 2, title: "Gram Sabha | ग्रामसभा",       description: "Monthly village development meeting.", date: "2025-06-20", tag: "Meeting" },
@@ -923,8 +1152,8 @@ function Events_Page({ events }) {
   return (
     <section className="page-section">
       <div className="sec-header">
-        <span className="eyebrow">Stay Updated</span>
-        <h2>📅 News & Events | बातम्या व कार्यक्रम</h2>
+        <span className="eyebrow">{t.eyebrow}</span>
+        <h2>{t.title}</h2>
       </div>
       <div className="events-list">
         {list.map(ev => (
@@ -937,9 +1166,8 @@ function Events_Page({ events }) {
         ))}
       </div>
 
-      {/* NOTICE BOARD — update notices manually here */}
       <div className="info-card" style={{ marginTop: "24px" }}>
-        <h3>📢 Notice Board | सूचना फलक</h3>
+        <h3>{t.noticeTitle}</h3>
         <ul style={{ marginTop: "8px" }}>
           <li>Newsletter: <strong>contact@ayarewadi.in</strong></li>
           <li>Village tax deadline: <strong>30th June 2025</strong></li>
@@ -952,9 +1180,9 @@ function Events_Page({ events }) {
 
 /* ═══════════════════════════════════════════════════════════
    FOOTER
-   Change contact email, social links, village name below.
 ═══════════════════════════════════════════════════════════ */
-function Footer_Section({ nav }) {
+function Footer_Section({ nav, lang }) {
+  const t = LANG[lang].footer;
   return (
     <footer className="footer">
       <div className="footer-grid">
@@ -965,19 +1193,19 @@ function Footer_Section({ nav }) {
         </div>
 
         <div className="footer-col">
-          <h4>Village</h4>
+          <h4>{t.village}</h4>
           <ul>
-            <li><button onClick={() => nav("home")}>Home</button></li>
-            <li><button onClick={() => nav("events")}>Events &amp; News</button></li>
-            <li><button onClick={() => nav("gallery")}>Gallery</button></li>
-            <li><button onClick={() => nav("portal")}>Member Portal</button></li>
+            <li><button onClick={() => nav("home")}>{t.home}</button></li>
+            <li><button onClick={() => nav("events")}>{t.eventsNews}</button></li>
+            <li><button onClick={() => nav("gallery")}>{t.gallery}</button></li>
+            <li><button onClick={() => nav("portal")}>{t.portal}</button></li>
           </ul>
         </div>
 
         <div className="footer-col">
-          <h4>Emergency</h4>
+          <h4>{t.emergency}</h4>
           <ul>
-            <li><button onClick={() => nav("emergency")}>Hospitals</button></li>
+            <li><button onClick={() => nav("emergency")}>{t.hospitals}</button></li>
             <li><a href="tel:108">108 — Free Ambulance</a></li>
             <li><a href="tel:100">100 — Police</a></li>
             <li><a href="tel:101">101 — Fire Brigade</a></li>
@@ -985,7 +1213,7 @@ function Footer_Section({ nav }) {
         </div>
 
         <div className="footer-col">
-          <h4>Contact</h4>
+          <h4>{t.contact}</h4>
           <ul>
             <li>contact@ayarewadi.in</li>
             <li>Vaibhavwadi, Sindhudurg</li>
@@ -995,9 +1223,8 @@ function Footer_Section({ nav }) {
       </div>
 
       <div className="footer-bottom">
-        <p>© 2025 Ayarewadi.in · All rights reserved</p>
+        <p>{t.copy}</p>
       </div>
     </footer>
   );
 }
-
