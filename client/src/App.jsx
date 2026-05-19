@@ -9,7 +9,7 @@ const API = "https://ayarewadi-project.onrender.com";
 // ── ALL IMAGES FROM ayarewadi.in — replace src URLs to use your own photos ──
 const IMG = {
   // HERO: Full-screen background on home page — replace with your best village photo
-  hero: "https://images.unsplash.com/photo-1694501333504-98ff498e2686?auto=format&fit=crop&w=1920",
+  hero: "https://images.unsplash.com/photo-1663079156029-a170af256f67?auto=format&fit=crop&w=1920&q=80",
 
   // TEMPLE: Side image in About section — your Ravalnath temple photo
   temple: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=964,fit=crop/YNq2a76xB3Ip7LZZ/img_20231008_171703-YBgbklJZkwuXBwnj.jpg",
@@ -107,7 +107,13 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
       <ul className={`nav-links ${menuOpen ? "open" : ""}`}>
         {links.map(l => (
           <li key={l.id}>
-            <button className={section === l.id ? "active" : ""} onClick={() => nav(l.id)}>
+            <button
+              className={[
+                section === l.id ? "active" : "",
+                l.id === "admin" ? "nav-cta" : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => nav(l.id)}
+            >
               {l.label}
             </button>
           </li>
@@ -118,177 +124,226 @@ function Navbar({ section, nav, menuOpen, setMenuOpen }) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   HOME PAGE
+   HOME PAGE — modular sub-components
 ═══════════════════════════════════════════════════════════ */
-function Home({ nav, events }) {
+function Hero({ nav }) {
   return (
-    <>
-      {/* ── HERO SECTION ──────────────────────────────────
-          Change IMG.hero above to use a different background.
-          Change h1, p text below for your village tagline.
-      ─────────────────────────────────────────────────── */}
-      <section className="hero" style={{ backgroundImage: `url(${IMG.hero})` }}>
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <span className="hero-eyebrow">सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र</span>
-          {/* MAIN HEADING — change village name/tagline here */}
-          <h1>आयरेवाडी</h1>
-          <p className="hero-tagline">"एक गाव, एक ओळख, एक नातं"</p>
-          <p className="hero-sub">आमची संस्कृती, कार्यक्रम आणि बरेच काही — मोबाईल-अनुकूल स्वरूपात</p>
-          <div className="hero-btns">
-            <button className="btn-accent" onClick={() => nav("events")}>कार्यक्रम पाहा</button>
-            <button className="btn-outline-white" onClick={() => nav("gallery")}>Gallery</button>
+    <section className="hero" style={{ backgroundImage: `url(${IMG.hero})` }}>
+      <div className="hero-overlay" />
+      <div className="hero-content">
+        <span className="hero-eyebrow">सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र</span>
+        <h1>आयरेवाडी</h1>
+        <p className="hero-tagline">"एक गाव, एक ओळख, एक नातं – आयरेवाडी!"</p>
+        <p className="hero-sub">आमची संस्कृती, वंशवृक्ष, कार्यक्रम आणि बरेच काही मोबाईल-अनुकूल स्वरूपात शोधा व अनुभव घ्या.</p>
+        <div className="hero-btns">
+          <button className="btn-accent" onClick={() => nav("events")}>कार्यक्रम पाहा</button>
+          <button className="btn-outline-white" onClick={() => nav("gallery")}>Gallery</button>
+        </div>
+      </div>
+      <div className="hero-scroll-hint">↓</div>
+    </section>
+  );
+}
+
+function FeatureStrip() {
+  return (
+    <div className="feature-strip">
+      {[
+        { icon: "🌿", title: "Pure Konkan",     sub: "Western Ghats village" },
+        { icon: "🛕", title: "Heritage Temple",  sub: "Ravalnath Mandir" },
+        { icon: "👨‍👩‍👧", title: "1,264 Residents", sub: "One big family" },
+        { icon: "📚", title: "69% Literacy",    sub: "Growing education" },
+        { icon: "🏔️", title: "Sindhudurg",      sub: "Maharashtra Coast" },
+      ].map(f => (
+        <div className="feature-item" key={f.title}>
+          <span className="feature-icon">{f.icon}</span>
+          <div>
+            <strong>{f.title}</strong>
+            <span>{f.sub}</span>
           </div>
         </div>
-        <div className="hero-scroll-hint">↓</div>
-      </section>
+      ))}
+    </div>
+  );
+}
 
-      {/* ── ABOUT STRIP ───────────────────────────────────
-          Left: Temple photo (IMG.temple)
-          Right: Village description text
-          Change the <p> text to update village info.
-      ─────────────────────────────────────────────────── */}
-      <section className="about-strip">
-        <div className="about-img-wrap">
-          {/* Change IMG.temple to use a different side image */}
-          <img src={IMG.temple} alt="Shri Dev Ravalnath Mandir" />
-          <div className="about-img-label">🛕 श्री देव रवळनाथ मंदिर</div>
-        </div>
-        <div className="about-text">
-          <span className="eyebrow">आमचं गाव</span>
-          <h2>🌱 आयरेवाडी (मांगवली)</h2>
-          {/* VILLAGE DESCRIPTION — update facts here */}
-          <p>कोकण प्रदेशातील <strong>सिंधुदुर्ग जिल्ह्यात</strong> वसलेले आयरेवाडी हे एक सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा बोलल्या जातात.</p>
-          <div className="about-stats-row">
-            {/* STATS — change numbers to match your village data */}
-            <div className="about-stat"><strong>1,264</strong><span>लोकसंख्या</span></div>
-            <div className="about-stat"><strong>69%</strong><span>Literacy</span></div>
-            <div className="about-stat"><strong>1,175</strong><span>Sex Ratio</span></div>
-          </div>
-          <p className="about-note">वैभववाडी रोड रेल्वे स्टेशन जवळ · NH‑166E / NH‑748 मार्गे</p>
-          <button className="btn-accent-sm" onClick={() => nav("gallery")}>Photos →</button>
-        </div>
-      </section>
-
-      {/* ── INITIATIVES ───────────────────────────────────
-          3 cards showing village work done.
-          Change title/sub/img for each card below.
-      ─────────────────────────────────────────────────── */}
-      <section className="initiatives-section">
-        <div className="sec-header">
-          <span className="eyebrow">Village Work</span>
-          <h2>Initiatives by Members</h2>
-        </div>
-        <div className="init-grid">
-          {[
-            // TO ADD MORE CARDS: copy one object, change img/title/sub
-            { img: IMG.templeReno, title: "Temple Renovation",    sub: "Restoration of Ravalnath temple" },
-            { img: IMG.busStand,   title: "Bus Stand Sign Board", sub: "New sign board for village bus stand" },
-            { img: IMG.sports,     title: "Organizing Sports",    sub: "Cricket & sports events for village youth" },
-          ].map(e => (
-            <div className="init-card" key={e.title}>
-              <div className="init-img-wrap">
-                <img src={e.img} alt={e.title} />
-              </div>
-              <div className="init-body">
-                <h3>{e.title}</h3>
-                <p>{e.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── TEMPLE / RAVALNATH SECTION ────────────────────
-          Left: Text about Ravalnath temple
-          Right: 3 village nature photos grid
-          Change Marathi text below if needed.
-      ─────────────────────────────────────────────────── */}
-
-      {/* ── FESTIVALS ─────────────────────────────────────
-          3 festival photos in a grid.
-          Replace IMG.festival1/2/3 to change these photos.
-      ─────────────────────────────────────────────────── */}
-      <section className="page-section">
-        <div className="sec-header">
-          <span className="eyebrow">उत्सव</span>
-          <h2>🔱 Festivals in Ayarewadi</h2>
-        </div>
-        <div className="festival-grid">
-          {[IMG.festival1, IMG.festival2, IMG.festival3].map((src, i) => (
-            <div className="festival-img" key={i}>
-              <img src={src} alt={`Festival ${i + 1}`} />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── QUICK ACCESS CARDS ────────────────────────────
-          4 service cards linking to other sections.
-          Change label/sub to rename them.
-      ─────────────────────────────────────────────────── */}
-      <section className="page-section" style={{ paddingTop: 0 }}>
-        <div className="sec-header">
-          <span className="eyebrow">Quick Access</span>
-          <h2>Village Services</h2>
-        </div>
-        <div className="cards-grid">
-          {[
-            { icon: "🚨", label: "Emergency",     sub: "Hospitals & contacts",  s: "emergency" },
-            { icon: "👨‍👩‍👧", label: "Member Portal", sub: "Family tree & budget", s: "portal" },
-            { icon: "📸", label: "Gallery",        sub: "Village photos",         s: "gallery" },
-            { icon: "🎉", label: "Events",          sub: "Upcoming programs",     s: "events" },
-          ].map(c => (
-            <div className="qcard" key={c.s} onClick={() => nav(c.s)}>
-              <span className="qcard-icon">{c.icon}</span>
-              <h3>{c.label}</h3>
-              <p>{c.sub}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── EVENTS PREVIEW ────────────────────────────────
-          Shows latest 3 events from your backend API.
-          Only shows if events are loaded from database.
-      ─────────────────────────────────────────────────── */}
-      {events.length > 0 && (
-        <section className="page-section" style={{ paddingTop: 0 }}>
-          <div className="sec-header">
-            <span className="eyebrow">What's On</span>
-            <h2>Upcoming Events</h2>
-          </div>
-          <div className="events-list">
-            {events.slice(0, 3).map(ev => (
-              <div className="event-card" key={ev.id}>
-                <div className="event-date">📅 {new Date(ev.date).toDateString()}</div>
-                <h3>{ev.title}</h3>
-                <p>{ev.description}</p>
-              </div>
-            ))}
-          </div>
-          <button className="btn-accent-sm" style={{ marginTop: "16px" }} onClick={() => nav("events")}>
-            All Events →
-          </button>
-        </section>
-      )}
-
-      {/* ── STATS BAR ─────────────────────────────────────
-          Bottom stats strip. Change numbers/labels here.
-      ─────────────────────────────────────────────────── */}
-      <div className="stats-strip">
+function ServiceTiles({ nav }) {
+  return (
+    <section className="service-tiles-section">
+      <div className="service-tiles-header">
+        <span className="eyebrow">Explore</span>
+        <h2>Village Services</h2>
+      </div>
+      <div className="service-tiles-grid">
         {[
-          { n: "1,264", label: "लोकसंख्या" },
-          { n: "69%",   label: "Literacy Rate" },
-          { n: "1,175", label: " Ratio" },
-          { n: "2025",  label: "ayarewadi.in" },
-        ].map(s => (
-          <div className="stat" key={s.label}>
-            <strong>{s.n}</strong>
-            <span>{s.label}</span>
+          { img: IMG.ruralHosp, label: "Emergency", sub: "Hospitals & contacts",  s: "emergency", tag: "Help & Safety" },
+          { img: IMG.festival1, label: "Events",    sub: "Upcoming programs",      s: "events",    tag: "Stay Updated" },
+          { img: IMG.temple,    label: "Gallery",   sub: "Village memories",       s: "gallery",   tag: "Photos" },
+          { img: IMG.nature1,   label: "Portal",    sub: "Family tree & budget",   s: "portal",    tag: "Members" },
+        ].map(t => (
+          <div className="service-tile" key={t.s} onClick={() => nav(t.s)}
+            style={{ backgroundImage: `url(${t.img})` }}>
+            <div className="service-tile-overlay" />
+            <div className="service-tile-body">
+              <span className="service-tile-tag">{t.tag}</span>
+              <h3>{t.label}</h3>
+              <p>{t.sub}</p>
+              <span className="service-tile-arrow">→</span>
+            </div>
           </div>
         ))}
       </div>
+    </section>
+  );
+}
+
+function VillageStory({ nav }) {
+  return (
+    <section className="about-strip">
+      <div className="about-img-wrap">
+        <img src={IMG.temple} alt="Shri Dev Ravalnath Mandir" />
+        <div className="about-img-label">🛕 श्री देव रवळनाथ मंदिर</div>
+      </div>
+      <div className="about-text">
+        <span className="eyebrow">आमचं गाव</span>
+        <h2>🌿 कोकणातलं सुंदर गाव – आयरेवाडी</h2>
+        <p className="about-location">मांगवली · वैभववाडी · सिंधुदुर्ग · महाराष्ट्र</p>
+        <p>कोकण प्रदेशातील <strong>सिंधुदुर्ग जिल्ह्यात</strong> वसलेले आयरेवाडी हे एक सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा बोलल्या जातात व गावाची लोकसंख्या अंदाजे <strong>1,264</strong> इतकी आहे. 2011 च्या जनगणनेनुसार साक्षरता दर 69% असून, स्त्री-पुरूष गुणोत्तर 1,175 आहे.</p>
+        <p>गाव आसपासील गावे — <strong>उपले, कोळपे, नेटल, एचेट</strong> — जवळ आहेत.</p>
+        <div className="about-stats-row">
+          <div className="about-stat"><strong>1,264</strong><span>लोकसंख्या</span></div>
+          <div className="about-stat"><strong>69%</strong><span>Literacy</span></div>
+          <div className="about-stat"><strong>1,175</strong><span>Sex Ratio</span></div>
+        </div>
+        <p className="about-note">🚉 वैभववाडी रोड रेल्वे स्टेशन जवळ &nbsp;·&nbsp; 🛣️ NH‑166E / NH‑748 मार्गे सहज पोहोचता येते.</p>
+        <button className="btn-accent-sm" onClick={() => nav("gallery")}>Photos →</button>
+      </div>
+    </section>
+  );
+}
+
+function Initiatives() {
+  return (
+    <section className="initiatives-section">
+      <div className="sec-header">
+        <span className="eyebrow">Village Work</span>
+        <h2>Initiatives by Members</h2>
+      </div>
+      <div className="init-grid">
+        {[
+          { img: IMG.templeReno, title: "Temple Renovation",    sub: "Restoration of Ravalnath temple" },
+          { img: IMG.busStand,   title: "Bus Stand Sign Board", sub: "New sign board for village bus stand" },
+          { img: IMG.sports,     title: "Organizing Sports",    sub: "Cricket & sports events for village youth" },
+        ].map(e => (
+          <div className="init-card" key={e.title}>
+            <div className="init-img-wrap">
+              <img src={e.img} alt={e.title} />
+            </div>
+            <div className="init-body">
+              <h3>{e.title}</h3>
+              <p>{e.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Festivals() {
+  return (
+    <section className="page-section">
+      <div className="sec-header">
+        <span className="eyebrow">उत्सव</span>
+        <h2>🔱 Festivals in Ayarewadi</h2>
+      </div>
+      <div className="festival-grid">
+        {[IMG.festival1, IMG.festival2, IMG.festival3].map((src, i) => (
+          <div className="festival-img" key={i}>
+            <img src={src} alt={`Festival ${i + 1}`} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EventsPreview({ events, nav }) {
+  return (
+    <section className="page-section" style={{ paddingTop: 0 }}>
+      <div className="sec-header">
+        <span className="eyebrow">What's On</span>
+        <h2>Upcoming Events</h2>
+      </div>
+      <div className="events-list">
+        {events.slice(0, 3).map(ev => (
+          <div className="event-card" key={ev.id}>
+            <div className="event-date">📅 {new Date(ev.date).toDateString()}</div>
+            <h3>{ev.title}</h3>
+            <p>{ev.description}</p>
+          </div>
+        ))}
+      </div>
+      <button className="btn-accent-sm" style={{ marginTop: "16px" }} onClick={() => nav("events")}>
+        All Events →
+      </button>
+    </section>
+  );
+}
+
+function StatsBar() {
+  return (
+    <div className="stats-strip">
+      {[
+        { n: "1,264", label: "लोकसंख्या" },
+        { n: "69%",   label: "Literacy Rate" },
+        { n: "1,175", label: "Sex Ratio" },
+        { n: "2025",  label: "ayarewadi.in" },
+      ].map(s => (
+        <div className="stat" key={s.label}>
+          <strong>{s.n}</strong>
+          <span>{s.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function JoinCommunity() {
+  return (
+    <section className="join-section">
+      <div className="join-content">
+        <span className="eyebrow join-eyebrow">Community</span>
+        <h2>जोडले राहा आमच्याशी</h2>
+        <p>Stay connected with Ayarewadi village — get updates on festivals, events, and village news directly on WhatsApp.</p>
+        <div className="join-btns">
+          <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" className="btn-whatsapp">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            WhatsApp Group
+          </a>
+          <a href="mailto:contact@ayarewadi.in" className="btn-email">
+            contact@ayarewadi.in
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Home({ nav, events }) {
+  return (
+    <>
+      <Hero nav={nav} />
+      <FeatureStrip />
+      <ServiceTiles nav={nav} />
+      <VillageStory nav={nav} />
+      <Initiatives />
+      <Festivals />
+      {events.length > 0 && <EventsPreview events={events} nav={nav} />}
+      <StatsBar />
+      <JoinCommunity />
     </>
   );
 }
@@ -677,21 +732,45 @@ function Events({ events }) {
 function Footer({ nav }) {
   return (
     <footer className="footer">
-      <div className="footer-inner">
-        <img src={IMG.logo} alt="Ayarewadi" style={{ height: "34px", marginBottom: "12px" }} />
-        {/* FOOTER VILLAGE INFO — change location details here */}
-        <p>आयरेवाडी (मांगवली) · वैभववाडी · सिंधुदुर्ग · महाराष्ट्र</p>
-        <div className="footer-links">
-          <button onClick={() => nav("home")}>Home</button>
-          <button onClick={() => nav("emergency")}>Emergency</button>
-          <button onClick={() => nav("events")}>Events</button>
-          <button onClick={() => nav("gallery")}>Gallery</button>
+      <div className="footer-grid">
+        <div className="footer-brand">
+          <img src={IMG.logo} alt="Ayarewadi" className="footer-logo" />
+          <p>आयरेवाडी (मांगवली) · वैभववाडी<br />सिंधुदुर्ग · महाराष्ट्र</p>
+          <p className="footer-tagline">"एक गाव, एक ओळख, एक नातं"</p>
         </div>
-        {/* CONTACT EMAIL — change here */}
-        <p style={{ marginTop: "8px" }}>📧 contact@ayarewadi.in</p>
-        <p style={{ marginTop: "8px", opacity: 0.45, fontSize: "0.75rem" }}>
-          © 2025 Ayarewadi.in · All rights reserved.
-        </p>
+
+        <div className="footer-col">
+          <h4>Village</h4>
+          <ul>
+            <li><button onClick={() => nav("home")}>Home</button></li>
+            <li><button onClick={() => nav("events")}>Events &amp; News</button></li>
+            <li><button onClick={() => nav("gallery")}>Gallery</button></li>
+            <li><button onClick={() => nav("portal")}>Member Portal</button></li>
+          </ul>
+        </div>
+
+        <div className="footer-col">
+          <h4>Emergency</h4>
+          <ul>
+            <li><button onClick={() => nav("emergency")}>Hospitals</button></li>
+            <li><a href="tel:108">108 — Free Ambulance</a></li>
+            <li><a href="tel:100">100 — Police</a></li>
+            <li><a href="tel:101">101 — Fire Brigade</a></li>
+          </ul>
+        </div>
+
+        <div className="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li>contact@ayarewadi.in</li>
+            <li>Vaibhavwadi, Sindhudurg</li>
+            <li>Maharashtra — 416810</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <p>© 2025 Ayarewadi.in · All rights reserved</p>
       </div>
     </footer>
   );
