@@ -107,16 +107,21 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .hero-bg {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
+  object-fit: cover; object-position: center top;
   display: block;
 }
-.hero-overlay { display: none; }
+/* Mobile gradient overlay — always on for mobile (see breakpoints below) */
+.hero-overlay {
+  display: none;
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+}
 .hero-content {
   position: relative; z-index: 2; color: #fff;
   display: flex; align-items: center; justify-content: center;
 }
 .hero-content-top {
-  position: absolute; top: 72px; left: 0; right: 0;
+  position: absolute; top: 72px; left: 0; right: 0; z-index: 3;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 0 24px;
 }
@@ -1083,9 +1088,35 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links button      { width: 100%; text-align: left; padding: 12px 16px; color: var(--text) !important; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
-  /* ── Hero ── */
-  .hero-content-top      { top: 70px; }
-  .hero-tagline          { font-size: 1.2rem; }
+  /* ── Hero — show full 16:9 image on mobile, no cropping ── */
+  .hero {
+    min-height: 0;
+    height: auto;
+    display: block;        /* remove flex; image flow determines height */
+    overflow: visible;
+  }
+  .hero-bg {
+    position: relative;   /* pull out of absolute so image sets container height */
+    inset: unset;
+    width: 100%;
+    height: auto;          /* natural 16:9 height — no zoom, no crop */
+    object-fit: fill;      /* image displays at its true proportions */
+    display: block;
+    vertical-align: top;
+  }
+  .hero-overlay {
+    display: block;        /* show gradient so text stays legible over photo */
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.65) 0%,
+      rgba(0,0,0,0.30) 40%,
+      transparent 75%
+    );
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+  .hero-content-top      { top: 52px; padding: 0 20px; }
+  .hero-tagline          { font-size: 1.15rem; }
 
   /* ── Service bento ── */
   .svc-section           { padding: 60px 20px; }
@@ -1156,8 +1187,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero-content-top      { top: 60px; }
-  .hero-tagline          { font-size: 1rem; }
+  .hero-content-top      { top: 44px; padding: 0 16px; }
+  .hero-tagline          { font-size: 0.98rem; }
+  .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
 
   /* ── Lang toggle ── */
   .lang-toggle           { font-size: 0.68rem; padding: 4px 10px; min-height: 32px; min-width: 40px; }
@@ -1216,7 +1248,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ─ 360px: Very small / old Android ─────────────────── */
 @media (max-width: 360px) {
-  .hero-tagline          { font-size: 0.9rem; }
+  .hero-content-top      { top: 38px; padding: 0 12px; gap: 5px; }
+  .hero-tagline          { font-size: 0.88rem; }
+  .hero-eyebrow          { font-size: 0.62rem; letter-spacing: 1.5px; }
   .svc-bento             { grid-template-rows: repeat(4, 140px); }
   .stat strong           { font-size: 1.6rem; }
   .sec-header h2         { font-size: 1.2rem; }
