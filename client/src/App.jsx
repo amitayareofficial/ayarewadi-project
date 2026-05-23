@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
+import Blog_Page from "./pages/Blog.jsx";
 import heroImg        from "./assets/images/main_image_home.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
@@ -38,7 +39,7 @@ const LANG = {
   en: {
     nav: {
       home: "Home", emergency: "Emergency", portal: "Portal",
-      gallery: "Gallery", events: "Events", admin: "⚙️ Admin",
+      gallery: "Gallery", events: "Events", blog: "Blog", admin: "⚙️ Admin",
     },
     hero: {
       eyebrow: "Sindhudurg · Vaibhavwadi · Konkan · Maharashtra",
@@ -162,7 +163,7 @@ const LANG = {
   mr: {
     nav: {
       home: "मुख्यपान", emergency: "आपत्कालीन", portal: "पोर्टल",
-      gallery: "गॅलरी", events: "कार्यक्रम", admin: "⚙️ व्यवस्थापन",
+      gallery: "गॅलरी", events: "कार्यक्रम", blog: "ब्लॉग", admin: "⚙️ व्यवस्थापन",
     },
     hero: {
       eyebrow: "सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र",
@@ -316,6 +317,7 @@ export default function App() {
         {section === "portal"    && <Portal_Page lang={lang} />}
         {section === "gallery"   && <Gallery_Page lang={lang} />}
         {section === "events"    && <Events_Page events={events} lang={lang} />}
+        {section === "blog"      && <Blog_Page />}
         {section === "admin"     && <Admin />}
       </main>
       <Footer_Section nav={nav} lang={lang} />
@@ -341,6 +343,7 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
     { id: "portal",    label: t.portal    },
     { id: "gallery",   label: t.gallery   },
     { id: "events",    label: t.events    },
+    { id: "blog",      label: t.blog      },
     { id: "admin",     label: t.admin     },
   ];
 

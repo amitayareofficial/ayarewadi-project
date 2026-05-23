@@ -167,6 +167,37 @@ app.delete("/budget/:id", authAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
+// ── BLOG ──────────────────────────────────────────────────
+app.get("/blog", async (req, res) => {
+  const r = await pool.query("SELECT * FROM blog_posts WHERE published=true ORDER BY created_at DESC");
+  res.json(r.rows);
+});
+app.get("/blog/all", authAdmin, async (req, res) => {
+  const r = await pool.query("SELECT * FROM blog_posts ORDER BY created_at DESC");
+  res.json(r.rows);
+});
+app.post("/blog", authAdmin, async (req, res) => {
+  const { title, content, category, cover_image, published } = req.body;
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const r = await pool.query(
+    "INSERT INTO blog_posts (title,slug,content,category,cover_image,published) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+    [title, slug, content, category || "Village News", cover_image || null, published || false]
+  );
+  res.json(r.rows[0]);
+});
+app.put("/blog/:id", authAdmin, async (req, res) => {
+  const { title, content, category, cover_image, published } = req.body;
+  const r = await pool.query(
+    "UPDATE blog_posts SET title=$1,content=$2,category=$3,cover_image=$4,published=$5,updated_at=NOW() WHERE id=$6 RETURNING *",
+    [title, content, category, cover_image || null, published, req.params.id]
+  );
+  res.json(r.rows[0]);
+});
+app.delete("/blog/:id", authAdmin, async (req, res) => {
+  await pool.query("DELETE FROM blog_posts WHERE id=$1", [req.params.id]);
+  res.json({ success: true });
+});
+
 // ── MEMBER LOGIN ──────────────────────────────────────────
 app.post("/login", async (req, res) => {
   const { member_id, password } = req.body;

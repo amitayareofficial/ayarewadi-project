@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 
 const API = "https://ayarewadi-project.onrender.com"; // ← change if URL changes
 
@@ -9,7 +10,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
-  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements
+  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog
 
   const logout = () => { localStorage.removeItem("admin_token"); setLoggedIn(false); };
 
@@ -26,6 +27,7 @@ export default function Admin() {
           { id: "gallery",       icon: "🖼️", label: "Gallery" },
           { id: "budget",        icon: "💰", label: "Budget" },
           { id: "emergency",     icon: "🚨", label: "Emergency" },
+          { id: "blog",          icon: "📝", label: "Blog" },
         ].map(t => (
           <button key={t.id} className={`admin-tab ${tab === t.id ? "active" : ""}`}
             onClick={() => setTab(t.id)}>
@@ -42,6 +44,7 @@ export default function Admin() {
         {tab === "gallery"       && <AdminGallery />}
         {tab === "budget"        && <AdminBudget />}
         {tab === "emergency"     && <AdminEmergency />}
+        {tab === "blog"          && <AdminBlog />}
       </main>
     </div>
   );
@@ -402,6 +405,131 @@ function AdminEmergency() {
             <div className="item-btns">
               <button className="btn-edit" onClick={() => edit(item)}>✏️</button>
               <button className="btn-del"  onClick={() => del(item.id)}>🗑️</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+/* ── BLOG MANAGER ────────────────────────────────────── */
+const BLOG_CATS = ["Village News", "Announcement", "Development", "Culture", "Health", "Education"];
+const EMPTY_POST = { title: "", category: "Village News", content: "", cover_image: "", published: false };
+
+function AdminBlog() {
+  const [posts, setPosts]     = useState([]);
+  const [form, setForm]       = useState(EMPTY_POST);
+  const [editing, setEditing] = useState(null);
+  const [preview, setPreview] = useState(false);
+
+  const load = () => axios.get(`${API}/blog/all`, { headers: authHeader() }).then(r => setPosts(r.data));
+  useEffect(() => { load(); }, []);
+
+  const save = async () => {
+    if (!form.title.trim() || !form.content.trim()) return;
+    if (editing) {
+      await axios.put(`${API}/blog/${editing}`, form, { headers: authHeader() });
+      setEditing(null);
+    } else {
+      await axios.post(`${API}/blog`, form, { headers: authHeader() });
+    }
+    setForm(EMPTY_POST);
+    load();
+  };
+
+  const del = async id => {
+    if (!confirm("Delete this blog post?")) return;
+    await axios.delete(`${API}/blog/${id}`, { headers: authHeader() });
+    load();
+  };
+
+  const edit = post => {
+    setEditing(post.id);
+    setForm({ title: post.title, category: post.category, content: post.content, cover_image: post.cover_image || "", published: post.published });
+  };
+
+  return (
+    <div className="admin-section">
+      <h2>📝 Manage Blog</h2>
+
+      <div className="admin-form">
+        <h3>{editing ? "✏️ Edit Post" : "➕ New Post"}</h3>
+        <input
+          placeholder="Post title"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+        />
+        <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+          {BLOG_CATS.map(c => <option key={c}>{c}</option>)}
+        </select>
+        <input
+          placeholder="Cover image URL (optional)"
+          value={form.cover_image}
+          onChange={e => setForm({ ...form, cover_image: e.target.value })}
+        />
+
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#555" }}>Content (Markdown)</span>
+          <button
+            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: preview ? "#DB4035" : "#f4f3f1", color: preview ? "#fff" : "#333" }}
+            onClick={() => setPreview(!preview)}
+            type="button"
+          >
+            {preview ? "Edit" : "Preview"}
+          </button>
+        </div>
+
+        {preview ? (
+          <div className="blog-preview-box">
+            <ReactMarkdown>{form.content || "_Nothing to preview yet_"}</ReactMarkdown>
+          </div>
+        ) : (
+          <textarea
+            className="blog-md-editor"
+            placeholder={`Write your post in Markdown...\n\n## Heading\n\nParagraph text here.\n\n- List item 1\n- List item 2\n\n**Bold** and _italic_ supported.`}
+            value={form.content}
+            onChange={e => setForm({ ...form, content: e.target.value })}
+          />
+        )}
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={form.published}
+            onChange={e => setForm({ ...form, published: e.target.checked })}
+          />
+          Publish immediately (visible on the website)
+        </label>
+
+        <div className="form-btns">
+          <button className="btn-save" onClick={save}>{editing ? "Update Post" : "Save Post"}</button>
+          {editing && (
+            <button className="btn-cancel" onClick={() => { setEditing(null); setForm(EMPTY_POST); }}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-list">
+        {posts.length === 0 && <p style={{ color: "#888", padding: "16px 0" }}>No blog posts yet.</p>}
+        {posts.map(post => (
+          <div className="admin-item" key={post.id}>
+            <div>
+              <strong>{post.title}</strong>
+              <span className="item-meta">
+                {post.category} · {new Date(post.created_at).toLocaleDateString("en-IN")}
+              </span>
+              <span className={`tag ${post.published ? "income" : "expense"}`}>
+                {post.published ? "✅ Published" : "📄 Draft"}
+              </span>
+              <p style={{ fontSize: "0.82rem", color: "#777", marginTop: "4px" }}>
+                {post.content.replace(/[#*_`[\]()]/g, "").slice(0, 100)}…
+              </p>
+            </div>
+            <div className="item-btns">
+              <button className="btn-edit" onClick={() => edit(post)}>✏️ Edit</button>
+              <button className="btn-del"  onClick={() => del(post.id)}>🗑️ Delete</button>
             </div>
           </div>
         ))}
