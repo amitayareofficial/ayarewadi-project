@@ -29,7 +29,7 @@ const IMG = {
   aaaanadi:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/anadi-hospital-A85VKX1j4xFDB4Zy.png",
   marathe:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop,trim=0;81.04735062006765;0;158.608793686584/YNq2a76xB3Ip7LZZ/marathe-clinic-hospital-YanJ8K4l8pCllDbZ.png",
   ambulance:  "https://images.unsplash.com/photo-1599700403969-f77b3aa74837?auto=format&fit=crop&w=612&h=576",
-  logo:       "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=44,fit=crop/YNq2a76xB3Ip7LZZ/logo-AMq8kxQE5PsQv1g4.png",
+  //logo:       "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=44,fit=crop/YNq2a76xB3Ip7LZZ/logo-AMq8kxQE5PsQv1g4.png",
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -59,7 +59,7 @@ const LANG = {
     },
     services: {
       eyebrow: "Explore",
-      title: "Village Services",
+      title: "ग्राम सेवा",
       subtitle: "Everything you need from Ayarewadi — always at your fingertips.",
       tiles: [
         { label: "Emergency", sub: "Hospitals & emergency contacts", tag: "Help & Safety" },
@@ -188,7 +188,7 @@ const LANG = {
       tiles: [
         { label: "आपत्कालीन", sub: "रुग्णालये व आपत्कालीन संपर्क", tag: "मदत व सुरक्षा" },
         { label: "कार्यक्रम", sub: "येणारे गाव कार्यक्रम",          tag: "अद्ययावत राहा" },
-        { label: "गॅलरी",    sub: "गावाच्या फोटो आठवणी",            tag: "फोटो"          },
+        { label: "गॅलरी",    sub: "गावाच्या फोटो आठवणी",            tag: "फोटो" },
         { label: "पोर्टल",   sub: "कुटुंब वृक्ष व गाव अर्थसंकल्प", tag: "सभासद फक्त"   },
       ],
     },
@@ -200,7 +200,7 @@ const LANG = {
       stats: [
         { icon: "👥", val: "1,264", label: "लोकसंख्या"    },
         { icon: "📚", val: "69%",   label: "साक्षरता दर"   },
-        { icon: "⚖️", val: "1,175", label: "लिंग गुणोत्तर" },
+        { icon: "⚖️", val: "1,175", label: " गुणोत्तर"  },
         { icon: "🏘️", val: "280+",  label: "कुटुंबे"       },
       ],
       transport: [
@@ -350,17 +350,27 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
   return (
     <nav className={`navbar ${scrolled || section !== "home" ? "scrolled" : ""}`}>
       <div className="nav-brand" onClick={() => nav("home")}>
-        <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" />
+        <span className="nav-brand-name">
+          {lang === "mr" ? "आयरेवाडी" : "AYAREWADI"}
+        </span>
+      </div>
+
+      <div className="nav-lang-group">
+        <button
+          className={`lang-btn ${lang === "en" ? "active" : ""}`}
+          onClick={() => setLang("en")}
+        >
+          English
+        </button>
+        <button
+          className={`lang-btn ${lang === "mr" ? "active" : ""}`}
+          onClick={() => setLang("mr")}
+        >
+          मराठी
+        </button>
       </div>
 
       <div className="nav-actions">
-        <button
-          className="lang-toggle"
-          onClick={() => setLang(lang === "en" ? "mr" : "en")}
-          title={lang === "en" ? "Switch to Marathi" : "Switch to English"}
-        >
-          {lang === "en" ? "मराठी" : "EN"}
-        </button>
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}>
           {menuOpen ? "✕" : "☰"}
@@ -393,10 +403,9 @@ function Home_Page({ nav, events, lang }) {
   return (
     <>
       <Hero_Section lang={lang} />
-      <Slogan_Marquee lang={lang} />
-      <Village_Services nav={nav} lang={lang} />
       <Village_Details nav={nav} lang={lang} />
       <Ravalnath_Temple lang={lang} />
+      <Village_Services nav={nav} lang={lang} />
       <Member_Initiatives lang={lang} />
       <Village_Festivals lang={lang} />
       {events.length > 0 && <Events_Preview events={events} nav={nav} lang={lang} />}
@@ -416,6 +425,9 @@ function Hero_Section({ lang }) {
       <div className="hero-content hero-content-top">
         <span className="hero-eyebrow">{t.eyebrow}</span>
         <p className="hero-tagline">{t.tagline}</p>
+      </div>
+      <div className="hero-marquee-bar">
+        <Slogan_Marquee lang={lang} />
       </div>
     </section>
   );
@@ -647,7 +659,7 @@ function Member_Initiatives({ lang }) {
 function Village_Festivals({ lang }) {
   const t = LANG[lang].festivals;
   return (
-    <section className="page-section">
+    <section className="page-section festivals-section">
       <div className="sec-header">
         <span className="eyebrow">{t.eyebrow}</span>
         <h2>{t.title}</h2>
@@ -667,7 +679,7 @@ function Village_Festivals({ lang }) {
 function Events_Preview({ events, nav, lang }) {
   const t = LANG[lang].eventsPreview;
   return (
-    <section className="page-section" style={{ paddingTop: 0 }}>
+    <section className="page-section events-preview-section" style={{ paddingTop: 0 }}>
       <div className="sec-header">
         <span className="eyebrow">{t.eyebrow}</span>
         <h2>{t.title}</h2>
@@ -959,7 +971,6 @@ function Portal_Page({ lang }) {
   if (!loggedIn) return (
     <section className="page-section center-section">
       <div className="login-box">
-        <img src={IMG.logo} alt="Ayarewadi" style={{ height: "38px", marginBottom: "16px" }} />
         <h2>{t.title}<br /><small>{t.subtitle}</small></h2>
         <label>{t.idLabel}</label>
         <input value={id} onChange={e => setId(e.target.value)} placeholder="e.g. AYR001" />
@@ -1190,9 +1201,22 @@ function Footer_Section({ nav, lang }) {
     <footer className="footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <img src={IMG.logo} alt="Ayarewadi" className="footer-logo" />
+          <div className="footer-brand-name">
+            {lang === "mr" ? "आयरेवाडी" : "AYAREWADI"}
+          </div>
           <p>आयरेवाडी (मांगवली) · वैभववाडी<br />सिंधुदुर्ग · महाराष्ट्र</p>
           <p className="footer-tagline">"एक गाव, एक ओळख, एक नातं"</p>
+          <div className="footer-socials">
+            <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" aria-label="WhatsApp" className="footer-social-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </a>
+            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="footer-social-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="footer-social-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+          </div>
         </div>
 
         <div className="footer-col">
@@ -1218,7 +1242,7 @@ function Footer_Section({ nav, lang }) {
         <div className="footer-col">
           <h4>{t.contact}</h4>
           <ul>
-            <li>contact@ayarewadi.in</li>
+            <li><a href="mailto:contact@ayarewadi.in">contact@ayarewadi.in</a></li>
             <li>Vaibhavwadi, Sindhudurg</li>
             <li>Maharashtra — 416810</li>
           </ul>
@@ -1227,6 +1251,7 @@ function Footer_Section({ nav, lang }) {
 
       <div className="footer-bottom">
         <p>{t.copy}</p>
+        <p className="footer-credit">Designed &amp; Developed by <strong>Amit Raju Ayare</strong> · Masters in Computer Science</p>
       </div>
     </footer>
   );
