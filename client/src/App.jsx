@@ -4,7 +4,6 @@ import "./App.css";
 import Admin from "./pages/Admin.jsx";
 import Blog_Page from "./pages/Blog.jsx";
 import logoImg        from "./assets/images/ayarewadi-logo.png";
-import { CinematicFooter } from "./components/ui/motion-footer";
 import heroImg        from "./assets/images/main_image_home.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
@@ -324,7 +323,7 @@ export default function App() {
         {section === "blog"      && <Blog_Page />}
         {section === "admin"     && <Admin />}
       </main>
-      <CinematicFooter nav={nav} lang={lang} />
+      <Footer_Section nav={nav} lang={lang} />
     </div>
   );
 }
@@ -954,10 +953,10 @@ function Portal_Page({ lang }) {
       if (id === "AYR001" && pass === "village") {
         setMember({ household_name: "Ayare", house_no: "7" });
         setFamily([
-          { id: 1, name: "Bhalchandra Ayare", role: "Head",     phone: "8149822015" },
-          { id: 2, name: "Anant Ayare",        role: "Brother",  phone: "9876543211" },
-          { id: 3, name: "Amit Ayare",         role: "Son",      phone: "9876543212" },
-          { id: 4, name: "Pawan Ayare",        role: "Son",      phone: "9876543213" },
+          { id: 1, name: "Bhalchandra Ayare", role: "Head",     phone: "9594179606" },
+          { id: 2, name: "Anant Ayare",        role: "Brother",  phone: "9594179606" },
+          { id: 3, name: "Amit Ayare",         role: "Son",      phone: "9594179606" },
+          { id: 4, name: "Pawan Ayare",        role: "Son",      phone: "9594179606" },
         ]);
         setBudget([
           { id: 1, description: "Gram Panchayat Fund",   type: "income",  amount: 150000 },
