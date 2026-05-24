@@ -10,11 +10,12 @@ export default function Blog_Page() {
   const [selected, setSelected] = useState(null);
   const [filterCat, setFilterCat] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     axios.get(`${API}/blog`)
-      .then(r => setPosts(r.data))
-      .catch(() => {})
+      .then(r => { setPosts(r.data); setError(false); })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,15 +46,27 @@ export default function Blog_Page() {
 
         {loading && <p className="blog-empty">Loading posts…</p>}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && error && (
+          <p className="blog-empty">Unable to load posts. Please check your connection and try again.</p>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
           <p className="blog-empty">No posts yet. Check back soon!</p>
         )}
 
         <div className="blog-grid">
           {filtered.map(post => (
-            <div key={post.id} className="blog-card" onClick={() => setSelected(post)}>
+            <article
+              key={post.id}
+              className="blog-card"
+              onClick={() => setSelected(post)}
+              onKeyDown={e => (e.key === "Enter" || e.key === " ") && setSelected(post)}
+              tabIndex={0}
+              role="button"
+              aria-label={`Read post: ${post.title}`}
+            >
               {post.cover_image && (
-                <img src={post.cover_image} alt={post.title} className="blog-card-img" />
+                <img src={post.cover_image} alt="" className="blog-card-img" loading="lazy" />
               )}
               <div className="blog-card-body">
                 <span className="blog-cat-tag">{post.category}</span>
@@ -70,7 +83,7 @@ export default function Blog_Page() {
                   <span className="blog-read-more">Read more →</span>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

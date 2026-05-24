@@ -85,28 +85,43 @@ function AdminLogin({ onLogin }) {
 function AdminEvents() {
   const [events, setEvents] = useState([]);
   const [form, setForm]     = useState({ title: "", description: "", date: "", category: "General", is_marquee: false });
-  const [editing, setEditing] = useState(null); // id of event being edited
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving]   = useState(false);
+  const [toast, setToast]     = useState("");
+  const [confirmId, setConfirmId] = useState(null);
 
   const CATEGORIES = ["General", "Festival", "Meeting", "Sports", "Cultural", "Health"];
 
-  const load = () => axios.get(`${API}/events`).then(r => setEvents(r.data));
+  const load = () => axios.get(`${API}/events`).then(r => setEvents(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
 
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
   const save = async () => {
-    if (editing) {
-      await axios.put(`${API}/events/${editing}`, form, { headers: authHeader() });
-      setEditing(null);
-    } else {
-      await axios.post(`${API}/events`, form, { headers: authHeader() });
-    }
-    setForm({ title: "", description: "", date: "", category: "General", is_marquee: false });
-    load();
+    if (!form.title.trim()) return showToast("Title is required.");
+    setSaving(true);
+    try {
+      if (editing) {
+        await axios.put(`${API}/events/${editing}`, form, { headers: authHeader() });
+        setEditing(null);
+        showToast("Event updated.");
+      } else {
+        await axios.post(`${API}/events`, form, { headers: authHeader() });
+        showToast("Event added.");
+      }
+      setForm({ title: "", description: "", date: "", category: "General", is_marquee: false });
+      load();
+    } catch { showToast("Error saving event. Please try again."); }
+    finally { setSaving(false); }
   };
 
   const del = async id => {
-    if (!confirm("Delete this event?")) return;
-    await axios.delete(`${API}/events/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/events/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      showToast("Event deleted.");
+      load();
+    } catch { showToast("Error deleting event."); }
   };
 
   const edit = ev => {
@@ -117,6 +132,7 @@ function AdminEvents() {
   return (
     <div className="admin-section">
       <h2>📅 Manage Events</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
 
       {/* FORM */}
       <div className="admin-form">
@@ -133,7 +149,7 @@ function AdminEvents() {
           Show in ticker/marquee
         </label>
         <div className="form-btns">
-          <button className="btn-save" onClick={save}>{editing ? "Update" : "Add Event"}</button>
+          <button className="btn-save" onClick={save} disabled={saving}>{saving ? "Saving…" : editing ? "Update" : "Add Event"}</button>
           {editing && <button className="btn-cancel" onClick={() => { setEditing(null); setForm({ title:"",description:"",date:"",category:"General",is_marquee:false }); }}>Cancel</button>}
         </div>
       </div>
@@ -150,7 +166,14 @@ function AdminEvents() {
             </div>
             <div className="item-btns">
               <button className="btn-edit" onClick={() => edit(ev)}>✏️ Edit</button>
-              <button className="btn-del"  onClick={() => del(ev.id)}>🗑️ Delete</button>
+              {confirmId === ev.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(ev.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(ev.id)}>🗑️ Delete</button>
+              }
             </div>
           </div>
         ))}
@@ -201,42 +224,54 @@ function AdminAnnouncements() {
 
 /* ── GALLERY MANAGER ─────────────────────────────────────── */
 function AdminGallery() {
-  const [photos, setPhotos] = useState([]);
-  const [file, setFile]     = useState(null);
-  const [caption, setCaption] = useState("");
+  const [photos, setPhotos]     = useState([]);
+  const [file, setFile]         = useState(null);
+  const [caption, setCaption]   = useState("");
   const [category, setCategory] = useState("Village Festivals");
   const [uploading, setUploading] = useState(false);
   const [filterCat, setFilterCat] = useState("");
+  const [toast, setToast]       = useState("");
+  const [confirmId, setConfirmId] = useState(null);
 
-  // Gallery categories — add more here if needed
   const CATS = ["Sports","Ravalnath Temple","Meetings","Village Festivals","Mumbai Meeting","Ganesh Chaturthi","Gudhi Padwa","Shimga (Holi)"];
 
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
   const load = () => {
-    const url = filterCat ? `${API}/gallery?category=${filterCat}` : `${API}/gallery`;
-    axios.get(url).then(r => setPhotos(r.data));
+    const url = filterCat ? `${API}/gallery?category=${encodeURIComponent(filterCat)}` : `${API}/gallery`;
+    axios.get(url).then(r => setPhotos(r.data)).catch(() => {});
   };
   useEffect(() => { load(); }, [filterCat]);
 
   const upload = async () => {
-    if (!file) return;
+    if (!file) return showToast("Please select a photo first.");
     setUploading(true);
-    const fd = new FormData();
-    fd.append("photo", file);
-    fd.append("caption", caption);
-    fd.append("category", category);
-    await axios.post(`${API}/gallery/upload`, fd, { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } });
-    setFile(null); setCaption(""); setUploading(false); load();
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      fd.append("caption", caption);
+      fd.append("category", category);
+      await axios.post(`${API}/gallery/upload`, fd, { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } });
+      setFile(null); setCaption("");
+      showToast("Photo uploaded successfully.");
+      load();
+    } catch { showToast("Upload failed. Please try again."); }
+    finally { setUploading(false); }
   };
 
   const del = async id => {
-    if (!confirm("Delete this photo?")) return;
-    await axios.delete(`${API}/gallery/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/gallery/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      showToast("Photo deleted.");
+      load();
+    } catch { showToast("Error deleting photo."); }
   };
 
   return (
     <div className="admin-section">
       <h2>🖼️ Manage Gallery</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
 
       <div className="admin-form">
         <h3>📷 Upload Photo</h3>
@@ -246,7 +281,7 @@ function AdminGallery() {
           {CATS.map(c => <option key={c}>{c}</option>)}
         </select>
         <button className="btn-save" onClick={upload} disabled={uploading}>
-          {uploading ? "Uploading..." : "Upload to Cloudinary"}
+          {uploading ? "Uploading…" : "Upload to Cloudinary"}
         </button>
       </div>
 
@@ -263,11 +298,18 @@ function AdminGallery() {
       <div className="admin-gallery-grid">
         {photos.map(p => (
           <div className="admin-photo" key={p.id}>
-            <img src={p.thumbnail_url || p.url} alt={p.caption} />
+            <img src={p.thumbnail_url || p.url} alt={p.caption || p.category} loading="lazy" />
             <div className="photo-info">
               <small>{p.category}</small>
               <p>{p.caption}</p>
-              <button className="btn-del" onClick={() => del(p.id)}>🗑️ Delete</button>
+              {confirmId === p.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(p.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(p.id)}>🗑️ Delete</button>
+              }
             </div>
           </div>
         ))}
@@ -421,26 +463,40 @@ function AdminBlog() {
   const [form, setForm]       = useState(EMPTY_POST);
   const [editing, setEditing] = useState(null);
   const [preview, setPreview] = useState(false);
+  const [saving, setSaving]   = useState(false);
+  const [toast, setToast]     = useState("");
+  const [confirmId, setConfirmId] = useState(null);
 
-  const load = () => axios.get(`${API}/blog/all`, { headers: authHeader() }).then(r => setPosts(r.data));
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () => axios.get(`${API}/blog/all`, { headers: authHeader() }).then(r => setPosts(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
 
   const save = async () => {
-    if (!form.title.trim() || !form.content.trim()) return;
-    if (editing) {
-      await axios.put(`${API}/blog/${editing}`, form, { headers: authHeader() });
-      setEditing(null);
-    } else {
-      await axios.post(`${API}/blog`, form, { headers: authHeader() });
-    }
-    setForm(EMPTY_POST);
-    load();
+    if (!form.title.trim() || !form.content.trim()) return showToast("Title and content are required.");
+    setSaving(true);
+    try {
+      if (editing) {
+        await axios.put(`${API}/blog/${editing}`, form, { headers: authHeader() });
+        setEditing(null);
+        showToast("Post updated.");
+      } else {
+        await axios.post(`${API}/blog`, form, { headers: authHeader() });
+        showToast("Post saved.");
+      }
+      setForm(EMPTY_POST);
+      load();
+    } catch { showToast("Error saving post. Please try again."); }
+    finally { setSaving(false); }
   };
 
   const del = async id => {
-    if (!confirm("Delete this blog post?")) return;
-    await axios.delete(`${API}/blog/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/blog/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      showToast("Post deleted.");
+      load();
+    } catch { showToast("Error deleting post."); }
   };
 
   const edit = post => {
@@ -451,6 +507,7 @@ function AdminBlog() {
   return (
     <div className="admin-section">
       <h2>📝 Manage Blog</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
 
       <div className="admin-form">
         <h3>{editing ? "✏️ Edit Post" : "➕ New Post"}</h3>
@@ -502,7 +559,7 @@ function AdminBlog() {
         </label>
 
         <div className="form-btns">
-          <button className="btn-save" onClick={save}>{editing ? "Update Post" : "Save Post"}</button>
+          <button className="btn-save" onClick={save} disabled={saving}>{saving ? "Saving…" : editing ? "Update Post" : "Save Post"}</button>
           {editing && (
             <button className="btn-cancel" onClick={() => { setEditing(null); setForm(EMPTY_POST); }}>
               Cancel
@@ -529,7 +586,14 @@ function AdminBlog() {
             </div>
             <div className="item-btns">
               <button className="btn-edit" onClick={() => edit(post)}>✏️ Edit</button>
-              <button className="btn-del"  onClick={() => del(post.id)}>🗑️ Delete</button>
+              {confirmId === post.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(post.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(post.id)}>🗑️ Delete</button>
+              }
             </div>
           </div>
         ))}

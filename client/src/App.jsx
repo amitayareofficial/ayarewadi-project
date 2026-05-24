@@ -314,7 +314,7 @@ export default function App() {
         menuOpen={menuOpen} setMenuOpen={setMenuOpen}
         lang={lang} setLang={setLang}
       />
-      <main>
+      <main id="main-content">
         {section === "home"      && <Home_Page nav={nav} events={events} lang={lang} />}
         {section === "emergency" && <Emergency_Page lang={lang} />}
         {section === "portal"    && <Portal_Page lang={lang} />}
@@ -509,7 +509,7 @@ function Village_Details({ nav, lang }) {
       <div className="vd-grid">
         <div className="vd-image-col">
           <div className="vd-img-wrap">
-            <img src={villageInfoImg} alt="आयरेवाडी गाव" />
+            <img src={villageInfoImg} alt="आयरेवाडी गाव" loading="lazy" />
             <div className="vd-img-badge">
               <span>🛕</span>
               <span>{t.badge}</span>
@@ -576,7 +576,7 @@ function Ravalnath_Temple({ lang }) {
       <div className="rt-container">
         <div className="rt-img-col">
           <div className="rt-img-frame">
-            <img src={IMG.temple} alt="श्री देव रवळनाथ मंदिर" />
+            <img src={IMG.temple} alt="श्री देव रवळनाथ मंदिर" loading="lazy" />
             <div className="rt-img-glow" />
           </div>
           <div className="rt-img-caption">
@@ -643,7 +643,7 @@ function Member_Initiatives({ lang }) {
         {t.items.map((e, i) => (
           <div className="init-card" key={i}>
             <div className="init-img-wrap">
-              <img src={imgs[i]} alt={e.title} />
+              <img src={imgs[i]} alt={e.title} loading="lazy" />
             </div>
             <div className="init-body">
               <h3>{e.title}</h3>
@@ -668,7 +668,7 @@ function Village_Festivals({ lang }) {
       <div className="festival-grid">
         {[IMG.festival1, IMG.festival2, IMG.festival3].map((src, i) => (
           <div className="festival-img" key={i}>
-            <img src={src} alt={`Festival ${i + 1}`} />
+            <img src={src} alt={`Festival ${i + 1}`} loading="lazy" />
           </div>
         ))}
       </div>
@@ -883,7 +883,7 @@ function Emergency_Page({ lang }) {
       <div className="hosp-cards">
         {hospitals.map(h => (
           <div className="hosp-card" key={h.name}>
-            <img src={h.img} alt={h.name} />
+            <img src={h.img} alt={h.name} loading="lazy" />
             <div className="hosp-body">
               <h3>{h.name}</h3>
               <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>

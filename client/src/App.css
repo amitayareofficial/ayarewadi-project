@@ -18,7 +18,7 @@
 
 /* ── GLOBAL ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: hidden; scroll-behavior: smooth; }
+html { scroll-behavior: smooth; }
 body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #ffffff; color: var(--text); overflow-x: hidden; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; }
 a    { text-decoration: none; }
 ul   { list-style: none; }
@@ -29,7 +29,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center;
-  padding: 2px 40px; gap: 12px;
+  padding: 10px 40px; gap: 12px;
   transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -42,8 +42,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .nav-brand { cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
 .nav-logo { height: 72px; width: auto; object-fit: contain; display: block; }
-.nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; transition: color 0.3s; }
-.navbar.scrolled .nav-brand-name { color: #333; }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .nav-links { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .nav-links button {
@@ -902,6 +900,18 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 .filter-row button { background: #fff; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 16px; font-size: 0.78rem; cursor: pointer; }
 .filter-row button.active, .filter-row button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* Admin toast & inline confirm */
+.admin-toast {
+  background: #1a3d2a; color: #7dde96;
+  border: 1px solid rgba(125,222,150,0.3);
+  border-radius: 8px; padding: 10px 16px;
+  font-size: 0.88rem; font-weight: 500;
+  margin-bottom: 16px;
+}
+.inline-confirm {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.82rem; font-weight: 600; color: #c62828;
+}
 .admin-login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--primary); }
 .admin-login-box { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
 .admin-login-box h2 { color: var(--primary); margin-bottom: 6px; }
@@ -1465,4 +1475,51 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .blog-grid { grid-template-columns: 1fr; }
   .blog-post-header h1 { font-size: 1.4rem; }
   .blog-post-content { font-size: 0.95rem; }
+}
+
+/* ── SKIP LINK ──────────────────────────────────────────── */
+.skip-link {
+  position: absolute; top: -100px; left: 16px; z-index: 9999;
+  background: var(--accent); color: #fff;
+  padding: 10px 18px; border-radius: 0 0 8px 8px;
+  font-size: 0.9rem; font-weight: 700; text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus { top: 0; }
+
+/* ── FOCUS RINGS — keyboard navigation ─────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.navbar :focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* ── REDUCED MOTION ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-inner,
+  .team-marquee-inner,
+  .slogan-marquee .marquee-inner {
+    animation: none;
+    overflow-x: auto;
+  }
+  .hero-bg,
+  .vd-img-wrap img,
+  .rt-img-frame img,
+  .festival-img img,
+  .init-img-wrap img,
+  .gallery-item img {
+    transition: none;
+  }
+  .svc-card,
+  .init-card,
+  .event-card,
+  .qcard,
+  .team-card,
+  .vd-stat-card {
+    transition: none;
+  }
 }
