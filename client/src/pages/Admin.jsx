@@ -457,11 +457,18 @@ function AdminEmergency() {
   );
 }
 /* ── MEMBERS MANAGER ─────────────────────────────────── */
+const STATUS_STYLE = {
+  pending:  { bg:"#fff8e1", color:"#e65100", border:"#ffe082",  label:"⏳ Pending"  },
+  approved: { bg:"#e8f5e9", color:"#2e7d32", border:"#c8e6c9",  label:"✅ Approved" },
+  rejected: { bg:"#ffebee", color:"#c62828", border:"#ffcdd2",  label:"❌ Rejected" },
+};
+
 function AdminMembers() {
-  const [members,  setMembers]  = useState([]);
-  const [filter,   setFilter]   = useState("pending"); // pending | all
-  const [toast,    setToast]    = useState("");
+  const [members,   setMembers]   = useState([]);
+  const [filter,    setFilter]    = useState("pending");
+  const [toast,     setToast]     = useState("");
   const [confirmId, setConfirmId] = useState(null);
+  const [actionId,  setActionId]  = useState(null);
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -473,111 +480,152 @@ function AdminMembers() {
   useEffect(() => { load(); }, []);
 
   const approve = async id => {
+    setActionId(id);
     try {
       await axios.put(`${API}/api/members/admin/${id}/approve`, {}, { headers: authHeader() });
-      showToast("Member approved successfully.");
+      showToast("✅ Member approved. They can now login.");
       load();
     } catch { showToast("Failed to approve member."); }
+    finally { setActionId(null); }
+  };
+
+  const reject = async id => {
+    setActionId(id);
+    try {
+      await axios.put(`${API}/api/members/admin/${id}/reject`, {}, { headers: authHeader() });
+      showToast("Member rejected.");
+      load();
+    } catch { showToast("Failed to reject member."); }
+    finally { setActionId(null); setConfirmId(null); }
   };
 
   const remove = async id => {
     try {
       await axios.delete(`${API}/api/members/admin/${id}`, { headers: authHeader() });
       setConfirmId(null);
-      showToast("Member removed.");
+      showToast("Member deleted.");
       load();
-    } catch { showToast("Failed to remove member."); }
+    } catch { showToast("Failed to delete member."); }
   };
 
-  const displayed = filter === "pending"
-    ? members.filter(m => !m.approved && m.verified)
-    : members;
+  const counts = {
+    pending:  members.filter(m => m.status === "pending").length,
+    approved: members.filter(m => m.status === "approved").length,
+    rejected: members.filter(m => m.status === "rejected").length,
+    all:      members.length,
+  };
 
-  const pendingCount = members.filter(m => !m.approved && m.verified).length;
+  const displayed = filter === "all" ? members : members.filter(m => m.status === filter);
+
+  const tabs = [
+    { id:"pending",  label:"⏳ Pending",  count: counts.pending  },
+    { id:"approved", label:"✅ Approved", count: counts.approved },
+    { id:"rejected", label:"❌ Rejected", count: counts.rejected },
+    { id:"all",      label:"👥 All",      count: counts.all      },
+  ];
 
   return (
     <div className="admin-section">
-      <h2>👥 Member Approvals</h2>
+      <h2>👥 Member Management</h2>
       {toast && <div className="admin-toast">{toast}</div>}
 
-      {/* Filter tabs */}
-      <div style={{ display:"flex", gap:8, marginBottom:"1rem" }}>
-        <button
-          className={filter === "pending" ? "btn-save" : "btn-cancel"}
-          onClick={() => setFilter("pending")}
-          style={{ position:"relative" }}
-        >
-          ⏳ Pending Approval
-          {pendingCount > 0 && (
-            <span style={{ background:"#e53935", color:"#fff", borderRadius:"50%", padding:"1px 6px", fontSize:"0.72rem", marginLeft:6 }}>
-              {pendingCount}
-            </span>
-          )}
-        </button>
-        <button
-          className={filter === "all" ? "btn-save" : "btn-cancel"}
-          onClick={() => setFilter("all")}
-        >
-          👥 All Members ({members.length})
-        </button>
+      {/* Stat cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))", gap:10, marginBottom:"1.25rem" }}>
+        {tabs.map(t => (
+          <button key={t.id}
+            onClick={() => setFilter(t.id)}
+            style={{ background: filter===t.id?"#1b5e20":"#f9f9f9", color:filter===t.id?"#fff":"#333", border:`2px solid ${filter===t.id?"#1b5e20":"#e8e8e8"}`, borderRadius:10, padding:"10px 8px", cursor:"pointer", textAlign:"center", transition:"all 0.2s" }}
+          >
+            <div style={{ fontWeight:800, fontSize:"1.4rem" }}>{t.count}</div>
+            <div style={{ fontSize:"0.72rem", marginTop:2 }}>{t.label}</div>
+          </button>
+        ))}
       </div>
 
       {displayed.length === 0 && (
-        <p style={{ color:"#888", padding:"16px 0" }}>
-          {filter === "pending" ? "No pending approvals." : "No members registered yet."}
+        <p style={{ color:"#aaa", padding:"24px 0", textAlign:"center" }}>
+          No {filter === "all" ? "" : filter} members found.
         </p>
       )}
 
       <div className="admin-list">
-        {displayed.map(m => (
-          <div className="admin-item" key={m.id} style={{ alignItems:"flex-start", gap:12 }}>
-            {/* Photo */}
-            <div style={{ flexShrink:0 }}>
-              {m.photo_url
-                ? <img src={m.photo_url} alt={m.full_name} style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", border:"2px solid #ddd" }} />
-                : <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#2e7d32,#81c784)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:"1.2rem" }}>
-                    {m.full_name?.charAt(0)}
-                  </div>
-              }
-            </div>
+        {displayed.map(m => {
+          const st = STATUS_STYLE[m.status] || STATUS_STYLE.pending;
+          return (
+            <div className="admin-item" key={m.id} style={{ alignItems:"flex-start", gap:14 }}>
 
-            {/* Info */}
-            <div style={{ flex:1 }}>
-              <strong style={{ fontSize:"1rem" }}>{m.full_name}</strong>
-              <div className="item-meta">📞 {m.mobile} {m.email ? `· ${m.email}` : ""}</div>
-              {m.address && <div style={{ fontSize:"0.8rem", color:"#777" }}>📍 {m.address}</div>}
-              <div style={{ fontSize:"0.8rem", color:"#777", marginTop:2 }}>
-                📅 DOB: {m.dob ? new Date(m.dob).toLocaleDateString("en-IN") : "—"} &nbsp;·&nbsp;
-                Registered: {new Date(m.created_at).toLocaleDateString("en-IN")}
+              {/* Photo */}
+              <div style={{ flexShrink:0 }}>
+                {m.photo_url
+                  ? <img src={m.photo_url} alt={m.full_name} style={{ width:56, height:56, borderRadius:"50%", objectFit:"cover", border:"2px solid #e0e0e0" }} />
+                  : <div style={{ width:56, height:56, borderRadius:"50%", background:"linear-gradient(135deg,#2e7d32,#81c784)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:"1.3rem" }}>
+                      {m.full_name?.charAt(0)}
+                    </div>
+                }
               </div>
-              <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap" }}>
-                <span style={{ background: m.verified ? "#e8f5e9" : "#fff8e1", color: m.verified ? "#2e7d32" : "#f57f17", border:`1px solid ${m.verified?"#c8e6c9":"#ffe082"}`, borderRadius:20, padding:"2px 10px", fontSize:"0.72rem", fontWeight:700 }}>
-                  {m.verified ? "✅ Verified" : "⏳ Not Verified"}
-                </span>
-                <span style={{ background: m.approved ? "#e8f5e9" : "#ffebee", color: m.approved ? "#2e7d32" : "#c62828", border:`1px solid ${m.approved?"#c8e6c9":"#ef9a9a"}`, borderRadius:20, padding:"2px 10px", fontSize:"0.72rem", fontWeight:700 }}>
-                  {m.approved ? "✅ Approved" : "❌ Pending Approval"}
-                </span>
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div className="item-btns" style={{ flexShrink:0 }}>
-              {!m.approved && m.verified && (
-                <button className="btn-save" onClick={() => approve(m.id)}>
-                  ✅ Approve
-                </button>
-              )}
-              {confirmId === m.id
-                ? <span className="inline-confirm">
-                    Sure?&nbsp;
-                    <button className="btn-del" onClick={() => remove(m.id)}>Yes</button>&nbsp;
-                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+              {/* Info */}
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                  <strong style={{ fontSize:"0.98rem" }}>{m.full_name}</strong>
+                  <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, borderRadius:20, padding:"1px 10px", fontSize:"0.7rem", fontWeight:700 }}>
+                    {st.label}
                   </span>
-                : <button className="btn-del" onClick={() => setConfirmId(m.id)}>🗑️ Remove</button>
-              }
+                </div>
+                <div className="item-meta" style={{ marginTop:2 }}>
+                  📞 {m.mobile}{m.email ? ` · ${m.email}` : ""}
+                </div>
+                {m.address && (
+                  <div style={{ fontSize:"0.78rem", color:"#888", marginTop:2 }}>📍 {m.address}</div>
+                )}
+                <div style={{ fontSize:"0.76rem", color:"#aaa", marginTop:3 }}>
+                  DOB: {m.dob ? new Date(m.dob).toLocaleDateString("en-IN") : "—"} &nbsp;·&nbsp;
+                  Registered: {new Date(m.created_at).toLocaleDateString("en-IN")}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display:"flex", flexDirection:"column", gap:6, flexShrink:0 }}>
+                {m.status === "pending" && (
+                  <>
+                    <button className="btn-save" disabled={actionId===m.id}
+                      onClick={() => approve(m.id)}
+                      style={{ fontSize:"0.8rem", padding:"6px 12px" }}>
+                      ✅ Approve
+                    </button>
+                    {confirmId === m.id
+                      ? <span className="inline-confirm" style={{ display:"flex", gap:4 }}>
+                          Reject?&nbsp;
+                          <button className="btn-del" onClick={() => reject(m.id)}>Yes</button>&nbsp;
+                          <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                        </span>
+                      : <button className="btn-del" style={{ fontSize:"0.8rem", padding:"6px 12px" }}
+                          onClick={() => setConfirmId(m.id)}>
+                          ❌ Reject
+                        </button>
+                    }
+                  </>
+                )}
+                {m.status === "approved" && (
+                  <button className="btn-del" style={{ fontSize:"0.78rem", padding:"5px 10px" }}
+                    onClick={() => reject(m.id)}>
+                    Revoke
+                  </button>
+                )}
+                {m.status === "rejected" && (
+                  <button className="btn-save" style={{ fontSize:"0.78rem", padding:"5px 10px" }}
+                    onClick={() => approve(m.id)}>
+                    Re-approve
+                  </button>
+                )}
+                <button style={{ background:"none", border:"none", color:"#bbb", fontSize:"0.72rem", cursor:"pointer", textAlign:"center" }}
+                  onClick={() => remove(m.id)}>
+                  🗑️ Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
