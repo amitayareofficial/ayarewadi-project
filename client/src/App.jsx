@@ -210,7 +210,7 @@ const LANG = {
         { icon: "🚉", strong: "रेल्वे स्टेशन", p: "वैभववाडी रोड (जवळ)" },
         { icon: "🛣️", strong: "महामार्ग",      p: "NH‑166E · NH‑748"   },
       ],
-      badge: "🛕 श्री देव रवळनाथ मंदिर · आयरेवाडी",
+      badge: "आयरेवाडी",
       cta: "📸 गाव फोटो पाहा →",
     },
     rt: {
@@ -514,7 +514,7 @@ function Village_Details({ nav, lang }) {
           <div className="vd-img-wrap">
             <img src={villageInfoImg} alt="आयरेवाडी गाव" loading="lazy" />
             <div className="vd-img-badge">
-              <span>🛕</span>
+              <span>🏠</span>
               <span>{t.badge}</span>
             </div>
           </div>
