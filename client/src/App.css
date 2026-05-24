@@ -1075,7 +1075,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .team-avatar  { width: 68px; height: 68px; font-size: 1.35rem; margin-bottom: 14px; }
   .team-name    { font-size: 0.88rem; }
   .team-role-mr { font-size: 0.78rem; }
-  .team-quote   { font-size: 0.72rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .team-quote   { font-size: 0.72rem; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .team-title   { font-size: 1.5rem; }
   .team-subtitle { font-size: 0.82rem; }
   .team-social-btn { width: 30px; height: 30px; }
@@ -1166,7 +1166,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     height: auto;
     object-fit: cover;
     display: block;
-    vertical-align: top;
   }
   .hero-overlay {
     display: block;
