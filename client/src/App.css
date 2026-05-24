@@ -1556,6 +1556,11 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
    padding, cards-grid, festival-grid, stats-strip, init-grid
    ════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* Navbar: compact mobile header */
+  .navbar                        { padding: 4px 16px; }
+  .navbar.scrolled               { padding: 4px 16px; }
+  .nav-logo                      { height: 55px; }
+
   /* Navbar: hide lang buttons — only logo + hamburger visible */
   .nav-lang-group                { display: none; }
 
