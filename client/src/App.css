@@ -1182,6 +1182,12 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .hero-content-top      { top: 64px; padding: 0 20px; }
   .hero-tagline          { font-size: 1.15rem; }
 
+  /* ── Slogan marquee — smaller & faster on mobile ── */
+  .marquee-wrap                        { height: 30px; }
+  .marquee-label                       { font-size: 0.65rem; padding: 0 10px; }
+  .marquee-item                        { font-size: 0.70rem; padding: 0 6px; }
+  .slogan-marquee .marquee-inner       { animation-duration: 22s; }
+
   /* ── Service bento ── */
   .svc-section           { padding: 60px 20px; }
   .svc-bento             { grid-template-rows: 220px 220px; gap: 10px; }
@@ -1255,6 +1261,12 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .hero-content-top      { top: 60px; padding: 0 16px; }
   .hero-tagline          { font-size: 0.98rem; }
   .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
+
+  /* ── Slogan marquee — even more compact on small phones ── */
+  .marquee-wrap                        { height: 26px; }
+  .marquee-label                       { font-size: 0.58rem; padding: 0 8px; }
+  .marquee-item                        { font-size: 0.62rem; padding: 0 5px; }
+  .slogan-marquee .marquee-inner       { animation-duration: 18s; }
 
   /* ── Lang buttons ── */
   .lang-btn              { font-size: 0.65rem; padding: 3px 8px; min-height: 28px; }
