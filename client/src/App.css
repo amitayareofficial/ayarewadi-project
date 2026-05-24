@@ -1179,7 +1179,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     pointer-events: none;
   }
   /* Push tagline below fixed navbar (navbar ≈ 79px) */
-  .hero-content-top      { top: 92px; padding: 0 20px; }
+  .hero-content-top      { top: 80px; padding: 0 20px; }
   .hero-tagline          { font-size: 1.15rem; }
 
   /* ── Service bento ── */
@@ -1252,7 +1252,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero-content-top      { top: 88px; padding: 0 16px; }
+  .hero-content-top      { top: 76px; padding: 0 16px; }
   .hero-tagline          { font-size: 0.98rem; }
   .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
 
