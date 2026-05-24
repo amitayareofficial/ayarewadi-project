@@ -1550,3 +1550,44 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     transition: none;
   }
 }
+
+/* ══ MOBILE LAYOUT PATCHES ══════════════════════════════════
+   Fixes: navbar crowding, hero h1 cap, about-strip, section
+   padding, cards-grid, festival-grid, stats-strip, init-grid
+   ════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Navbar: hide lang buttons — only logo + hamburger visible */
+  .nav-lang-group                { display: none; }
+
+  /* Hero h1 cap on mobile */
+  .hero-content h1               { font-size: 2rem; }
+
+  /* About strip → single column */
+  .about-strip                   { grid-template-columns: 1fr; gap: 16px; }
+
+  /* Tighter section padding */
+  .page-section                  { padding: 24px 16px; }
+
+  /* Quick cards: explicit 2-column grid */
+  .cards-grid                    { grid-template-columns: repeat(2, 1fr); }
+
+  /* Festival grid: 1 column on mobile */
+  .festival-grid                 { grid-template-columns: 1fr; }
+
+  /* Stats strip: switch to explicit 2-column grid */
+  .stats-strip                   { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .stat                          { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .stat:nth-child(odd)           { border-right: 1px solid rgba(255,255,255,0.08); }
+  .stat:nth-last-child(-n+2)     { border-bottom: none; }
+
+  /* Initiatives grid: 1 column on mobile */
+  .init-grid                     { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  /* Hero eyebrow: tighter letter-spacing on small phones */
+  .hero-eyebrow                  { letter-spacing: 1.5px; }
+
+  /* Section padding stays consistent at 480px */
+  .page-section                  { padding: 24px 16px; }
+}
