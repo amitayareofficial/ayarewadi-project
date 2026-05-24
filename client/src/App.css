@@ -1180,7 +1180,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   }
   /* Push tagline below fixed navbar (navbar ≈ 63px on mobile) */
   .hero-content-top      { top: 64px; padding: 0 20px; }
-  .hero-tagline          { font-size: 1.15rem; }
+  .hero-tagline          { font-size: 0.92rem; }
 
   /* ── Slogan marquee — smaller & faster on mobile ── */
   .marquee-wrap                        { height: 30px; }
@@ -1259,7 +1259,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 @media (max-width: 480px) {
   /* ── Hero ── */
   .hero-content-top      { top: 60px; padding: 0 16px; }
-  .hero-tagline          { font-size: 0.98rem; }
+  .hero-tagline          { font-size: 0.82rem; }
   .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
 
   /* ── Slogan marquee — even more compact on small phones ── */
@@ -1326,7 +1326,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 360px: Very small / old Android ─────────────────── */
 @media (max-width: 360px) {
   .hero-content-top      { top: 64px; padding: 0 12px; gap: 5px; }
-  .hero-tagline          { font-size: 0.88rem; }
+  .hero-tagline          { font-size: 0.75rem; }
   .hero-eyebrow          { font-size: 0.62rem; letter-spacing: 1.5px; }
   .svc-bento             { grid-template-rows: repeat(4, 140px); }
   .stat strong           { font-size: 1.6rem; }
@@ -1354,7 +1354,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   }
   .hero-overlay { display: block; }
   .hero-content-top { top: 56px; padding: 0 24px; }
-  .hero-tagline     { font-size: 1rem; }
+  .hero-tagline     { font-size: 0.85rem; }
 }
 
 /* ══════════════════════════════════════════════════════
