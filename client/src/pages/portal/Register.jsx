@@ -192,7 +192,7 @@ export default function Register({ onGoLogin, lang = "mr" }) {
   if (done) return <SuccessScreen t={t} onGoLogin={onGoLogin} />;
 
   return (
-    <section className="flex min-h-screen w-full">
+    <section className="flex min-h-screen w-full pt-[63px] lg:pt-0">
 
       {/* ── Left panel — desktop only ──────────────────── */}
       <div className="hidden lg:flex lg:w-2/5 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
@@ -216,10 +216,10 @@ export default function Register({ onGoLogin, lang = "mr" }) {
       </div>
 
       {/* ── Right panel ────────────────────────────────── */}
-      <div className="w-full lg:w-3/5 flex flex-col bg-white min-h-screen">
+      <div className="w-full lg:w-3/5 flex flex-col bg-white flex-1">
 
         {/* Mobile banner — hidden on desktop */}
-        <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-6 pb-5">
+        <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-4 pb-4">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🏠</div>
             <span className="font-black text-white text-lg leading-tight">
@@ -230,7 +230,7 @@ export default function Register({ onGoLogin, lang = "mr" }) {
         </div>
 
         {/* Form area */}
-        <div className="flex-1 flex flex-col justify-center items-center px-5 sm:px-10 lg:px-12 py-8 lg:py-10">
+        <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 lg:px-12 py-6 lg:py-10">
           <div className="w-full max-w-xl">
 
             {/* Logo — desktop only */}
@@ -253,10 +253,10 @@ export default function Register({ onGoLogin, lang = "mr" }) {
 
             {/* Photo upload */}
             <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} className="mb-6">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
+              <div className="flex flex-row items-center gap-4 p-3 sm:p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
                 <div
                   onClick={() => fileRef.current.click()}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed flex-shrink-0 transition-all duration-200 ${
+                  className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed flex-shrink-0 transition-all duration-200 ${
                     preview ? "border-green-500" : "border-gray-300 bg-white hover:border-green-400"
                   }`}
                 >
@@ -265,12 +265,12 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                     : <Camera size={22} className="text-gray-400" />
                   }
                 </div>
-                <div className="flex flex-col gap-1.5 text-center sm:text-left">
+                <div className="flex flex-col gap-1.5">
                   <Label>{t.photoLabel} <span className="text-red-500">*</span></Label>
                   <button
                     type="button"
                     onClick={() => fileRef.current.click()}
-                    className="text-sm text-green-700 border border-green-500 rounded-full px-4 py-1 font-semibold hover:bg-green-50 transition-colors duration-200 w-fit mx-auto sm:mx-0"
+                    className="text-xs sm:text-sm text-green-700 border border-green-500 rounded-full px-3 py-1 font-semibold hover:bg-green-50 transition-colors duration-200 w-fit"
                   >
                     {preview ? t.changePhoto : t.photoHint}
                   </button>

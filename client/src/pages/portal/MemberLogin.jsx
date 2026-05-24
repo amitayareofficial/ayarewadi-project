@@ -114,7 +114,7 @@ export default function MemberLogin({ onGoRegister, onGoForgot, onLoginSuccess, 
   };
 
   return (
-    <section className="flex min-h-screen w-full">
+    <section className="flex min-h-screen w-full pt-[63px] lg:pt-0">
 
       {/* ── Left panel — desktop only ──────────────────── */}
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
@@ -137,10 +137,10 @@ export default function MemberLogin({ onGoRegister, onGoForgot, onLoginSuccess, 
       </div>
 
       {/* ── Right panel ────────────────────────────────── */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-white min-h-screen">
+      <div className="w-full lg:w-1/2 flex flex-col bg-white flex-1">
 
         {/* Mobile banner — hidden on desktop */}
-        <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-6 pb-5">
+        <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-4 pb-4">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🏠</div>
             <span className="font-black text-white text-lg leading-tight">
@@ -151,7 +151,7 @@ export default function MemberLogin({ onGoRegister, onGoForgot, onLoginSuccess, 
         </div>
 
         {/* Form area */}
-        <div className="flex-1 flex flex-col justify-center items-center px-5 sm:px-10 lg:px-12 py-8 lg:py-12">
+        <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 lg:px-12 py-6 lg:py-12">
           <div className="w-full max-w-md">
 
             {/* Logo — desktop only (mobile uses banner above) */}
