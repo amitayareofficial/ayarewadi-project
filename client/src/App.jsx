@@ -4,6 +4,7 @@ import "./App.css";
 import Admin from "./pages/Admin.jsx";
 import Blog_Page from "./pages/Blog.jsx";
 import logoImg        from "./assets/images/ayarewadi-logo.png";
+import { CinematicFooter } from "./components/ui/motion-footer";
 import heroImg        from "./assets/images/main_image_home.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
@@ -323,7 +324,7 @@ export default function App() {
         {section === "blog"      && <Blog_Page />}
         {section === "admin"     && <Admin />}
       </main>
-      <Footer_Section nav={nav} lang={lang} />
+      <CinematicFooter nav={nav} lang={lang} />
     </div>
   );
 }
