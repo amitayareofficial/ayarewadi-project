@@ -114,7 +114,7 @@ export default function MemberLogin({ onGoRegister, onGoForgot, onLoginSuccess, 
   };
 
   return (
-    <section className="flex min-h-screen w-full pt-[63px] lg:pt-0">
+    <section className="portal-page flex min-h-screen w-full">
 
       {/* ── Left panel — desktop only ──────────────────── */}
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
@@ -151,7 +151,7 @@ export default function MemberLogin({ onGoRegister, onGoForgot, onLoginSuccess, 
         </div>
 
         {/* Form area */}
-        <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-8 lg:px-12 py-6 lg:py-12">
+        <div className="portal-form-area flex-1 flex flex-col lg:justify-center items-center px-4 sm:px-8 lg:px-12 py-6 lg:py-12">
           <div className="w-full max-w-md">
 
             {/* Logo — desktop only (mobile uses banner above) */}
