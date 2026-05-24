@@ -356,6 +356,10 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
         <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" />
       </div>
 
+      <div className="nav-location">
+        🌿 सिंधुदुर्ग · वैभववाडी · मांगवली · महाराष्ट्र 🌿
+      </div>
+
       <div className="nav-lang-group">
         <button
           className={`lang-btn ${lang === "en" ? "active" : ""}`}
@@ -424,7 +428,6 @@ function Hero_Section({ lang }) {
       <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
       <div className="hero-overlay" />
       <div className="hero-content hero-content-top">
-        <span className="hero-eyebrow">{t.eyebrow}</span>
         <p className="hero-tagline">{t.tagline}</p>
       </div>
       <div className="hero-marquee-bar">

@@ -29,7 +29,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center;
-  padding: 10px 40px; gap: 12px;
+  padding: 2px 40px; gap: 12px;
   transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -38,10 +38,16 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .navbar.scrolled {
   background: rgba(0, 0, 0, 0.98);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-  padding: 10px 40px;
+  padding: 4px 40px;
 }
 .nav-brand { cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
-.nav-logo { height: 72px; width: auto; object-fit: contain; display: block; }
+.nav-location {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,0.75); font-size: 0.95rem;
+  font-weight: 600; letter-spacing: 1.5px;
+  white-space: nowrap; pointer-events: none;
+}
+.nav-logo { height: 75px; width: auto; object-fit: contain; display: block; }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .nav-links { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .nav-links button {
@@ -124,7 +130,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   display: flex; align-items: center; justify-content: center;
 }
 .hero-content-top {
-  position: absolute; top: 72px; left: 0; right: 0; z-index: 3;
+  position: absolute; top: 110px; left: 0; right: 0; z-index: 3;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 0 24px;
 }
@@ -1129,6 +1135,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .navbar                { padding: 10px 16px; flex-wrap: wrap; gap: 0; }
   .navbar.scrolled       { padding: 8px 16px; }
   .logo                  { height: 46px; }
+  .nav-location          { display: none; }
   .nav-brand             { order: 1; }
   .nav-actions           { order: 2; }
   .hamburger             { display: flex; }
