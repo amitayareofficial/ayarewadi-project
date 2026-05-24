@@ -89,17 +89,56 @@ app.delete("/announcements/:id", authAdmin, async (req, res) => {
 });
 
 // ── GALLERY (Cloudinary upload) ───────────────────────────
-app.get("/gallery", async (req, res) => {
-  const { category } = req.query;
-  let q = "SELECT * FROM gallery ORDER BY uploaded_at DESC";
-  let params = [];
-  if (category) {
-    q = "SELECT * FROM gallery WHERE category=$1 ORDER BY uploaded_at DESC";
-    params = [category];
-  }
-  const r = await pool.query(q, params);
+
+// Distinct years with photo count + cover thumbnail
+app.get("/gallery/years", async (req, res) => {
+  const r = await pool.query(`
+    SELECT
+      year,
+      COUNT(*)::int AS count,
+      (SELECT thumbnail_url FROM gallery g2
+       WHERE g2.year = g.year ORDER BY uploaded_at ASC LIMIT 1) AS cover
+    FROM gallery g
+    WHERE year IS NOT NULL
+    GROUP BY year
+    ORDER BY year DESC
+  `);
   res.json(r.rows);
 });
+
+// Categories for a given year, with count + cover thumbnail
+app.get("/gallery/categories", async (req, res) => {
+  const year = req.query.year ? parseInt(req.query.year) : null;
+  if (!year) {
+    const r = await pool.query(`
+      SELECT category, COUNT(*)::int AS count,
+        (SELECT thumbnail_url FROM gallery g2
+         WHERE g2.category = g.category ORDER BY uploaded_at ASC LIMIT 1) AS cover
+      FROM gallery g WHERE category IS NOT NULL GROUP BY category ORDER BY category
+    `);
+    return res.json(r.rows);
+  }
+  const r = await pool.query(`
+    SELECT category, COUNT(*)::int AS count,
+      (SELECT thumbnail_url FROM gallery g2
+       WHERE g2.category = g.category AND g2.year = $1 ORDER BY uploaded_at ASC LIMIT 1) AS cover
+    FROM gallery g WHERE year = $1 AND category IS NOT NULL GROUP BY category ORDER BY category
+  `, [year]);
+  res.json(r.rows);
+});
+
+// Photos filtered by optional year and/or category
+app.get("/gallery", async (req, res) => {
+  const { year, category } = req.query;
+  const conditions = [];
+  const params = [];
+  if (year)     { params.push(parseInt(year)); conditions.push(`year = $${params.length}`); }
+  if (category) { params.push(category);       conditions.push(`category = $${params.length}`); }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  const r = await pool.query(`SELECT * FROM gallery ${where} ORDER BY uploaded_at DESC`, params);
+  res.json(r.rows);
+});
+
 app.post("/gallery/upload", authAdmin, upload.single("photo"), async (req, res) => {
   try {
     const result = await new Promise((resolve, reject) => {
@@ -109,15 +148,17 @@ app.post("/gallery/upload", authAdmin, upload.single("photo"), async (req, res) 
       );
       stream.end(req.file.buffer);
     });
+    const year = req.body.year ? parseInt(req.body.year) : new Date().getFullYear();
     const r = await pool.query(
-      "INSERT INTO gallery (url,thumbnail_url,caption,category) VALUES ($1,$2,$3,$4) RETURNING *",
-      [result.secure_url, result.secure_url.replace("/upload/", "/upload/w_400/"), req.body.caption, req.body.category]
+      "INSERT INTO gallery (url,thumbnail_url,caption,category,year) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+      [result.secure_url, result.secure_url.replace("/upload/", "/upload/w_400/"), req.body.caption, req.body.category, year]
     );
     res.json(r.rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
+
 app.delete("/gallery/:id", authAdmin, async (req, res) => {
   await pool.query("DELETE FROM gallery WHERE id=$1", [req.params.id]);
   res.json({ success: true });

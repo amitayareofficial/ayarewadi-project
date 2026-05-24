@@ -230,20 +230,26 @@ function AdminGallery() {
   const [file, setFile]         = useState(null);
   const [caption, setCaption]   = useState("");
   const [category, setCategory] = useState("Village Festivals");
+  const [year, setYear]         = useState(String(new Date().getFullYear()));
   const [uploading, setUploading] = useState(false);
   const [filterCat, setFilterCat] = useState("");
+  const [filterYear, setFilterYear] = useState("");
   const [toast, setToast]       = useState("");
   const [confirmId, setConfirmId] = useState(null);
 
-  const CATS = ["Sports","Ravalnath Temple","Meetings","Village Festivals","Mumbai Meeting","Ganesh Chaturthi","Gudhi Padwa","Shimga (Holi)"];
+  const CATS  = ["Sports","Ravalnath Temple","Meetings","Village Festivals","Mumbai Meeting","Ganesh Chaturthi","Gudhi Padwa","Shimga (Holi)"];
+  const YEARS = Array.from({ length: 6 }, (_, i) => String(new Date().getFullYear() - i));
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const load = () => {
-    const url = filterCat ? `${API}/gallery?category=${encodeURIComponent(filterCat)}` : `${API}/gallery`;
-    axios.get(url).then(r => setPhotos(r.data)).catch(() => {});
+    const params = [];
+    if (filterYear) params.push(`year=${filterYear}`);
+    if (filterCat)  params.push(`category=${encodeURIComponent(filterCat)}`);
+    const qs = params.length ? "?" + params.join("&") : "";
+    axios.get(`${API}/gallery${qs}`).then(r => setPhotos(r.data)).catch(() => {});
   };
-  useEffect(() => { load(); }, [filterCat]);
+  useEffect(() => { load(); }, [filterCat, filterYear]);
 
   const upload = async () => {
     if (!file) return showToast("Please select a photo first.");
@@ -253,6 +259,7 @@ function AdminGallery() {
       fd.append("photo", file);
       fd.append("caption", caption);
       fd.append("category", category);
+      fd.append("year", year);
       await axios.post(`${API}/gallery/upload`, fd, { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } });
       setFile(null); setCaption("");
       showToast("Photo uploaded successfully.");
@@ -282,6 +289,9 @@ function AdminGallery() {
         <select value={category} onChange={e => setCategory(e.target.value)}>
           {CATS.map(c => <option key={c}>{c}</option>)}
         </select>
+        <select value={year} onChange={e => setYear(e.target.value)}>
+          {YEARS.map(y => <option key={y}>{y}</option>)}
+        </select>
         <button className="btn-save" onClick={upload} disabled={uploading}>
           {uploading ? "Uploading…" : "Upload to Cloudinary"}
         </button>
@@ -289,7 +299,14 @@ function AdminGallery() {
 
       {/* FILTER */}
       <div className="filter-row">
-        <span>Filter:</span>
+        <span>Year:</span>
+        <button className={!filterYear ? "active" : ""} onClick={() => setFilterYear("")}>All</button>
+        {YEARS.map(y => (
+          <button key={y} className={filterYear === y ? "active" : ""} onClick={() => setFilterYear(y)}>{y}</button>
+        ))}
+      </div>
+      <div className="filter-row" style={{ marginTop: 6 }}>
+        <span>Category:</span>
         <button className={!filterCat ? "active" : ""} onClick={() => setFilterCat("")}>All</button>
         {CATS.map(c => (
           <button key={c} className={filterCat === c ? "active" : ""} onClick={() => setFilterCat(c)}>{c}</button>
@@ -302,7 +319,7 @@ function AdminGallery() {
           <div className="admin-photo" key={p.id}>
             <img src={p.thumbnail_url || p.url} alt={p.caption || p.category} loading="lazy" />
             <div className="photo-info">
-              <small>{p.category}</small>
+              <small>{p.year ? `${p.year} · ` : ""}{p.category}</small>
               <p>{p.caption}</p>
               {confirmId === p.id
                 ? <span className="inline-confirm">

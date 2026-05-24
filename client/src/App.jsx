@@ -8,6 +8,7 @@ import ForgotPassword  from "./pages/portal/ForgotPassword.jsx";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
 import Blog_Page from "./pages/Blog.jsx";
+import Gallery_Page from "./pages/Gallery.jsx";
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { CinematicFooter } from "./components/ui/motion-footer";
 import heroImg        from "./assets/images/main_image_home.png";
@@ -957,118 +958,7 @@ function Portal_Page({ lang }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════
-   GALLERY PAGE
-═══════════════════════════════════════════════════════════ */
-const GALLERY_DEFAULTS = [
-  { src: IMG.templeReno, fullSrc: IMG.templeReno, label: "Temple Renovation" },
-  { src: IMG.busStand,   fullSrc: IMG.busStand,   label: "Bus Stand" },
-  { src: IMG.sports,     fullSrc: IMG.sports,     label: "Sports Events" },
-  { src: IMG.temple,     fullSrc: IMG.temple,     label: "Ravalnath Temple" },
-  { src: IMG.festival1,  fullSrc: IMG.festival1,  label: "Festival" },
-  { src: IMG.festival2,  fullSrc: IMG.festival2,  label: "Festival" },
-  { src: IMG.festival3,  fullSrc: IMG.festival3,  label: "Celebration" },
-  { src: IMG.nature1,    fullSrc: IMG.nature1,    label: "Village Life" },
-  { src: IMG.nature2,    fullSrc: IMG.nature2,    label: "Village" },
-  { src: IMG.nature3,    fullSrc: IMG.nature3,    label: "Village" },
-];
-
-function Gallery_Page({ lang }) {
-  const t = LANG[lang].gallery;
-  const [photos, setPhotos] = useState([]);
-  const [query, setQuery]   = useState("");
-
-  useEffect(() => {
-    axios.get(`${API}/gallery`)
-      .then(r => setPhotos(
-        r.data.length > 0
-          ? r.data.map(p => ({ src: p.thumbnail_url || p.url, fullSrc: p.url, label: p.caption || p.category || "" }))
-          : GALLERY_DEFAULTS
-      ))
-      .catch(() => setPhotos(GALLERY_DEFAULTS));
-  }, []);
-
-  const filtered = query
-    ? photos.filter(p => p.label.toLowerCase().includes(query.toLowerCase()))
-    : photos;
-
-  const download = async (src, label) => {
-    try {
-      const res  = await fetch(src);
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
-      a.href     = url;
-      a.download = (label || "photo") + ".jpg";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      window.open(src, "_blank");
-    }
-  };
-
-  return (
-    <section className="page-section">
-      <div className="sec-header">
-        <span className="eyebrow">{t.eyebrow}</span>
-        <h2 className="gallery-heading">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-          {t.title}
-        </h2>
-      </div>
-
-      <div className="gallery-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          placeholder={t.search}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        {query && (
-          <button className="gallery-search-clear" onClick={() => setQuery("")}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {filtered.length === 0 && query && (
-        <p className="gallery-empty">{t.empty} "{query}"</p>
-      )}
-
-      <div className="gallery-grid">
-        {filtered.map((p, i) => (
-          <div className="gallery-item" key={i}>
-            <img src={p.src} alt={p.label} loading="lazy" />
-            <div className="gallery-overlay">
-              <span className="gallery-caption">{p.label}</span>
-              <button
-                className="gallery-download"
-                onClick={() => download(p.fullSrc || p.src, p.label)}
-                title="Download photo"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
+/* Gallery_Page lives in ./pages/Gallery.jsx */
 
 /* ═══════════════════════════════════════════════════════════
    EVENTS PAGE
