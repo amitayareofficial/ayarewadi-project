@@ -1560,8 +1560,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .navbar.scrolled               { padding: 4px 16px; }
   .nav-logo                      { height: 55px; }
 
-  /* Navbar: hide lang buttons — only logo + hamburger visible */
-  .nav-lang-group                { display: none; }
+  /* Navbar: logo left — lang buttons + hamburger pushed to right */
+  .nav-lang-group                { display: flex; order: 2; margin-left: auto; gap: 4px; }
+  .nav-actions                   { order: 3; margin-left: 4px; }
 
   /* Hero h1 cap on mobile */
   .hero-content h1               { font-size: 2rem; }
