@@ -1,12 +1,73 @@
 import { useState, useRef } from "react";
+import { Eye, EyeOff, Phone, Camera } from "lucide-react";
 import { memberApi } from "@/services/memberApi";
+import {
+  Input, BoxReveal, Ripple, BottomGradient, Label,
+} from "@/components/ui/animated-auth";
 
-const STRENGTH_LEVELS = [
-  { label: "Very Weak", color: "#e53935" },
-  { label: "Weak",      color: "#fb8c00" },
-  { label: "Fair",      color: "#fdd835" },
-  { label: "Good",      color: "#43a047" },
-  { label: "Strong",    color: "#1b5e20" },
+// ── Translations ──────────────────────────────────────────
+const T = {
+  en: {
+    leftWelcome: "Join Us",
+    leftTitle:   "Create Your Account",
+    leftSub:     "Register for the village member portal",
+    tagline:     "Mangavli · Vaibhavwadi · Sindhudurg",
+    heading:     "Member Registration",
+    sub:         "नोंदणी करा · Ayarewadi Village Portal",
+    photoLabel:  "Profile Photo",
+    photoHint:   "Upload Photo",
+    changePhoto: "Change Photo",
+    required:    "Required",
+    fullName:    "Full Name",      dob:     "Date of Birth",
+    mobile:      "Mobile Number",  email:   "Email (optional)",
+    address:     "Address (optional)",
+    password:    "Password",       confirm: "Confirm Password",
+    submitBtn:   "Create Account →",
+    submitting:  "Creating account...",
+    haveAccount: "Already have an account?",
+    loginLink:   "Login here",
+    successTitle: "Registration Submitted!",
+    successSub:   "Your account is pending admin approval.",
+    step1: "Account created successfully",
+    step2: "Admin will review your request",
+    step3: "Login with mobile + password once approved",
+    goLogin: "Go to Login →",
+  },
+  mr: {
+    leftWelcome: "आमच्यात सामील व्हा",
+    leftTitle:   "खाते तयार करा",
+    leftSub:     "ग्राम सभासद पोर्टलसाठी नोंदणी करा",
+    tagline:     "मांगवली · वैभववाडी · सिंधुदुर्ग",
+    heading:     "सभासद नोंदणी",
+    sub:         "Member Registration · Ayarewadi Village Portal",
+    photoLabel:  "प्रोफाइल फोटो",
+    photoHint:   "फोटो अपलोड करा",
+    changePhoto: "फोटो बदला",
+    required:    "आवश्यक",
+    fullName:    "पूर्ण नाव",      dob:     "जन्मतारीख",
+    mobile:      "मोबाईल नंबर",   email:   "ईमेल (पर्यायी)",
+    address:     "पत्ता (पर्यायी)",
+    password:    "पासवर्ड",        confirm: "पासवर्ड पुन्हा टाका",
+    submitBtn:   "नोंदणी करा →",
+    submitting:  "खाते तयार होत आहे...",
+    haveAccount: "आधीच खाते आहे?",
+    loginLink:   "इथे लॉगिन करा",
+    successTitle: "नोंदणी सादर केली!",
+    successSub:   "तुमचे खाते प्रशासक मंजुरीसाठी प्रलंबित आहे.",
+    step1: "खाते यशस्वीरित्या तयार झाले",
+    step2: "प्रशासक तुमची विनंती तपासेल",
+    step3: "मंजुरीनंतर मोबाईल + पासवर्डने लॉगिन करा",
+    goLogin: "लॉगिन पृष्ठावर जा →",
+  },
+};
+
+// ── Password strength ─────────────────────────────────────
+const STRENGTH = [
+  { label: "Very Weak", mr: "अतिशय कमकुवत", color: "#ef4444" },
+  { label: "Weak",      mr: "कमकुवत",        color: "#f97316" },
+  { label: "Fair",      mr: "ठीक",           color: "#eab308" },
+  { label: "Good",      mr: "चांगला",         color: "#22c55e" },
+  { label: "Strong",    mr: "मजबूत",          color: "#15803d" },
 ];
 
 function passwordStrength(pw) {
@@ -19,14 +80,73 @@ function passwordStrength(pw) {
   return Math.min(s, 4);
 }
 
-export default function Register({ onGoLogin }) {
-  const [form, setForm]     = useState({ full_name:"", dob:"", mobile:"", email:"", address:"", password:"", confirm:"" });
-  const [photo, setPhoto]   = useState(null);
+// ── Mobile prefix input ───────────────────────────────────
+function MobileInput({ value, onChange, placeholder }) {
+  return (
+    <div className="flex rounded-lg overflow-hidden border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-green-400 transition-all duration-300">
+      <div className="flex items-center px-3 bg-green-50 border-r border-gray-200 text-green-800 font-bold text-sm whitespace-nowrap gap-1">
+        <Phone size={13} /> +91
+      </div>
+      <input
+        className="flex-1 h-11 px-3 text-sm bg-transparent outline-none text-black placeholder:text-neutral-400"
+        value={value}
+        onChange={e => onChange(e.target.value.replace(/\D/g, ""))}
+        placeholder={placeholder}
+        maxLength={10}
+        inputMode="numeric"
+      />
+    </div>
+  );
+}
+
+// ── Success screen ────────────────────────────────────────
+function SuccessScreen({ t, onGoLogin }) {
+  const steps = [
+    { badge: "✓", bg: "bg-green-500",   label: t.step1 },
+    { badge: "2", bg: "bg-orange-400",  label: t.step2 },
+    { badge: "3", bg: "bg-neutral-300", label: t.step3 },
+  ];
+  return (
+    <section className="flex min-h-screen w-full items-center justify-center bg-white px-6 py-12">
+      <div className="w-full max-w-md text-center">
+        <div className="text-6xl mb-6">✅</div>
+        <h2 className="font-black text-2xl text-green-900 mb-2">{t.successTitle}</h2>
+        <p className="text-neutral-500 text-sm mb-8">{t.successSub}</p>
+        <div className="bg-green-50 border border-green-100 rounded-2xl p-5 mb-8 text-left flex flex-col gap-4">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm text-neutral-700">
+              <span className={`${s.bg} text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black flex-shrink-0`}>
+                {s.badge}
+              </span>
+              {s.label}
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={onGoLogin}
+          className="relative group/btn w-full h-11 rounded-md font-bold text-white text-sm outline-none hover:cursor-pointer"
+          style={{ background: "linear-gradient(135deg, #1b5e20 0%, #4caf50 100%)" }}
+        >
+          {t.goLogin}
+          <BottomGradient />
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// ── Main Register Component ───────────────────────────────
+export default function Register({ onGoLogin, lang = "mr" }) {
+  const t = T[lang] ?? T.mr;
+  const [form, setForm]       = useState({ full_name: "", dob: "", mobile: "", email: "", address: "", password: "", confirm: "" });
+  const [photo, setPhoto]     = useState(null);
   const [preview, setPreview] = useState(null);
+  const [showPass, setShowPass]       = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState("");
-  const [done, setDone]     = useState(false);
-  const fileRef             = useRef();
+  const [error, setError]     = useState("");
+  const [done, setDone]       = useState(false);
+  const fileRef = useRef();
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
   const strength = passwordStrength(form.password);
@@ -41,12 +161,13 @@ export default function Register({ onGoLogin }) {
   };
 
   const validate = () => {
-    if (!form.full_name.trim())             return "Full name is required";
-    if (!form.dob)                          return "Date of birth is required";
-    if (!/^[6-9]\d{9}$/.test(form.mobile)) return "Enter a valid 10-digit Indian mobile number";
-    if (!photo)                             return "Profile photo is required";
-    if (form.password.length < 6)           return "Password must be at least 6 characters";
-    if (form.password !== form.confirm)     return "Passwords do not match";
+    const mr = lang === "mr";
+    if (!form.full_name.trim())              return mr ? "पूर्ण नाव आवश्यक आहे"               : "Full name is required";
+    if (!form.dob)                           return mr ? "जन्मतारीख आवश्यक आहे"               : "Date of birth is required";
+    if (!/^[6-9]\d{9}$/.test(form.mobile))  return mr ? "वैध १०-अंकी मोबाईल नंबर टाका"       : "Enter a valid 10-digit mobile number";
+    if (!photo)                              return mr ? "प्रोफाइल फोटो आवश्यक आहे"            : "Profile photo is required";
+    if (form.password.length < 6)           return mr ? "पासवर्ड किमान ६ अक्षरांचा असावा"    : "Password must be at least 6 characters";
+    if (form.password !== form.confirm)     return mr ? "पासवर्ड जुळत नाही"                   : "Passwords do not match";
     return null;
   };
 
@@ -54,176 +175,272 @@ export default function Register({ onGoLogin }) {
     e.preventDefault();
     const err = validate();
     if (err) { setError(err); return; }
-
     setLoading(true); setError("");
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => { if (k !== "confirm") fd.append(k, v); });
     fd.append("photo", photo);
-
     try {
       await memberApi.register(fd);
       setDone(true);
     } catch (err) {
-      setError(err.response?.data?.error || "Registration failed. Please try again.");
+      setError(err.response?.data?.error || (lang === "mr" ? "नोंदणी अयशस्वी. पुन्हा प्रयत्न करा." : "Registration failed. Please try again."));
     } finally {
       setLoading(false);
     }
   };
 
-  if (done) return (
-    <div style={s.wrap}>
-      <div style={s.card}>
-        <div style={s.successBox}>
-          <div style={s.successIcon}>✅</div>
-          <h2 style={s.successTitle}>Registration Submitted!</h2>
-          <p style={s.successText}>
-            Your account has been created and is<br />
-            <strong style={{ color:"#e65100" }}>pending admin approval.</strong>
-          </p>
-          <div style={s.stepsList}>
-            <div style={s.stepItem}>
-              <span style={{ ...s.stepBadge, background:"#4caf50" }}>✓</span>
-              <span>Account created successfully</span>
-            </div>
-            <div style={s.stepItem}>
-              <span style={{ ...s.stepBadge, background:"#ff9800" }}>2</span>
-              <span>Admin will review your request</span>
-            </div>
-            <div style={s.stepItem}>
-              <span style={{ ...s.stepBadge, background:"#9e9e9e" }}>3</span>
-              <span>Login with mobile + password once approved</span>
-            </div>
-          </div>
-          <button style={s.btn} onClick={onGoLogin}>Go to Login</button>
-        </div>
-      </div>
-    </div>
-  );
+  if (done) return <SuccessScreen t={t} onGoLogin={onGoLogin} />;
 
   return (
-    <div style={s.wrap}>
-      <div style={s.card}>
-        {/* Header */}
-        <div style={s.header}>
-          <div style={s.headerEmoji}>👤</div>
-          <h2 style={s.title}>Member Registration</h2>
-          <p style={s.subtitle}>सभासद नोंदणी · Ayarewadi Village Portal</p>
+    <section className="flex min-h-screen w-full">
+
+      {/* ── Left panel ────────────────────────────────────── */}
+      <div className="hidden lg:flex lg:w-2/5 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
+        <div className="absolute inset-0">
+          <Ripple mainCircleSize={140} numCircles={6} />
         </div>
-
-        {/* Photo upload */}
-        <div style={s.photoArea}>
-          <div
-            style={{ ...s.photoCircle, borderColor: preview ? "#4caf50" : photo ? "#4caf50" : "#ccc" }}
-            onClick={() => fileRef.current.click()}
-          >
-            {preview
-              ? <img src={preview} alt="preview" style={s.photoImg} />
-              : <div style={s.photoPlaceholder}>
-                  <span style={{ fontSize:"2rem" }}>📷</span>
-                  <span style={{ fontSize:"0.75rem", marginTop:4, color:"#888" }}>Upload Photo *</span>
-                </div>
-            }
+        <div className="relative z-10 text-center px-10">
+          <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-4xl mx-auto mb-6 shadow-xl">
+            📋
           </div>
-          <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={handlePhoto} />
-          <button type="button" style={s.photoBtn} onClick={() => fileRef.current.click()}>
-            {preview ? "Change Photo" : "Choose Photo *"}
-          </button>
-          {!photo && <span style={s.required}>Required</span>}
+          <p className="text-white/60 text-xs font-semibold tracking-[0.3em] uppercase mb-3">{t.leftWelcome}</p>
+          <h1 className="text-white font-black text-4xl leading-tight drop-shadow-lg mb-2">
+            {lang === "mr" ? "आयरेवाडी" : "Ayarewadi"}
+          </h1>
+          <p className="text-green-300 font-bold text-xl mb-4">{t.leftTitle}</p>
+          <p className="text-white/60 text-sm font-medium">{t.leftSub}</p>
         </div>
-
-        {/* Form */}
-        <form onSubmit={submit} style={s.form}>
-          <div style={s.row}>
-            <Field label="Full Name *" placeholder="e.g. Amit Ayare" value={form.full_name} onChange={set("full_name")} />
-            <Field label="Date of Birth *" type="date" value={form.dob} onChange={set("dob")} />
-          </div>
-
-          <div style={s.row}>
-            <Field label="Mobile Number *" placeholder="10-digit mobile" value={form.mobile}
-              onChange={set("mobile")} maxLength={10} inputMode="numeric" />
-            <Field label="Email (optional)" placeholder="email@example.com" type="email"
-              value={form.email} onChange={set("email")} />
-          </div>
-
-          <Field label="Address (optional)" placeholder="Village / Town, District"
-            value={form.address} onChange={set("address")} />
-
-          <div style={s.row}>
-            <div style={{ flex:1 }}>
-              <Field label="Password *" type="password" placeholder="Minimum 6 characters"
-                value={form.password} onChange={set("password")} />
-              {form.password && (
-                <div style={s.strengthRow}>
-                  {[0,1,2,3,4].map(i => (
-                    <div key={i} style={{ ...s.strengthBar, background: i <= strength ? STRENGTH_LEVELS[strength].color : "#e8e8e8" }} />
-                  ))}
-                  <span style={{ fontSize:"0.68rem", color: STRENGTH_LEVELS[strength].color, fontWeight:700, marginLeft:6, whiteSpace:"nowrap" }}>
-                    {STRENGTH_LEVELS[strength].label}
-                  </span>
-                </div>
-              )}
-            </div>
-            <Field label="Confirm Password *" type="password" placeholder="Repeat password"
-              value={form.confirm} onChange={set("confirm")} />
-          </div>
-
-          {error && (
-            <div style={s.errBox}>
-              <span>⚠️</span> {error}
-            </div>
-          )}
-
-          <button type="submit" disabled={loading} style={{ ...s.btn, opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}>
-            {loading ? "Creating account..." : "Create Account · नोंदणी करा"}
-          </button>
-
-          <p style={s.loginPrompt}>
-            Already have an account?{" "}
-            <button type="button" style={s.linkBtn} onClick={onGoLogin}>Login here</button>
-          </p>
-        </form>
+        <div className="absolute bottom-8 left-0 right-0 text-center z-10">
+          <p className="text-white/50 text-xs font-medium tracking-widest uppercase">{t.tagline}</p>
+        </div>
       </div>
-    </div>
+
+      {/* ── Right panel — form ────────────────────────────── */}
+      <div className="w-full lg:w-3/5 flex flex-col justify-center items-center px-6 sm:px-12 py-10 bg-white min-h-screen overflow-y-auto">
+        <div className="w-full max-w-xl">
+
+          {/* Logo */}
+          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-emerald-400 flex items-center justify-center text-white text-xl shadow-md">
+                🏠
+              </div>
+              <span className="font-black text-green-800 text-lg tracking-tight">
+                {lang === "mr" ? "आयरेवाडी पोर्टल" : "Ayarewadi Portal"}
+              </span>
+            </div>
+          </BoxReveal>
+
+          {/* Heading */}
+          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-1">
+            <h2 className="font-black text-3xl text-neutral-800">{t.heading}</h2>
+          </BoxReveal>
+          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-6">
+            <p className="text-neutral-500 text-sm">{t.sub}</p>
+          </BoxReveal>
+
+          {/* Photo upload */}
+          <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} className="mb-6">
+            <div className="flex items-center gap-5 p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
+              <div
+                onClick={() => fileRef.current.click()}
+                className={`w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed flex-shrink-0 transition-all duration-200 ${
+                  preview ? "border-green-500" : "border-gray-300 bg-white hover:border-green-400"
+                }`}
+              >
+                {preview
+                  ? <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                  : <Camera size={22} className="text-gray-400" />
+                }
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>{t.photoLabel} <span className="text-red-500">*</span></Label>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current.click()}
+                  className="text-sm text-green-700 border border-green-500 rounded-full px-4 py-1 font-semibold hover:bg-green-50 transition-colors duration-200 w-fit"
+                >
+                  {preview ? t.changePhoto : t.photoHint}
+                </button>
+                {!photo && <span className="text-xs text-red-500 font-medium">{t.required}</span>}
+              </div>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+            </div>
+          </BoxReveal>
+
+          {/* Form */}
+          <form onSubmit={submit} className="flex flex-col gap-5">
+
+            {/* Full Name + DOB */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.fullName} <span className="text-red-500">*</span></Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <Input
+                    type="text"
+                    placeholder={lang === "mr" ? "उदा. अमित आयरे" : "e.g. Amit Ayare"}
+                    value={form.full_name}
+                    onChange={set("full_name")}
+                  />
+                </BoxReveal>
+              </div>
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.dob} <span className="text-red-500">*</span></Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <Input type="date" value={form.dob} onChange={set("dob")} />
+                </BoxReveal>
+              </div>
+            </div>
+
+            {/* Mobile + Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.mobile} <span className="text-red-500">*</span></Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <MobileInput
+                    value={form.mobile}
+                    onChange={v => setForm(f => ({ ...f, mobile: v }))}
+                    placeholder={lang === "mr" ? "१०-अंकी नंबर" : "10-digit number"}
+                  />
+                </BoxReveal>
+              </div>
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.email}</Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <Input
+                    type="email"
+                    placeholder="email@example.com"
+                    value={form.email}
+                    onChange={set("email")}
+                  />
+                </BoxReveal>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="flex flex-col gap-2">
+              <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                <Label>{t.address}</Label>
+              </BoxReveal>
+              <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                <Input
+                  type="text"
+                  placeholder={lang === "mr" ? "गाव / शहर, जिल्हा" : "Village / Town, District"}
+                  value={form.address}
+                  onChange={set("address")}
+                />
+              </BoxReveal>
+            </div>
+
+            {/* Password + Confirm */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.password} <span className="text-red-500">*</span></Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <div className="relative">
+                    <Input
+                      type={showPass ? "text" : "password"}
+                      placeholder={lang === "mr" ? "किमान ६ अक्षरे" : "Min. 6 characters"}
+                      value={form.password}
+                      onChange={set("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
+                    >
+                      {showPass ? <Eye size={17} /> : <EyeOff size={17} />}
+                    </button>
+                  </div>
+                </BoxReveal>
+                {form.password && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {[0,1,2,3,4].map(i => (
+                      <div
+                        key={i}
+                        className="flex-1 h-1 rounded-full transition-all duration-300"
+                        style={{ background: i <= strength ? STRENGTH[strength].color : "#e5e7eb" }}
+                      />
+                    ))}
+                    <span className="text-xs font-bold ml-1 whitespace-nowrap" style={{ color: STRENGTH[strength].color }}>
+                      {lang === "mr" ? STRENGTH[strength].mr : STRENGTH[strength].label}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.confirm} <span className="text-red-500">*</span></Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <div className="relative">
+                    <Input
+                      type={showConfirm ? "text" : "password"}
+                      placeholder={lang === "mr" ? "पासवर्ड पुन्हा टाका" : "Repeat password"}
+                      value={form.confirm}
+                      onChange={set("confirm")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
+                    >
+                      {showConfirm ? <Eye size={17} /> : <EyeOff size={17} />}
+                    </button>
+                  </div>
+                </BoxReveal>
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.2}>
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm font-medium flex items-center gap-2">
+                  ⚠️ {error}
+                </div>
+              </BoxReveal>
+            )}
+
+            {/* Submit */}
+            <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} overflow="visible">
+              <button
+                type="submit"
+                disabled={loading}
+                className="relative group/btn w-full h-11 rounded-md font-bold text-white text-sm outline-none hover:cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg, #1b5e20 0%, #4caf50 100%)" }}
+              >
+                {loading ? t.submitting : t.submitBtn}
+                <BottomGradient />
+              </button>
+            </BoxReveal>
+
+            {/* Login link */}
+            <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+              <p className="text-center text-sm text-neutral-400">
+                {t.haveAccount}{" "}
+                <button
+                  type="button"
+                  onClick={onGoLogin}
+                  className="text-green-600 font-bold hover:underline outline-none"
+                >
+                  {t.loginLink}
+                </button>
+              </p>
+            </BoxReveal>
+
+          </form>
+        </div>
+      </div>
+    </section>
   );
 }
-
-function Field({ label, ...props }) {
-  return (
-    <div style={{ flex:1, minWidth:0 }}>
-      <label style={s.label}>{label}</label>
-      <input style={s.input} {...props} />
-    </div>
-  );
-}
-
-const s = {
-  wrap:          { display:"flex", justifyContent:"center", padding:"1.5rem 1rem 3rem" },
-  card:          { background:"#fff", borderRadius:20, boxShadow:"0 2px 20px rgba(0,0,0,0.08)", padding:"2rem", width:"100%", maxWidth:680 },
-  header:        { textAlign:"center", marginBottom:"1.5rem" },
-  headerEmoji:   { fontSize:"2.5rem", marginBottom:8 },
-  title:         { fontSize:"1.5rem", fontWeight:800, color:"#1b5e20", margin:"0 0 4px" },
-  subtitle:      { fontSize:"0.82rem", color:"#888", margin:0 },
-  photoArea:     { display:"flex", flexDirection:"column", alignItems:"center", gap:6, marginBottom:"1.5rem" },
-  photoCircle:   { width:96, height:96, borderRadius:"50%", border:"2.5px dashed #ccc", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:"pointer", overflow:"hidden", background:"#fafafa", transition:"border-color 0.2s" },
-  photoImg:      { width:"100%", height:"100%", objectFit:"cover" },
-  photoPlaceholder: { display:"flex", flexDirection:"column", alignItems:"center" },
-  photoBtn:      { background:"none", border:"1.5px solid #4caf50", color:"#2e7d32", padding:"5px 16px", borderRadius:20, cursor:"pointer", fontSize:"0.78rem", fontWeight:700 },
-  required:      { fontSize:"0.7rem", color:"#e53935", fontWeight:600 },
-  form:          { display:"flex", flexDirection:"column", gap:"1rem" },
-  row:           { display:"flex", gap:"1rem", flexWrap:"wrap" },
-  label:         { display:"block", fontSize:"0.72rem", fontWeight:700, color:"#555", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" },
-  input:         { width:"100%", padding:"11px 13px", border:"1.5px solid #e8e8e8", borderRadius:10, fontSize:"0.92rem", outline:"none", boxSizing:"border-box", fontFamily:"inherit", transition:"border-color 0.2s", background:"#fafafa" },
-  strengthRow:   { display:"flex", alignItems:"center", gap:3, marginTop:5 },
-  strengthBar:   { flex:1, height:3, borderRadius:2, transition:"background 0.3s" },
-  errBox:        { display:"flex", alignItems:"center", gap:8, background:"#fff3f3", color:"#c62828", border:"1px solid #ffcdd2", borderRadius:10, padding:"10px 14px", fontSize:"0.85rem", fontWeight:500 },
-  btn:           { background:"linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)", color:"#fff", border:"none", padding:"13px", borderRadius:12, fontSize:"1rem", fontWeight:700, cursor:"pointer", transition:"opacity 0.2s" },
-  loginPrompt:   { textAlign:"center", fontSize:"0.83rem", color:"#888", margin:0 },
-  linkBtn:       { background:"none", border:"none", color:"#2e7d32", fontWeight:700, cursor:"pointer", textDecoration:"underline", fontSize:"inherit" },
-  successBox:    { textAlign:"center", padding:"1rem 0" },
-  successIcon:   { fontSize:"3.5rem", marginBottom:"1rem" },
-  successTitle:  { fontSize:"1.5rem", fontWeight:800, color:"#1b5e20", margin:"0 0 8px" },
-  successText:   { color:"#555", lineHeight:1.8, marginBottom:"1.5rem" },
-  stepsList:     { background:"#f9f9f9", borderRadius:12, padding:"1rem 1.25rem", margin:"0 0 1.5rem", display:"flex", flexDirection:"column", gap:12, textAlign:"left" },
-  stepItem:      { display:"flex", alignItems:"center", gap:12, fontSize:"0.88rem", color:"#444" },
-  stepBadge:     { color:"#fff", borderRadius:"50%", width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.75rem", fontWeight:800, flexShrink:0 },
-};

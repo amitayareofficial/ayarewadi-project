@@ -934,7 +934,7 @@ function Emergency_Page({ lang }) {
 /* ═══════════════════════════════════════════════════════════
    PORTAL — Member Authentication System
 ═══════════════════════════════════════════════════════════ */
-function Portal_Page() {
+function Portal_Page({ lang }) {
   const { member, loading } = useAuth();
   const [view, setView] = useState("login"); // login | register | forgot
 
@@ -949,11 +949,11 @@ function Portal_Page() {
   if (member) return <MemberDashboard />;
 
   return (
-    <section className="page-section" style={{ padding: "1rem 0" }}>
-      {view === "login"    && <MemberLogin onGoRegister={() => setView("register")} onGoForgot={() => setView("forgot")} onLoginSuccess={() => {}} />}
-      {view === "register" && <Register    onGoLogin={() => setView("login")} />}
+    <div style={{ marginTop: "-1px" }}>
+      {view === "login"    && <MemberLogin lang={lang} onGoRegister={() => setView("register")} onGoForgot={() => setView("forgot")} onLoginSuccess={() => {}} />}
+      {view === "register" && <Register    lang={lang} onGoLogin={() => setView("login")} />}
       {view === "forgot"   && <ForgotPassword onGoBack={() => setView("login")} />}
-    </section>
+    </div>
   );
 }
 
