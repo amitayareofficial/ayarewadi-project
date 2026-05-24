@@ -1178,8 +1178,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     position: absolute; top: 0; left: 0; right: 0; bottom: 0;
     pointer-events: none;
   }
-  /* Push tagline below fixed navbar (navbar ≈ 79px) */
-  .hero-content-top      { top: 80px; padding: 0 20px; }
+  /* Push tagline below fixed navbar (navbar ≈ 63px on mobile) */
+  .hero-content-top      { top: 64px; padding: 0 20px; }
   .hero-tagline          { font-size: 1.15rem; }
 
   /* ── Service bento ── */
@@ -1252,7 +1252,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero-content-top      { top: 76px; padding: 0 16px; }
+  .hero-content-top      { top: 60px; padding: 0 16px; }
   .hero-tagline          { font-size: 0.98rem; }
   .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
 
@@ -1313,7 +1313,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ─ 360px: Very small / old Android ─────────────────── */
 @media (max-width: 360px) {
-  .hero-content-top      { top: 84px; padding: 0 12px; gap: 5px; }
+  .hero-content-top      { top: 64px; padding: 0 12px; gap: 5px; }
   .hero-tagline          { font-size: 0.88rem; }
   .hero-eyebrow          { font-size: 0.62rem; letter-spacing: 1.5px; }
   .svc-bento             { grid-template-rows: repeat(4, 140px); }
@@ -1341,7 +1341,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     object-fit: cover;
   }
   .hero-overlay { display: block; }
-  .hero-content-top { top: 70px; padding: 0 24px; }
+  .hero-content-top { top: 56px; padding: 0 24px; }
   .hero-tagline     { font-size: 1rem; }
 }
 
