@@ -107,7 +107,7 @@ function SuccessScreen({ t, onGoLogin }) {
     { badge: "3", bg: "bg-neutral-300", label: t.step3 },
   ];
   return (
-    <section className="flex min-h-screen w-full items-center justify-center bg-white px-6 py-12">
+    <section className="flex min-h-screen w-full items-center justify-center bg-white px-5 py-12">
       <div className="w-full max-w-md text-center">
         <div className="text-6xl mb-6">✅</div>
         <h2 className="font-black text-2xl text-green-900 mb-2">{t.successTitle}</h2>
@@ -162,12 +162,12 @@ export default function Register({ onGoLogin, lang = "mr" }) {
 
   const validate = () => {
     const mr = lang === "mr";
-    if (!form.full_name.trim())              return mr ? "पूर्ण नाव आवश्यक आहे"               : "Full name is required";
-    if (!form.dob)                           return mr ? "जन्मतारीख आवश्यक आहे"               : "Date of birth is required";
-    if (!/^[6-9]\d{9}$/.test(form.mobile))  return mr ? "वैध १०-अंकी मोबाईल नंबर टाका"       : "Enter a valid 10-digit mobile number";
-    if (!photo)                              return mr ? "प्रोफाइल फोटो आवश्यक आहे"            : "Profile photo is required";
-    if (form.password.length < 6)           return mr ? "पासवर्ड किमान ६ अक्षरांचा असावा"    : "Password must be at least 6 characters";
-    if (form.password !== form.confirm)     return mr ? "पासवर्ड जुळत नाही"                   : "Passwords do not match";
+    if (!form.full_name.trim())             return mr ? "पूर्ण नाव आवश्यक आहे"            : "Full name is required";
+    if (!form.dob)                          return mr ? "जन्मतारीख आवश्यक आहे"            : "Date of birth is required";
+    if (!/^[6-9]\d{9}$/.test(form.mobile)) return mr ? "वैध १०-अंकी मोबाईल नंबर टाका"    : "Enter a valid 10-digit mobile number";
+    if (!photo)                             return mr ? "प्रोफाइल फोटो आवश्यक आहे"         : "Profile photo is required";
+    if (form.password.length < 6)          return mr ? "पासवर्ड किमान ६ अक्षरांचा असावा" : "Password must be at least 6 characters";
+    if (form.password !== form.confirm)    return mr ? "पासवर्ड जुळत नाही"                : "Passwords do not match";
     return null;
   };
 
@@ -194,7 +194,7 @@ export default function Register({ onGoLogin, lang = "mr" }) {
   return (
     <section className="flex min-h-screen w-full">
 
-      {/* ── Left panel ────────────────────────────────────── */}
+      {/* ── Left panel — desktop only ──────────────────── */}
       <div className="hidden lg:flex lg:w-2/5 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
         <div className="absolute inset-0">
           <Ripple mainCircleSize={140} numCircles={6} />
@@ -215,13 +215,26 @@ export default function Register({ onGoLogin, lang = "mr" }) {
         </div>
       </div>
 
-      {/* ── Right panel — form ────────────────────────────── */}
-      <div className="w-full lg:w-3/5 flex flex-col justify-center items-center px-6 sm:px-12 py-10 bg-white min-h-screen overflow-y-auto">
-        <div className="w-full max-w-xl">
+      {/* ── Right panel ────────────────────────────────── */}
+      <div className="w-full lg:w-3/5 flex flex-col bg-white min-h-screen">
 
-          {/* Logo */}
-          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-6">
-            <div className="flex items-center gap-3">
+        {/* Mobile banner — hidden on desktop */}
+        <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-6 pb-5">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🏠</div>
+            <span className="font-black text-white text-lg leading-tight">
+              {lang === "mr" ? "आयरेवाडी पोर्टल" : "Ayarewadi Portal"}
+            </span>
+          </div>
+          <p className="text-green-200 text-xs tracking-widest uppercase font-medium mt-2">{t.tagline}</p>
+        </div>
+
+        {/* Form area */}
+        <div className="flex-1 flex flex-col justify-center items-center px-5 sm:px-10 lg:px-12 py-8 lg:py-10">
+          <div className="w-full max-w-xl">
+
+            {/* Logo — desktop only */}
+            <div className="hidden lg:flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-emerald-400 flex items-center justify-center text-white text-xl shadow-md">
                 🏠
               </div>
@@ -229,216 +242,214 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                 {lang === "mr" ? "आयरेवाडी पोर्टल" : "Ayarewadi Portal"}
               </span>
             </div>
-          </BoxReveal>
 
-          {/* Heading */}
-          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-1">
-            <h2 className="font-black text-3xl text-neutral-800">{t.heading}</h2>
-          </BoxReveal>
-          <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-6">
-            <p className="text-neutral-500 text-sm">{t.sub}</p>
-          </BoxReveal>
+            {/* Heading */}
+            <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-1">
+              <h2 className="font-black text-2xl sm:text-3xl text-neutral-800">{t.heading}</h2>
+            </BoxReveal>
+            <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-6">
+              <p className="text-neutral-500 text-sm">{t.sub}</p>
+            </BoxReveal>
 
-          {/* Photo upload */}
-          <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} className="mb-6">
-            <div className="flex items-center gap-5 p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
-              <div
-                onClick={() => fileRef.current.click()}
-                className={`w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed flex-shrink-0 transition-all duration-200 ${
-                  preview ? "border-green-500" : "border-gray-300 bg-white hover:border-green-400"
-                }`}
-              >
-                {preview
-                  ? <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                  : <Camera size={22} className="text-gray-400" />
-                }
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>{t.photoLabel} <span className="text-red-500">*</span></Label>
-                <button
-                  type="button"
+            {/* Photo upload */}
+            <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} className="mb-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50">
+                <div
                   onClick={() => fileRef.current.click()}
-                  className="text-sm text-green-700 border border-green-500 rounded-full px-4 py-1 font-semibold hover:bg-green-50 transition-colors duration-200 w-fit"
+                  className={`w-20 h-20 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed flex-shrink-0 transition-all duration-200 ${
+                    preview ? "border-green-500" : "border-gray-300 bg-white hover:border-green-400"
+                  }`}
                 >
-                  {preview ? t.changePhoto : t.photoHint}
-                </button>
-                {!photo && <span className="text-xs text-red-500 font-medium">{t.required}</span>}
+                  {preview
+                    ? <img src={preview} alt="preview" className="w-full h-full object-cover" />
+                    : <Camera size={22} className="text-gray-400" />
+                  }
+                </div>
+                <div className="flex flex-col gap-1.5 text-center sm:text-left">
+                  <Label>{t.photoLabel} <span className="text-red-500">*</span></Label>
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current.click()}
+                    className="text-sm text-green-700 border border-green-500 rounded-full px-4 py-1 font-semibold hover:bg-green-50 transition-colors duration-200 w-fit mx-auto sm:mx-0"
+                  >
+                    {preview ? t.changePhoto : t.photoHint}
+                  </button>
+                  {!photo && <span className="text-xs text-red-500 font-medium">{t.required}</span>}
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
               </div>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-            </div>
-          </BoxReveal>
+            </BoxReveal>
 
-          {/* Form */}
-          <form onSubmit={submit} className="flex flex-col gap-5">
+            {/* Form */}
+            <form onSubmit={submit} className="flex flex-col gap-4">
 
-            {/* Full Name + DOB */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Name + DOB */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.fullName} <span className="text-red-500">*</span></Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <Input
+                      type="text"
+                      placeholder={lang === "mr" ? "उदा. अमित आयरे" : "e.g. Amit Ayare"}
+                      value={form.full_name}
+                      onChange={set("full_name")}
+                    />
+                  </BoxReveal>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.dob} <span className="text-red-500">*</span></Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <Input type="date" value={form.dob} onChange={set("dob")} />
+                  </BoxReveal>
+                </div>
+              </div>
+
+              {/* Mobile + Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.mobile} <span className="text-red-500">*</span></Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <MobileInput
+                      value={form.mobile}
+                      onChange={v => setForm(f => ({ ...f, mobile: v }))}
+                      placeholder={lang === "mr" ? "१०-अंकी नंबर" : "10-digit number"}
+                    />
+                  </BoxReveal>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.email}</Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <Input
+                      type="email"
+                      placeholder="email@example.com"
+                      value={form.email}
+                      onChange={set("email")}
+                    />
+                  </BoxReveal>
+                </div>
+              </div>
+
+              {/* Address */}
               <div className="flex flex-col gap-2">
                 <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.fullName} <span className="text-red-500">*</span></Label>
+                  <Label>{t.address}</Label>
                 </BoxReveal>
                 <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
                   <Input
                     type="text"
-                    placeholder={lang === "mr" ? "उदा. अमित आयरे" : "e.g. Amit Ayare"}
-                    value={form.full_name}
-                    onChange={set("full_name")}
+                    placeholder={lang === "mr" ? "गाव / शहर, जिल्हा" : "Village / Town, District"}
+                    value={form.address}
+                    onChange={set("address")}
                   />
                 </BoxReveal>
               </div>
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.dob} <span className="text-red-500">*</span></Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <Input type="date" value={form.dob} onChange={set("dob")} />
-                </BoxReveal>
-              </div>
-            </div>
 
-            {/* Mobile + Email */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.mobile} <span className="text-red-500">*</span></Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <MobileInput
-                    value={form.mobile}
-                    onChange={v => setForm(f => ({ ...f, mobile: v }))}
-                    placeholder={lang === "mr" ? "१०-अंकी नंबर" : "10-digit number"}
-                  />
-                </BoxReveal>
-              </div>
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.email}</Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <Input
-                    type="email"
-                    placeholder="email@example.com"
-                    value={form.email}
-                    onChange={set("email")}
-                  />
-                </BoxReveal>
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="flex flex-col gap-2">
-              <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                <Label>{t.address}</Label>
-              </BoxReveal>
-              <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                <Input
-                  type="text"
-                  placeholder={lang === "mr" ? "गाव / शहर, जिल्हा" : "Village / Town, District"}
-                  value={form.address}
-                  onChange={set("address")}
-                />
-              </BoxReveal>
-            </div>
-
-            {/* Password + Confirm */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.password} <span className="text-red-500">*</span></Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <div className="relative">
-                    <Input
-                      type={showPass ? "text" : "password"}
-                      placeholder={lang === "mr" ? "किमान ६ अक्षरे" : "Min. 6 characters"}
-                      value={form.password}
-                      onChange={set("password")}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPass(!showPass)}
-                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
-                    >
-                      {showPass ? <Eye size={17} /> : <EyeOff size={17} />}
-                    </button>
-                  </div>
-                </BoxReveal>
-                {form.password && (
-                  <div className="flex items-center gap-1.5 mt-1">
-                    {[0,1,2,3,4].map(i => (
-                      <div
-                        key={i}
-                        className="flex-1 h-1 rounded-full transition-all duration-300"
-                        style={{ background: i <= strength ? STRENGTH[strength].color : "#e5e7eb" }}
+              {/* Password + Confirm */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.password} <span className="text-red-500">*</span></Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <div className="relative">
+                      <Input
+                        type={showPass ? "text" : "password"}
+                        placeholder={lang === "mr" ? "किमान ६ अक्षरे" : "Min. 6 characters"}
+                        value={form.password}
+                        onChange={set("password")}
                       />
-                    ))}
-                    <span className="text-xs font-bold ml-1 whitespace-nowrap" style={{ color: STRENGTH[strength].color }}>
-                      {lang === "mr" ? STRENGTH[strength].mr : STRENGTH[strength].label}
-                    </span>
-                  </div>
-                )}
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
+                      >
+                        {showPass ? <Eye size={17} /> : <EyeOff size={17} />}
+                      </button>
+                    </div>
+                  </BoxReveal>
+                  {form.password && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {[0,1,2,3,4].map(i => (
+                        <div
+                          key={i}
+                          className="flex-1 h-1 rounded-full transition-all duration-300"
+                          style={{ background: i <= strength ? STRENGTH[strength].color : "#e5e7eb" }}
+                        />
+                      ))}
+                      <span className="text-xs font-bold ml-1 whitespace-nowrap" style={{ color: STRENGTH[strength].color }}>
+                        {lang === "mr" ? STRENGTH[strength].mr : STRENGTH[strength].label}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.confirm} <span className="text-red-500">*</span></Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <div className="relative">
+                      <Input
+                        type={showConfirm ? "text" : "password"}
+                        placeholder={lang === "mr" ? "पासवर्ड पुन्हा टाका" : "Repeat password"}
+                        value={form.confirm}
+                        onChange={set("confirm")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm(!showConfirm)}
+                        className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
+                      >
+                        {showConfirm ? <Eye size={17} /> : <EyeOff size={17} />}
+                      </button>
+                    </div>
+                  </BoxReveal>
+                </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.confirm} <span className="text-red-500">*</span></Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <div className="relative">
-                    <Input
-                      type={showConfirm ? "text" : "password"}
-                      placeholder={lang === "mr" ? "पासवर्ड पुन्हा टाका" : "Repeat password"}
-                      value={form.confirm}
-                      onChange={set("confirm")}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 z-10"
-                    >
-                      {showConfirm ? <Eye size={17} /> : <EyeOff size={17} />}
-                    </button>
-                  </div>
-                </BoxReveal>
-              </div>
-            </div>
 
-            {/* Error */}
-            {error && (
-              <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.2}>
+              {/* Error */}
+              {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm font-medium flex items-center gap-2">
                   ⚠️ {error}
                 </div>
-              </BoxReveal>
-            )}
+              )}
 
-            {/* Submit */}
-            <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} overflow="visible">
-              <button
-                type="submit"
-                disabled={loading}
-                className="relative group/btn w-full h-11 rounded-md font-bold text-white text-sm outline-none hover:cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{ background: "linear-gradient(135deg, #1b5e20 0%, #4caf50 100%)" }}
-              >
-                {loading ? t.submitting : t.submitBtn}
-                <BottomGradient />
-              </button>
-            </BoxReveal>
-
-            {/* Login link */}
-            <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-              <p className="text-center text-sm text-neutral-400">
-                {t.haveAccount}{" "}
+              {/* Submit */}
+              <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} overflow="visible">
                 <button
-                  type="button"
-                  onClick={onGoLogin}
-                  className="text-green-600 font-bold hover:underline outline-none"
+                  type="submit"
+                  disabled={loading}
+                  className="relative group/btn w-full h-11 rounded-md font-bold text-white text-sm outline-none hover:cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  style={{ background: "linear-gradient(135deg, #1b5e20 0%, #4caf50 100%)" }}
                 >
-                  {t.loginLink}
+                  {loading ? t.submitting : t.submitBtn}
+                  <BottomGradient />
                 </button>
-              </p>
-            </BoxReveal>
+              </BoxReveal>
 
-          </form>
+              {/* Login link */}
+              <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                <p className="text-center text-sm text-neutral-400">
+                  {t.haveAccount}{" "}
+                  <button
+                    type="button"
+                    onClick={onGoLogin}
+                    className="text-green-600 font-bold hover:underline outline-none"
+                  >
+                    {t.loginLink}
+                  </button>
+                </p>
+              </BoxReveal>
+
+            </form>
+          </div>
         </div>
       </div>
     </section>
