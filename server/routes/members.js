@@ -7,6 +7,7 @@ const cloudinary = require("cloudinary").v2;
 const multer     = require("multer");
 const pool       = require("../db");
 const authMember = require("../middleware/authMember");
+const authAdmin  = require("../middleware/authAdmin");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -57,7 +58,7 @@ router.post("/register", upload.single("photo"), async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Registration successful. Awaiting admin approval.",
+      message: "Account created. Please verify your mobile number.",
       member: r.rows[0],
     });
   } catch (e) {
@@ -66,7 +67,60 @@ router.post("/register", upload.single("photo"), async (req, res) => {
   }
 });
 
-// ── LOGIN ─────────────────────────────────────────────────
+// ── VERIFY OTP (called after Firebase confirms OTP) ───────
+// Used at registration to mark mobile verified.
+// If admin already approved → also returns JWT.
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { mobile, firebase_uid } = req.body;
+    if (!mobile || !firebase_uid) {
+      return res.status(400).json({ error: "mobile and firebase_uid required" });
+    }
+
+    const r = await pool.query("SELECT * FROM members WHERE mobile = $1", [mobile]);
+    if (!r.rows.length) return res.status(404).json({ error: "Member not found" });
+
+    const member = r.rows[0];
+
+    await pool.query(
+      "UPDATE members SET verified = true, firebase_uid = $1 WHERE id = $2",
+      [firebase_uid, member.id]
+    );
+
+    // If admin has already approved, log them in immediately
+    if (member.approved) {
+      const token = jwt.sign(
+        { id: member.id, mobile: member.mobile, full_name: member.full_name },
+        SECRET,
+        { expiresIn: "30d" }
+      );
+      return res.json({
+        success: true,
+        verified: true,
+        loggedIn: true,
+        token,
+        member: {
+          id: member.id, full_name: member.full_name, mobile: member.mobile,
+          email: member.email, photo_url: member.photo_url, address: member.address, dob: member.dob,
+        },
+      });
+    }
+
+    // Awaiting admin approval
+    res.json({
+      success: true,
+      verified: true,
+      loggedIn: false,
+      pendingApproval: true,
+      message: "Mobile verified! Your account is now pending admin approval. You will be able to login once approved.",
+    });
+  } catch (e) {
+    console.error("verify-otp error:", e);
+    res.status(500).json({ error: "OTP verification failed" });
+  }
+});
+
+// ── LOGIN (mobile + password only, no OTP) ────────────────
 router.post("/login", async (req, res) => {
   try {
     const { mobile, password } = req.body;
@@ -81,12 +135,12 @@ router.post("/login", async (req, res) => {
     const match  = await bcrypt.compare(password, member.password_hash);
     if (!match) return res.status(401).json({ error: "Invalid credentials" });
 
-    if (!member.approved) {
-      return res.status(403).json({ error: "Your account is pending admin approval." });
+    if (!member.verified) {
+      return res.status(403).json({ error: "Your mobile number is not verified. Please complete OTP verification." });
     }
 
-    if (!member.verified) {
-      return res.json({ needsOtp: true, mobile: member.mobile, memberId: member.id });
+    if (!member.approved) {
+      return res.status(403).json({ error: "Your account is pending admin approval. Please wait." });
     }
 
     const token = jwt.sign(
@@ -99,13 +153,8 @@ router.post("/login", async (req, res) => {
       success: true,
       token,
       member: {
-        id:        member.id,
-        full_name: member.full_name,
-        mobile:    member.mobile,
-        email:     member.email,
-        photo_url: member.photo_url,
-        address:   member.address,
-        dob:       member.dob,
+        id: member.id, full_name: member.full_name, mobile: member.mobile,
+        email: member.email, photo_url: member.photo_url, address: member.address, dob: member.dob,
       },
     });
   } catch (e) {
@@ -114,51 +163,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ── VERIFY OTP (first login) ──────────────────────────────
-router.post("/verify-otp", async (req, res) => {
-  try {
-    const { mobile, firebase_uid } = req.body;
-    if (!mobile || !firebase_uid) {
-      return res.status(400).json({ error: "mobile and firebase_uid required" });
-    }
-
-    const r = await pool.query("SELECT * FROM members WHERE mobile = $1", [mobile]);
-    if (!r.rows.length) return res.status(404).json({ error: "Member not found" });
-
-    const member = r.rows[0];
-    if (!member.approved) return res.status(403).json({ error: "Account not approved" });
-
-    await pool.query(
-      "UPDATE members SET verified = true, firebase_uid = $1 WHERE id = $2",
-      [firebase_uid, member.id]
-    );
-
-    const token = jwt.sign(
-      { id: member.id, mobile: member.mobile, full_name: member.full_name },
-      SECRET,
-      { expiresIn: "30d" }
-    );
-
-    res.json({
-      success: true,
-      token,
-      member: {
-        id:        member.id,
-        full_name: member.full_name,
-        mobile:    member.mobile,
-        email:     member.email,
-        photo_url: member.photo_url,
-        address:   member.address,
-        dob:       member.dob,
-      },
-    });
-  } catch (e) {
-    console.error("verify-otp error:", e);
-    res.status(500).json({ error: "OTP verification failed" });
-  }
-});
-
-// ── ME (protected) ────────────────────────────────────────
+// ── ME (member protected) ─────────────────────────────────
 router.get("/me", authMember, async (req, res) => {
   try {
     const r = await pool.query(
@@ -178,10 +183,7 @@ router.post("/forgot-password", async (req, res) => {
     const { mobile, email } = req.body;
     if (!mobile) return res.status(400).json({ error: "Mobile required" });
 
-    const r = await pool.query(
-      "SELECT id, full_name FROM members WHERE mobile = $1",
-      [mobile]
-    );
+    const r = await pool.query("SELECT id FROM members WHERE mobile = $1", [mobile]);
     if (!r.rows.length) {
       return res.status(404).json({ error: "No account found with this mobile number" });
     }
@@ -194,7 +196,63 @@ router.post("/forgot-password", async (req, res) => {
 
     res.json({ success: true, message: "Reset request submitted. Admin will contact you soon." });
   } catch (e) {
-    console.error("forgot-password error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN ROUTES — protected by admin JWT
+// ═══════════════════════════════════════════════════════════
+
+// GET /api/members/admin/all — all members with status
+router.get("/admin/all", authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT id, full_name, dob, mobile, email, address, photo_url,
+              approved, verified, firebase_uid, created_at
+       FROM members ORDER BY created_at DESC`
+    );
+    res.json(r.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/members/admin/:id/approve
+router.put("/admin/:id/approve", authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(
+      "UPDATE members SET approved = true WHERE id = $1 RETURNING id, full_name, mobile, approved",
+      [req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Member not found" });
+    res.json({ success: true, member: r.rows[0] });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// DELETE /api/members/admin/:id — reject/remove member
+router.delete("/admin/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM members WHERE id = $1", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/members/admin/reset-requests — view password reset requests
+router.get("/admin/reset-requests", authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT prr.id, prr.mobile, prr.email, prr.created_at, m.full_name
+       FROM password_reset_requests prr
+       LEFT JOIN members m ON m.id = prr.member_id
+       ORDER BY prr.created_at DESC`
+    );
+    res.json(r.rows);
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });

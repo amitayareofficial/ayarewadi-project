@@ -10,7 +10,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
-  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog
+  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog | members
 
   const logout = () => { localStorage.removeItem("admin_token"); setLoggedIn(false); };
 
@@ -28,6 +28,7 @@ export default function Admin() {
           { id: "budget",        icon: "💰", label: "Budget" },
           { id: "emergency",     icon: "🚨", label: "Emergency" },
           { id: "blog",          icon: "📝", label: "Blog" },
+          { id: "members",       icon: "👥", label: "Members" },
         ].map(t => (
           <button key={t.id} className={`admin-tab ${tab === t.id ? "active" : ""}`}
             onClick={() => setTab(t.id)}>
@@ -45,6 +46,7 @@ export default function Admin() {
         {tab === "budget"        && <AdminBudget />}
         {tab === "emergency"     && <AdminEmergency />}
         {tab === "blog"          && <AdminBlog />}
+        {tab === "members"       && <AdminMembers />}
       </main>
     </div>
   );
@@ -454,6 +456,133 @@ function AdminEmergency() {
     </div>
   );
 }
+/* ── MEMBERS MANAGER ─────────────────────────────────── */
+function AdminMembers() {
+  const [members,  setMembers]  = useState([]);
+  const [filter,   setFilter]   = useState("pending"); // pending | all
+  const [toast,    setToast]    = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () => {
+    axios.get(`${API}/api/members/admin/all`, { headers: authHeader() })
+      .then(r => setMembers(r.data))
+      .catch(() => showToast("Failed to load members."));
+  };
+  useEffect(() => { load(); }, []);
+
+  const approve = async id => {
+    try {
+      await axios.put(`${API}/api/members/admin/${id}/approve`, {}, { headers: authHeader() });
+      showToast("Member approved successfully.");
+      load();
+    } catch { showToast("Failed to approve member."); }
+  };
+
+  const remove = async id => {
+    try {
+      await axios.delete(`${API}/api/members/admin/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      showToast("Member removed.");
+      load();
+    } catch { showToast("Failed to remove member."); }
+  };
+
+  const displayed = filter === "pending"
+    ? members.filter(m => !m.approved && m.verified)
+    : members;
+
+  const pendingCount = members.filter(m => !m.approved && m.verified).length;
+
+  return (
+    <div className="admin-section">
+      <h2>👥 Member Approvals</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* Filter tabs */}
+      <div style={{ display:"flex", gap:8, marginBottom:"1rem" }}>
+        <button
+          className={filter === "pending" ? "btn-save" : "btn-cancel"}
+          onClick={() => setFilter("pending")}
+          style={{ position:"relative" }}
+        >
+          ⏳ Pending Approval
+          {pendingCount > 0 && (
+            <span style={{ background:"#e53935", color:"#fff", borderRadius:"50%", padding:"1px 6px", fontSize:"0.72rem", marginLeft:6 }}>
+              {pendingCount}
+            </span>
+          )}
+        </button>
+        <button
+          className={filter === "all" ? "btn-save" : "btn-cancel"}
+          onClick={() => setFilter("all")}
+        >
+          👥 All Members ({members.length})
+        </button>
+      </div>
+
+      {displayed.length === 0 && (
+        <p style={{ color:"#888", padding:"16px 0" }}>
+          {filter === "pending" ? "No pending approvals." : "No members registered yet."}
+        </p>
+      )}
+
+      <div className="admin-list">
+        {displayed.map(m => (
+          <div className="admin-item" key={m.id} style={{ alignItems:"flex-start", gap:12 }}>
+            {/* Photo */}
+            <div style={{ flexShrink:0 }}>
+              {m.photo_url
+                ? <img src={m.photo_url} alt={m.full_name} style={{ width:52, height:52, borderRadius:"50%", objectFit:"cover", border:"2px solid #ddd" }} />
+                : <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#2e7d32,#81c784)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:"1.2rem" }}>
+                    {m.full_name?.charAt(0)}
+                  </div>
+              }
+            </div>
+
+            {/* Info */}
+            <div style={{ flex:1 }}>
+              <strong style={{ fontSize:"1rem" }}>{m.full_name}</strong>
+              <div className="item-meta">📞 {m.mobile} {m.email ? `· ${m.email}` : ""}</div>
+              {m.address && <div style={{ fontSize:"0.8rem", color:"#777" }}>📍 {m.address}</div>}
+              <div style={{ fontSize:"0.8rem", color:"#777", marginTop:2 }}>
+                📅 DOB: {m.dob ? new Date(m.dob).toLocaleDateString("en-IN") : "—"} &nbsp;·&nbsp;
+                Registered: {new Date(m.created_at).toLocaleDateString("en-IN")}
+              </div>
+              <div style={{ display:"flex", gap:6, marginTop:6, flexWrap:"wrap" }}>
+                <span style={{ background: m.verified ? "#e8f5e9" : "#fff8e1", color: m.verified ? "#2e7d32" : "#f57f17", border:`1px solid ${m.verified?"#c8e6c9":"#ffe082"}`, borderRadius:20, padding:"2px 10px", fontSize:"0.72rem", fontWeight:700 }}>
+                  {m.verified ? "✅ Verified" : "⏳ Not Verified"}
+                </span>
+                <span style={{ background: m.approved ? "#e8f5e9" : "#ffebee", color: m.approved ? "#2e7d32" : "#c62828", border:`1px solid ${m.approved?"#c8e6c9":"#ef9a9a"}`, borderRadius:20, padding:"2px 10px", fontSize:"0.72rem", fontWeight:700 }}>
+                  {m.approved ? "✅ Approved" : "❌ Pending Approval"}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="item-btns" style={{ flexShrink:0 }}>
+              {!m.approved && m.verified && (
+                <button className="btn-save" onClick={() => approve(m.id)}>
+                  ✅ Approve
+                </button>
+              )}
+              {confirmId === m.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => remove(m.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(m.id)}>🗑️ Remove</button>
+              }
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── BLOG MANAGER ────────────────────────────────────── */
 const BLOG_CATS = ["Village News", "Announcement", "Development", "Culture", "Health", "Education"];
 const EMPTY_POST = { title: "", category: "Village News", content: "", cover_image: "", published: false };
