@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
 import Register        from "./pages/portal/Register.jsx";
@@ -11,6 +11,7 @@ import Blog_Page from "./pages/Blog.jsx";
 import Gallery_Page from "./pages/Gallery.jsx";
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { CinematicFooter } from "./components/ui/motion-footer";
+import { TimelineContent } from "./components/ui/timeline-animation.jsx";
 import heroImg        from "./assets/images/main_image_home.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
@@ -851,6 +852,22 @@ function Join_Community({ lang }) {
 ═══════════════════════════════════════════════════════════ */
 function Emergency_Page({ lang }) {
   const t = LANG[lang].emergency;
+  const sectionRef = useRef(null);
+
+  const revealVariants = {
+    visible: (i) => ({
+      y: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: { delay: i * 0.15, duration: 0.45 },
+    }),
+    hidden: {
+      filter: "blur(8px)",
+      y: 18,
+      opacity: 0,
+    },
+  };
+
   const hospitals = [
     {
       name:  "Rural Hospital Vaibhavwadi",
@@ -876,58 +893,79 @@ function Emergency_Page({ lang }) {
   ];
 
   return (
-    <section className="page-section">
-      <div className="sec-header">
-        <span className="eyebrow">{t.eyebrow}</span>
-        <h2>{t.title}</h2>
-      </div>
+    <section ref={sectionRef} className="page-section">
 
-      <div className="alert-banner">
-        ⚠️ &nbsp;
-        <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
-        <strong>102</strong> – {t.alertHelpline} &nbsp;|&nbsp;
-        {t.alertDistrict}: <strong>8149822015</strong> / <strong>7030397514</strong>
-      </div>
+      <TimelineContent animationNum={1} timelineRef={sectionRef} customVariants={revealVariants} once>
+        <div className="sec-header">
+          <span className="eyebrow">{t.eyebrow}</span>
+          <h2>{t.title}</h2>
+        </div>
+      </TimelineContent>
 
-      <h3 className="sub-title">{t.nearby}</h3>
+      <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={revealVariants} once>
+        <div className="alert-banner">
+          ⚠️ &nbsp;
+          <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
+          <strong>102</strong> – {t.alertHelpline} &nbsp;|&nbsp;
+          {t.alertDistrict}: <strong>8149822015</strong> / <strong>7030397514</strong>
+        </div>
+      </TimelineContent>
+
+      <TimelineContent animationNum={3} timelineRef={sectionRef} customVariants={revealVariants} once>
+        <h3 className="sub-title">{t.nearby}</h3>
+      </TimelineContent>
+
       <div className="hosp-cards">
-        {hospitals.map(h => (
-          <div className="hosp-card" key={h.name}>
-            <img src={h.img} alt={h.name} loading="lazy" />
-            <div className="hosp-body">
-              <h3>{h.name}</h3>
-              <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
-              <p>{h.addr}</p>
-              {h.phone && (
-                <a href={`tel:${h.phone}`} className="btn-call">
-                  📞 {h.phone}
-                </a>
-              )}
+        {hospitals.map((h, index) => (
+          <TimelineContent
+            key={h.name}
+            animationNum={4 + index}
+            timelineRef={sectionRef}
+            customVariants={revealVariants}
+            once
+          >
+            <div className="hosp-card">
+              <img src={h.img} alt={h.name} loading="lazy" />
+              <div className="hosp-body">
+                <h3>{h.name}</h3>
+                <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
+                <p>{h.addr}</p>
+                {h.phone && (
+                  <a href={`tel:${h.phone}`} className="btn-call">
+                    📞 {h.phone}
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          </TimelineContent>
         ))}
       </div>
 
-      <div className="hosp-card ambulance-card">
-        <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
-        <div className="ambulance-body">
-          <h3>{t.tollfree}</h3>
-          <p><strong>108</strong> — {t.freeAmb}</p>
-          <p><strong>102</strong> — {t.ambHelp}</p>
-          <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
+      <TimelineContent animationNum={7} timelineRef={sectionRef} customVariants={revealVariants} once>
+        <div className="hosp-card ambulance-card">
+          <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
+          <div className="ambulance-body">
+            <h3>{t.tollfree}</h3>
+            <p><strong>108</strong> — {t.freeAmb}</p>
+            <p><strong>102</strong> — {t.ambHelp}</p>
+            <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
+          </div>
         </div>
-      </div>
+      </TimelineContent>
 
-      <div className="info-card">
-        <h3>{t.other}</h3>
-        <ul>
-          <li>{t.police} <strong>100</strong></li>
-          <li>{t.fire} <strong>101</strong></li>
-          <li>{t.women} <strong>1091</strong></li>
-          <li>{t.child} <strong>1098</strong></li>
-          <li>Email: <strong>contact@ayarewadi.in</strong></li>
-        </ul>
-      </div>
+      <TimelineContent animationNum={8} timelineRef={sectionRef} customVariants={revealVariants} once>
+        <div className="info-card">
+          <h3>{t.other}</h3>
+          <ul>
+            <li>{t.police} <strong>100</strong></li>
+            <li>{t.fire} <strong>101</strong></li>
+            <li>{t.women} <strong>1091</strong></li>
+            <li>{t.child} <strong>1098</strong></li>
+            <li>Email: <strong>contact@ayarewadi.in</strong></li>
+          </ul>
+        </div>
+      </TimelineContent>
+
     </section>
   );
 }
