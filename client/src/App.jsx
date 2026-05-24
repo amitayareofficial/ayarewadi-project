@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "./context/AuthContext.jsx";
+import Register        from "./pages/portal/Register.jsx";
+import MemberLogin     from "./pages/portal/MemberLogin.jsx";
+import MemberDashboard from "./pages/portal/MemberDashboard.jsx";
+import ForgotPassword  from "./pages/portal/ForgotPassword.jsx";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
 import Blog_Page from "./pages/Blog.jsx";
@@ -927,121 +932,27 @@ function Emergency_Page({ lang }) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PORTAL / MEMBER LOGIN
+   PORTAL — Member Authentication System
 ═══════════════════════════════════════════════════════════ */
-function Portal_Page({ lang }) {
-  const t = LANG[lang].portal;
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [id, setId]       = useState("");
-  const [pass, setPass]   = useState("");
-  const [err, setErr]     = useState("");
-  const [member, setMember] = useState(null);
-  const [family, setFamily] = useState([]);
-  const [budget, setBudget] = useState([]);
+function Portal_Page() {
+  const { member, loading } = useAuth();
+  const [view, setView] = useState("login"); // login | register | forgot
 
-  const login = async () => {
-    try {
-      const res = await axios.post(`${API}/login`, { member_id: id, password: pass });
-      setMember(res.data.member);
-      const [fam, bud] = await Promise.all([
-        axios.get(`${API}/family/${id}`),
-        axios.get(`${API}/budget`),
-      ]);
-      setFamily(fam.data);
-      setBudget(bud.data);
-      setLoggedIn(true); setErr("");
-    } catch {
-      if (id === "AYR001" && pass === "village") {
-        setMember({ household_name: "Ayare", house_no: "7" });
-        setFamily([
-          { id: 1, name: "Bhalchandra Ayare", role: "Head",     phone: "9594179606" },
-          { id: 2, name: "Anant Ayare",        role: "Brother",  phone: "9594179606" },
-          { id: 3, name: "Amit Ayare",         role: "Son",      phone: "9594179606" },
-          { id: 4, name: "Pawan Ayare",        role: "Son",      phone: "9594179606" },
-        ]);
-        setBudget([
-          { id: 1, description: "Gram Panchayat Fund",   type: "income",  amount: 150000 },
-          { id: 2, description: "Festival Collection",   type: "income",  amount: 45000 },
-          { id: 3, description: "Water Pipeline Repair", type: "expense", amount: 38000 },
-          { id: 4, description: "Road Maintenance",      type: "expense", amount: 52000 },
-          { id: 5, description: "School Renovation",     type: "expense", amount: 30000 },
-          { id: 6, description: "Festival Expenses",     type: "expense", amount: 25000 },
-        ]);
-        setLoggedIn(true); setErr("");
-      } else {
-        setErr(lang === "mr" ? "चुकीचा ID किंवा पासवर्ड." : "Invalid ID or password.");
-      }
-    }
-  };
-
-  const balance = budget.reduce((acc, e) =>
-    e.type === "income" ? acc + Number(e.amount) : acc - Number(e.amount), 0);
-
-  if (!loggedIn) return (
+  if (loading) return (
     <section className="page-section center-section">
-      <div className="login-box">
-        <img src={IMG.logo} alt="Ayarewadi" className="login-logo" />
-        <h2>{t.title}<br /><small>{t.subtitle}</small></h2>
-        <label>{t.idLabel}</label>
-        <input value={id} onChange={e => setId(e.target.value)} placeholder="e.g. AYR001" />
-        <label>{t.passLabel}</label>
-        <input type="password" value={pass} onChange={e => setPass(e.target.value)}
-          placeholder={t.passLabel} onKeyDown={e => e.key === "Enter" && login()} />
-        {err && <p className="err">{err}</p>}
-        <button className="btn-green" onClick={login}>{t.loginBtn}</button>
-        <p className="hint">{t.demo}</p>
+      <div style={{ textAlign: "center", padding: "3rem", color: "#2e7d32", fontSize: "1.1rem" }}>
+        Loading...
       </div>
     </section>
   );
 
+  if (member) return <MemberDashboard />;
+
   return (
-    <section className="page-section">
-      <h2 className="section-title">
-        {t.welcome} {member?.household_name} {t.household} ({t.houseNo} {member?.house_no})
-      </h2>
-
-      <div className="info-card">
-        <h3>{t.family}</h3>
-        <div className="family-list">
-          {family.map(m => (
-            <div className="family-row" key={m.id}>
-              <div><strong>{m.name}</strong> <span className="tag">{m.role}</span></div>
-              {m.phone
-                ? <a href={`tel:${m.phone}`} className="btn-call">📞 {m.phone}</a>
-                : <span className="muted">—</span>}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="info-card">
-        <h3>{t.budget}</h3>
-        <div className="budget-table-wrap">
-          <table className="budget-table">
-            <thead><tr><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
-            <tbody>
-              {budget.map(b => (
-                <tr key={b.id}>
-                  <td>{b.description}</td>
-                  <td><span className={`tag ${b.type}`}>{b.type}</span></td>
-                  <td>₹{Number(b.amount).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="balance-bar">
-          <span>{t.balance}</span>
-          <strong style={{ color: balance >= 0 ? "#2e7d32" : "#c62828" }}>
-            ₹{balance.toLocaleString()}
-          </strong>
-        </div>
-      </div>
-
-      <button className="btn-green btn-narrow"
-        onClick={() => { setLoggedIn(false); setId(""); setPass(""); }}>
-        {t.logout}
-      </button>
+    <section className="page-section" style={{ padding: "1rem 0" }}>
+      {view === "login"    && <MemberLogin onGoRegister={() => setView("register")} onGoForgot={() => setView("forgot")} onLoginSuccess={() => {}} />}
+      {view === "register" && <Register    onGoLogin={() => setView("login")} />}
+      {view === "forgot"   && <ForgotPassword onGoBack={() => setView("login")} />}
     </section>
   );
 }

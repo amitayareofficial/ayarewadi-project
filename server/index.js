@@ -198,17 +198,9 @@ app.delete("/blog/:id", authAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// ── MEMBER LOGIN ──────────────────────────────────────────
-app.post("/login", async (req, res) => {
-  const { member_id, password } = req.body;
-  const r = await pool.query("SELECT * FROM members WHERE member_id=$1 AND password=$2", [member_id, password]);
-  if (!r.rows.length) return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ success: true, member: r.rows[0] });
-});
-app.get("/family/:member_id", async (req, res) => {
-  const r = await pool.query("SELECT * FROM family WHERE member_id=$1", [req.params.member_id]);
-  res.json(r.rows);
-});
+// ── MEMBER PORTAL ROUTES ─────────────────────────────────
+const memberRoutes = require("./routes/members");
+app.use("/api/members", memberRoutes);
 
 app.get("/", (req, res) => res.send("Ayarewadi Backend Running ✅"));
 

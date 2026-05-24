@@ -242,11 +242,11 @@ export function CinematicFooter({ nav, lang = "mr" }) {
       <div
         ref={wrapperRef}
         className="relative w-full"
-        style={{ height: "70svh", clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
+        style={{ height: "32svh", clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
         <footer
           className="cinematic-footer-wrapper fixed bottom-0 left-0 flex w-full flex-col justify-between overflow-hidden"
-          style={{ height: "70svh", background: "var(--cf-bg)", color: "var(--cf-fg)" }}
+          style={{ height: "32svh", background: "var(--cf-bg)", color: "var(--cf-fg)" }}
         >
           {/* Aurora glow */}
           <div className="cf-aurora cf-breathe absolute rounded-[50%] blur-[90px] pointer-events-none"
@@ -276,28 +276,34 @@ export function CinematicFooter({ nav, lang = "mr" }) {
           </div>
 
           {/* Center content */}
-          <div className="relative flex flex-1 flex-col items-center justify-center px-6 mx-auto w-full"
-            style={{ maxWidth: "56rem", marginTop: "3.5rem", zIndex: 10 }}>
+          <div className="relative flex flex-1 flex-col items-start justify-center px-6 mx-auto w-full"
+            style={{ maxWidth: "56rem", marginTop: "0.75rem", zIndex: 10 }}>
 
             <h2 ref={headingRef}
-              className="cf-text-glow font-black tracking-tighter text-center"
-              style={{ fontSize: "clamp(1.8rem,6vw,3.5rem)", marginBottom: "1.5rem", lineHeight: 1 }}>
+              className="cf-text-glow font-black tracking-tighter text-left"
+              style={{ fontSize: "clamp(0.9rem,2.5vw,1.5rem)", marginBottom: "0.5rem", lineHeight: 1 }}>
               {heading}
             </h2>
 
             {/* Nav pills */}
-            <div ref={linksRef} className="flex flex-col items-center gap-5 w-full">
-              <div className="flex flex-wrap justify-center gap-3 w-full">
-                {links.map((l) => (
-                  <MagneticButton
-                    key={l.section}
-                    as="button"
-                    onClick={() => goTo(l.section)}
-                    className="cf-glass-pill px-7 py-3 rounded-full font-semibold text-sm"
-                    style={{ color: "var(--cf-fg)" }}
-                  >
-                    {l.label}
-                  </MagneticButton>
+            <div ref={linksRef} className="flex flex-col items-start gap-3 w-full">
+              <div className="flex flex-wrap justify-start items-center gap-0 w-full">
+                {links.map((l, i) => (
+                  <React.Fragment key={l.section}>
+                    <MagneticButton
+                      as="button"
+                      onClick={() => goTo(l.section)}
+                      className="px-4 py-1 font-semibold text-xs transition-colors duration-200"
+                      style={{ color: "var(--cf-muted)", background: "none", border: "none" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "var(--cf-fg)"}
+                      onMouseLeave={e => e.currentTarget.style.color = "var(--cf-muted)"}
+                    >
+                      {l.label}
+                    </MagneticButton>
+                    {i < links.length - 1 && (
+                      <span style={{ color: "rgba(240,244,240,0.2)", fontSize: "0.75rem", userSelect: "none" }}>|</span>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
 
@@ -308,7 +314,7 @@ export function CinematicFooter({ nav, lang = "mr" }) {
                   href="https://wa.me/918149822015"
                   target="_blank"
                   rel="noreferrer"
-                  className="cf-glass-pill px-7 py-3 rounded-full font-medium text-sm flex items-center gap-2"
+                  className="cf-glass-pill px-5 py-2 rounded-full font-medium text-xs flex items-center gap-2"
                   style={{ color: "var(--cf-muted)" }}
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style={{ color: "#25D366" }}>
@@ -320,7 +326,7 @@ export function CinematicFooter({ nav, lang = "mr" }) {
                 <MagneticButton
                   as="a"
                   href="mailto:contact@ayarewadi.in"
-                  className="cf-glass-pill px-7 py-3 rounded-full font-medium text-sm"
+                  className="cf-glass-pill px-5 py-2 rounded-full font-medium text-xs"
                   style={{ color: "var(--cf-muted)" }}
                 >
                   contact@ayarewadi.in
@@ -331,7 +337,7 @@ export function CinematicFooter({ nav, lang = "mr" }) {
 
           {/* Bottom bar */}
           <div className="relative flex flex-col md:flex-row items-center justify-between gap-4 w-full"
-            style={{ padding: "0 2rem 2rem", zIndex: 20 }}>
+            style={{ padding: "0 1.5rem 1rem", zIndex: 20 }}>
 
             {/* Copyright */}
             <div style={{ color: "var(--cf-muted)", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", order: 2 }}>
