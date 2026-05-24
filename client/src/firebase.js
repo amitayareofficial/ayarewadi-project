@@ -7,7 +7,8 @@ const firebaseConfig = {
   projectId: "ayarewadi-website",
   storageBucket: "ayarewadi-website.firebasestorage.app",
   messagingSenderId: "691909865303",
-  appId: "G-3SLWDYMDSY", // Firebase Console → Project Settings → Your apps → App ID (starts with 1:)
+  measurementId: "G-3SLWDYMDSY",
+  appId: "1:691909865303:web:2a8729cc0dcd91a7699812", // Firebase Console → Project Settings → Your apps → App ID (starts with 1:)
 };
 
 const app = initializeApp(firebaseConfig);
