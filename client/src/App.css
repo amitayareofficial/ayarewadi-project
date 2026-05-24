@@ -19,7 +19,7 @@
 /* ── GLOBAL ────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow-x: hidden; scroll-behavior: smooth; }
-body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #ffffff; color: var(--text); overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #ffffff; color: var(--text); overflow-x: hidden; -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; }
 a    { text-decoration: none; }
 ul   { list-style: none; }
 img  { max-width: 100%; display: block; }
@@ -29,21 +29,22 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center;
-  padding: 18px 40px; gap: 12px;
+  padding: 2px 40px; gap: 12px;
   transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 .nav-links { margin-left: auto; }
 .navbar.scrolled {
-  background: #ffffff;
-  box-shadow: 0 1px 0 var(--border);
-  padding: 12px 40px;
+  background: rgba(0, 0, 0, 0.98);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  padding: 10px 40px;
 }
 .nav-brand { cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
-.nav-logo  { height: 30px; object-fit: contain; filter: brightness(0) invert(1); transition: filter 0.3s; }
-.navbar.scrolled .nav-logo { filter: none; }
+.nav-logo { height: 72px; width: auto; object-fit: contain; display: block; }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; transition: color 0.3s; }
 .navbar.scrolled .nav-brand-name { color: #333; }
+.nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .nav-links { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .nav-links button {
   background: none; border: none; color: #fff;
@@ -53,10 +54,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .nav-links button:hover  { background: rgba(255,255,255,0.15); }
 .nav-links button.active { background: rgba(255,255,255,0.2); }
-/* White navbar state */
-.navbar.scrolled .nav-links button        { color: var(--text); }
-.navbar.scrolled .nav-links button:hover  { background: var(--pale); color: var(--accent); }
-.navbar.scrolled .nav-links button.active { background: transparent; color: var(--accent); font-weight: 600; }
+/* Black navbar — scrolled state keeps same dark theme */
+.navbar.scrolled .nav-links button:hover  { background: rgba(255,255,255,0.18); }
+.navbar.scrolled .nav-links button.active { background: rgba(255,255,255,0.22); font-weight: 600; }
 /* Admin CTA pill */
 .nav-links .nav-cta                        { background: var(--accent) !important; color: #fff !important; border-radius: 6px; }
 .nav-links .nav-cta:hover                  { background: var(--accent2) !important; }
@@ -89,12 +89,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   border-color: rgba(255,255,255,0.7);
   color: #fff; font-weight: 700;
 }
-.navbar.scrolled .lang-btn {
-  background: var(--pale); border-color: var(--border); color: var(--text);
-}
-.navbar.scrolled .lang-btn:hover {
-  border-color: var(--accent); color: var(--accent); background: #fff;
-}
+/* Lang-btn stays dark-themed on scrolled black navbar */
 .navbar.scrolled .lang-btn.active {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
@@ -105,7 +100,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   transition: color 0.3s; padding: 4px; min-width: 36px; min-height: 36px;
   align-items: center; justify-content: center;
 }
-.navbar.scrolled .hamburger { color: var(--text); }
+/* hamburger stays white on black navbar */
 
 /* ── HERO ──────────────────────────────────────────────── */
 .hero {
@@ -175,11 +170,10 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 
 /* ── SECTION HEADERS ───────────────────────────────────── */
-.sec-header   { margin-bottom: 32px; }
+.sec-header   { margin-bottom: 36px; text-align: center; }
 .sec-header h2, .section-title {
   font-size: 1.9rem; color: var(--text);
   font-weight: 800; letter-spacing: -0.4px;
-  border-left: 4px solid var(--accent); padding-left: 14px;
 }
 .sub-title { font-size: 1rem; color: var(--green); font-weight: 600; margin-bottom: 12px; }
 .page-section { max-width: 960px; margin: 0 auto; padding: 56px 24px; }
@@ -218,8 +212,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   text-transform: uppercase; color: var(--accent);
 }
 .vd-eyebrow-dot {
-  width: 6px; height: 6px; flex-shrink: 0;
-  background: var(--accent); border-radius: 50%;
+  width: 22px; height: 2px; flex-shrink: 0;
+  background: var(--accent); border-radius: 2px;
 }
 .vd-title {
   font-size: 2.3rem; font-weight: 900;
@@ -299,7 +293,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   pointer-events: none; user-select: none;
 }
 .rt-container {
-  max-width: 1160px; margin: 0 auto;
+  max-width: 1100px; margin: 0 auto;
   display: grid; grid-template-columns: 390px 1fr;
   gap: 72px; align-items: center;
   position: relative; z-index: 1;
@@ -379,12 +373,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   border-color: rgba(245,168,35,0.35); color: #f5c842;
 }
 
-.initiatives-section { background: var(--pale); padding: 64px 40px; }
-.initiatives-section .sec-header,
-.festivals-section .sec-header,
-.events-preview-section .sec-header { text-align: center; margin-bottom: 36px; }
-.festivals-section .sec-header h2,
-.events-preview-section .sec-header h2 { border-left: none; padding-left: 0; }
+.initiatives-section { background: var(--pale); padding: 80px 40px; }
 .init-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px; max-width: 960px; margin: 0 auto;
@@ -438,7 +427,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .svc-inner {
   position: relative; z-index: 2;
 }
-.svc-header        { margin-bottom: 40px; max-width: 1140px; margin-left: auto; margin-right: auto; text-align: center; }
+.svc-header        { margin-bottom: 40px; max-width: 1100px; margin-left: auto; margin-right: auto; text-align: center; }
 .svc-eyebrow       { color: var(--accent) !important; }
 .svc-eyebrow::before { background: var(--accent) !important; }
 .svc-title         { font-size: 2.2rem; font-weight: 900; color: var(--text); margin-bottom: 8px; letter-spacing: -0.5px; }
@@ -527,7 +516,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ── JOIN COMMUNITY ────────────────────────────────────── */
 .join-section {
   background: linear-gradient(135deg, #0d1b0f 0%, #1a2e1c 50%, #0d1b0f 100%);
-  padding: 100px 40px; text-align: center; color: #fff;
+  padding: 80px 40px; text-align: center; color: #fff;
   position: relative; overflow: hidden;
 }
 .join-section::before {
@@ -591,6 +580,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .stat span   { font-size: 0.75rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; display: block; }
 
 /* ── EVENTS ────────────────────────────────────────────── */
+.events-preview-section { padding-top: 0; }
+.events-preview-section .btn-accent-sm { margin-top: 16px; }
 .events-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -610,12 +601,15 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .event-card p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; flex: 1; }
 
 /* ── INFO CARD ─────────────────────────────────────────── */
+.info-card + .info-card { margin-top: 20px; }
+.events-list + .info-card { margin-top: 24px; }
 .info-card {
   background: #fff; border: 1px solid var(--border);
   border-radius: var(--radius); padding: 22px 26px;
   border-left: 3px solid var(--accent);
 }
 .info-card h3 { color: var(--text); margin-bottom: 14px; font-size: 1rem; font-weight: 700; }
+.info-card ul { margin-top: 8px; }
 .info-card li { font-size: 0.88rem; color: var(--muted); padding: 7px 0; border-bottom: 1px solid var(--border); }
 .info-card li:last-child { border-bottom: none; }
 
@@ -648,6 +642,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   cursor: pointer; width: 100%; margin-top: 14px; transition: background 0.2s;
 }
 .btn-green:hover { background: var(--primary2); }
+.btn-green.btn-narrow { width: auto; padding: 10px 28px; margin-top: 16px; }
 
 /* ── HOSPITAL CARDS ────────────────────────────────────── */
 .hosp-cards { display: flex; flex-direction: column; gap: 16px; margin-top: 12px; }
@@ -660,13 +655,16 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .hosp-body      { padding: 16px 20px; }
 .hosp-body h3   { color: var(--primary); font-size: 1rem; margin-bottom: 6px; }
 .hosp-body p    { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+.hosp-body .btn-call { margin-top: 10px; display: inline-block; }
 /* Ambulance strip card */
-.ambulance-card { flex-direction: row !important; gap: 20px; align-items: flex-start; }
+.ambulance-card { flex-direction: row !important; gap: 20px; align-items: flex-start; margin-top: 20px; }
 .ambulance-img  { width: 160px; height: 140px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
 .ambulance-body { padding: 12px 0; flex: 1; }
+.ambulance-body h3 { color: var(--accent); margin-bottom: 10px; }
 .ambulance-body p { font-size: 0.88rem; color: var(--muted); margin-top: 6px; }
 
 /* ── LOGIN ─────────────────────────────────────────────── */
+.login-logo { height: 38px; width: auto; margin-bottom: 16px; }
 .login-box {
   background: #fff; border: 1px solid var(--border);
   border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 400px;
@@ -755,11 +753,13 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 48px; padding: 64px 40px 48px;
 }
+.footer-logo { height: 48px; width: auto; margin-bottom: 14px; }
 .footer-brand-name {
   font-size: 1.5rem; font-weight: 900; letter-spacing: 1px;
   color: #fff; margin-bottom: 14px;
 }
 .footer-brand p { font-size: 0.84rem; line-height: 1.8; color: rgba(255,255,255,0.45); }
+.sec-header p { font-size: 1rem; color: rgba(0,0,0,0.55); margin-top: 8px; }
 .footer-tagline { font-style: italic; margin-top: 10px; color: rgba(255,255,255,0.35) !important; font-size: 0.78rem !important; }
 .footer-socials { display: flex; gap: 10px; margin-top: 20px; }
 .footer-social-icon {
@@ -1116,8 +1116,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 768px: Tablet portrait / large mobile ──────────────  */
 @media (max-width: 768px) {
   /* ── Navbar ── */
-  .navbar                { padding: 12px 16px; flex-wrap: wrap; gap: 0; }
-  .navbar.scrolled       { padding: 10px 16px; }
+  .navbar                { padding: 10px 16px; flex-wrap: wrap; gap: 0; }
+  .navbar.scrolled       { padding: 8px 16px; }
+  .logo                  { height: 46px; }
   .nav-brand             { order: 1; }
   .nav-actions           { order: 2; }
   .hamburger             { display: flex; }
@@ -1125,13 +1126,13 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .lang-btn              { font-size: 0.70rem; padding: 4px 10px; min-height: 32px; }
   .nav-links {
     order: 3; display: none; width: 100%; flex-direction: column;
-    background: #ffffff; border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.96); border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px; padding: 8px; margin-top: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   }
   .nav-links.open        { display: flex; }
   .nav-links li          { width: 100%; }
-  .nav-links button      { width: 100%; text-align: left; padding: 12px 16px; color: var(--text) !important; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
+  .nav-links button      { width: 100%; text-align: left; padding: 12px 16px; color: rgba(255,255,255,0.9) !important; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
   /* ── Hero — show full 16:9 image on mobile, no cropping ── */

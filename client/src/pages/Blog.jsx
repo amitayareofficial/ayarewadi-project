@@ -25,9 +25,11 @@ export default function Blog_Page() {
   return (
     <section className="blog-section">
       <div className="container">
-        <div className="section-eyebrow">गाव बातम्या · Village Blog</div>
-        <h2 className="section-title">📝 Blog & Updates</h2>
-        <p className="section-sub">Latest news, stories, and updates from Ayarewadi village.</p>
+        <div className="sec-header">
+          <span className="eyebrow">गाव बातम्या · Village Blog</span>
+          <h2>Blog & Updates</h2>
+          <p>Latest news, stories, and updates from Ayarewadi village.</p>
+        </div>
 
         <div className="blog-filter">
           {CATEGORIES.map(c => (

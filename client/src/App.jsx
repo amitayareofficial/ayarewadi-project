@@ -3,6 +3,7 @@ import axios from "axios";
 import "./App.css";
 import Admin from "./pages/Admin.jsx";
 import Blog_Page from "./pages/Blog.jsx";
+import logoImg        from "./assets/images/ayarewadi-logo.png";
 import heroImg        from "./assets/images/main_image_home.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
@@ -29,7 +30,7 @@ const IMG = {
   aaaanadi:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/anadi-hospital-A85VKX1j4xFDB4Zy.png",
   marathe:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop,trim=0;81.04735062006765;0;158.608793686584/YNq2a76xB3Ip7LZZ/marathe-clinic-hospital-YanJ8K4l8pCllDbZ.png",
   ambulance:  "https://images.unsplash.com/photo-1599700403969-f77b3aa74837?auto=format&fit=crop&w=612&h=576",
-  //logo:       "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=44,fit=crop/YNq2a76xB3Ip7LZZ/logo-AMq8kxQE5PsQv1g4.png",
+  logo:       logoImg,
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -49,17 +50,18 @@ const LANG = {
       label: "Thoughts",
       slogans: [
         "Our village, our responsibility",
-        "Beautiful thoughts, beautiful village",
-        "Let's all build a beautiful village together",
+        "Clean village, proud village",
         "Development through unity",
         "Educated village, developed village",
-        "Conserve water, absorb water",
+        "Conserve water, sustain life",
         "A beautiful village blooms through unity",
+        "We grow together, we rise together",
+        "Our roots run deep — our future runs far",
       ],
     },
     services: {
       eyebrow: "Explore",
-      title: "ग्राम सेवा",
+      title: "Village Services",
       subtitle: "Everything you need from Ayarewadi — always at your fingertips.",
       tiles: [
         { label: "Emergency", sub: "Hospitals & emergency contacts", tag: "Help & Safety" },
@@ -72,7 +74,7 @@ const LANG = {
       eyebrow: "Our Village",
       title: "Ayarewadi", titleAccent: "Village",
       chips: ["📍 Mangavli", "🏛️ Vaibhavwadi", "🗺️ Sindhudurg", "🇮🇳 Maharashtra"],
-      desc: "Ayarewadi, situated in Sindhudurg district of the Konkan region, is a culturally rich and scenic village. Marathi and Konkani languages are spoken here. The village is near the surrounding villages — Uple, Kolpe, Netal, and Echet.",
+      desc: "Nestled in the lush Konkan hills of Sindhudurg district, Ayarewadi is a close-knit village where tradition runs deep and nature surrounds every home. Marathi and Konkani are spoken here, and a shared faith in Shri Dev Ravalnath binds the community across generations. Neighbouring villages include Uple, Kolpe, Netal, and Echet.",
       stats: [
         { icon: "👥", val: "1,264", label: "Population"    },
         { icon: "📚", val: "69%",   label: "Literacy Rate" },
@@ -97,9 +99,9 @@ const LANG = {
       eyebrow: "Village Work",
       title: "Initiatives by Members",
       items: [
-        { title: "Temple Renovation",    sub: "Restoration of Ravalnath temple"          },
-        { title: "Bus Stand Sign Board", sub: "New sign board for village bus stand"      },
-        { title: "Organizing Sports",    sub: "Cricket & sports events for village youth" },
+        { title: "Temple Renovation",    sub: "New stone flooring, expanded sanctum & prayer hall at the historic Ravalnath temple" },
+        { title: "Bus Stand Sign Board", sub: "Designed and installed a landmark directional board at the village entry point"       },
+        { title: "Organizing Sports",    sub: "Annual cricket & athletics tournament bringing together youth from Ayarewadi and beyond" },
       ],
     },
     festivals: { eyebrow: "Festivals", title: "🔱 Festivals in Ayarewadi" },
@@ -112,14 +114,14 @@ const LANG = {
     join: {
       eyebrow: "Community",
       title: "Stay Connected With Us",
-      para: "Stay connected with Ayarewadi village — get updates on festivals, events, and village news directly on WhatsApp.",
+      para: "Be part of the Ayarewadi community — receive updates on festivals, village decisions, and important news directly on WhatsApp. Wherever you live, the village stays close.",
       wa: "WhatsApp Group",
     },
     footer: {
       village: "Village", emergency: "Emergency", contact: "Contact",
       home: "Home", eventsNews: "Events & News", gallery: "Gallery",
       portal: "Member Portal", hospitals: "Hospitals",
-      copy: "© 2025 Ayarewadi.in · All rights reserved",
+      copy: "© 2026 Ayarewadi.in · All rights reserved",
     },
     emergency: {
       eyebrow: "Help & Safety",
@@ -173,12 +175,13 @@ const LANG = {
       label: "सुविचार",
       slogans: [
         "आपलं गाव, आपली जबाबदारी",
-        "सुंदर विचार, सुंदर गाव",
-        "सर्वांनी मिळून सुंदर गाव घडवूया",
+        "स्वच्छ गाव, अभिमानी गाव",
         "एकतेतून गावाचा विकास",
         "शिक्षित गाव, विकसित गाव",
-        "पाणी अडवा, पाणी जिरवा",
+        "पाणी अडवा, जीवन वाचवा",
         "एकजुटीतून घडेल सुंदर गाव",
+        "एकत्र वाढूया, एकत्र उगवूया",
+        "आमची मुळे खोल — आमचे भविष्य दूर",
       ],
     },
     services: {
@@ -196,7 +199,7 @@ const LANG = {
       eyebrow: "आमचं गाव · Our Village",
       title: "आयरेवाडी", titleAccent: "गाव",
       chips: ["📍 मांगवली", "🏛️ वैभववाडी", "🗺️ सिंधुदुर्ग", "🇮🇳 महाराष्ट्र"],
-      desc: "कोकण प्रदेशातील सिंधुदुर्ग जिल्ह्यात वसलेले आयरेवाडी हे एक सांस्कृतिक व निसर्गरम्य गाव आहे. येथे मराठी व कोकणी भाषा बोलल्या जातात. गाव आसपासील उपले, कोळपे, नेटल, एचेट या गावांजवळ आहे.",
+      desc: "सिंधुदुर्ग जिल्ह्यातील हिरव्यागार कोकण डोंगरांमध्ये वसलेले आयरेवाडी हे एक घट्ट विणलेले गाव आहे — जिथे परंपरा खोलवर रुजलेली आहे आणि श्री देव रवळनाथावरील श्रद्धा पिढ्यानपिढ्या समाजाला एकत्र बांधते. येथे मराठी व कोकणी भाषा बोलल्या जातात. शेजारची गावे — उपले, कोळपे, नेटल आणि एचेट.",
       stats: [
         { icon: "👥", val: "1,264", label: "लोकसंख्या"    },
         { icon: "📚", val: "69%",   label: "साक्षरता दर"   },
@@ -221,9 +224,9 @@ const LANG = {
       eyebrow: "गाव काम",
       title: "सभासदांचे उपक्रम",
       items: [
-        { title: "मंदिर नूतनीकरण",     sub: "रवळनाथ मंदिराची पुनर्बांधणी"               },
-        { title: "बस स्टँड साइनबोर्ड", sub: "गावाच्या बस स्टँडसाठी नवीन साइनबोर्ड"       },
-        { title: "क्रीडा आयोजन",       sub: "गावातील युवकांसाठी क्रिकेट व क्रीडा स्पर्धा" },
+        { title: "मंदिर नूतनीकरण",     sub: "ऐतिहासिक रवळनाथ मंदिरात नवीन दगडी फरश, विस्तारित सभामंडप व गाभारा नूतनीकरण" },
+        { title: "बस स्टँड साइनबोर्ड", sub: "गावाच्या प्रवेशद्वारावर नवीन दिशादर्शक साइनबोर्ड डिझाइन व उभारणी"             },
+        { title: "क्रीडा आयोजन",       sub: "आयरेवाडी व शेजारच्या गावातील युवकांसाठी वार्षिक क्रिकेट व क्रीडा स्पर्धा"     },
       ],
     },
     festivals: { eyebrow: "उत्सव", title: "🔱 आयरेवाडीतील उत्सव" },
@@ -236,14 +239,14 @@ const LANG = {
     join: {
       eyebrow: "समुदाय",
       title: "जोडले राहा आमच्याशी",
-      para: "आयरेवाडी गावाशी जोडलेले राहा — उत्सव, कार्यक्रम आणि गावाच्या बातम्या थेट WhatsApp वर मिळवा.",
+      para: "आयरेवाडी समुदायाचा भाग व्हा — उत्सव, गाव निर्णय आणि महत्त्वाच्या बातम्या थेट WhatsApp वर मिळवा. आपण कुठेही असलात तरी, गाव नेहमी जवळ राहते.",
       wa: "WhatsApp ग्रुप",
     },
     footer: {
       village: "गाव", emergency: "आपत्कालीन", contact: "संपर्क",
       home: "मुख्यपान", eventsNews: "कार्यक्रम व बातम्या", gallery: "गॅलरी",
       portal: "सभासद पोर्टल", hospitals: "रुग्णालये",
-      copy: "© 2025 Ayarewadi.in · सर्व हक्क राखीव",
+      copy: "© 2026 Ayarewadi.in · सर्व हक्क राखीव",
     },
     emergency: {
       eyebrow: "मदत व सुरक्षा",
@@ -350,9 +353,7 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
   return (
     <nav className={`navbar ${scrolled || section !== "home" ? "scrolled" : ""}`}>
       <div className="nav-brand" onClick={() => nav("home")}>
-        <span className="nav-brand-name">
-          {lang === "mr" ? "आयरेवाडी" : "AYAREWADI"}
-        </span>
+        <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" />
       </div>
 
       <div className="nav-lang-group">
@@ -597,15 +598,15 @@ function Ravalnath_Temple({ lang }) {
           <div className="rt-body">
             {lang === "en" ? (
               <>
-                <p>Shri Dev Ravalnath is a famous deity of South Konkan. The Ravalnath temple in our village is very old and we have been worshipping it for generations. Ravalnath Dev is our village's <strong>Gramdevata</strong> and protects the village, fields, and livestock.</p>
-                <p>According to belief, Ravalnath Dev is considered the fierce form of <strong>Lord Shiva or Bhairav</strong>. A sword in hand and a trident by his side are his main symbols. The people of Konkan believe that Ravalnath Dev protects the village from evil forces, disease, and calamities.</p>
-                <p>Every year, the <strong>Ravalnath Jatra</strong> is celebrated with great enthusiasm. On that day, devotees come from far and wide to the beat of drums, processions, and to offer prasad to the deity. The temple premises are decorated with flowers and the atmosphere is filled with devotion.</p>
+                <p>Deep in the Konkan hills, the <strong>Ravalnath temple</strong> has stood for centuries — its stone walls worn smooth by generations of hands pressed in prayer. Ravalnath Dev is Ayarewadi's <strong>Gramdevata</strong>, the divine guardian of homes, fields, and the community that gathers beneath his gaze.</p>
+                <p>Revered as a fierce form of <strong>Lord Shiva</strong>, he carries a sword and trident — symbols of protection, not threat. Konkan folklore holds that where Ravalnath watches, no evil lingers. His presence is felt not only in the temple but in every field boundary and village path.</p>
+                <p>Once a year, the <strong>Ravalnath Jatra</strong> transforms the village. Drums echo off the hills, oil lamps crowd the sanctum, and devotees arrive from villages near and far. For one charged day, Ayarewadi is the centre of the world — and everyone who was ever from here finds their way back.</p>
               </>
             ) : (
               <>
-                <p>श्री देव रवळनाथ हे दक्षिण कोकणातील एक प्रसिद्ध दैवत आहे. आमच्या गावातलं रवळनाथ मंदिर खूप जुनं आहे आणि वर्षानुवर्षं आम्ही त्यांची पूजा करत आलो आहोत. रवळनाथ देव आमच्या गावाचे <strong>ग्रामदैवत</strong> असून ते गावाचं, शेताचं आणि जनावरांचं रक्षण करतात.</p>
-                <p>श्रद्धेनुसार, रवळनाथ देव हे <strong>भगवान शिव किंवा भैरव</strong> यांचे उग्र रूप मानले जाते. त्यांच्या हातात तलवार आणि बाजूला त्रिशूल ही त्यांची मुख्य प्रतीकं आहेत. कोकणातील लोकांचा विश्वास आहे की रवळनाथ देव वाईट शक्ती, रोगराई आणि संकटं यापासून गावाचं संरक्षण करतात.</p>
-                <p>दरवर्षी <strong>रवळनाथ जत्रा</strong> मोठ्या उत्साहात साजरी केली जाते. त्या दिवशी ढोल-ताशांचा गजर, मिरवणुका आणि देवाला नैवेद्य अर्पण करण्यासाठी दूरदूरून भक्त येतात. मंदिर परिसर फुलांनी सजवला जातो आणि वातावरण भक्तीभावाने भारून जातं.</p>
+                <p>कोकणाच्या डोंगरांच्या कुशीत, <strong>रवळनाथ मंदिर</strong> शतकानुशतके उभे आहे — त्याच्या दगडी भिंती पिढ्यानपिढ्यांच्या प्रार्थनेने गुळगुळीत झाल्या आहेत. रवळनाथ देव हे आयरेवाडीचे <strong>ग्रामदैवत</strong> — घरांचे, शेताचे आणि त्यांच्या दृष्टीखाली एकत्र येणाऱ्या समाजाचे दैवी रक्षणकर्ते.</p>
+                <p><strong>भगवान शिवाचे</strong> उग्र रूप मानले जाणारे, ते हातात तलवार आणि त्रिशूल धारण करतात — संरक्षणाची प्रतीकं. कोकणातील लोकश्रद्धा सांगते की जिथे रवळनाथ पाहतात, तिथे वाईटाला थारा नाही. त्यांचं अस्तित्व केवळ मंदिरातच नाही — प्रत्येक शेताच्या बांधावर आणि गावाच्या वाटेवर जाणवतं.</p>
+                <p>वर्षातून एकदा <strong>रवळनाथ जत्रा</strong> गावाला वेगळ्याच रूपात न्हाऊन टाकते. ढोल-ताशांचा आवाज डोंगरांमध्ये घुमतो, मंदिरात दिव्यांची रांग उजळते, आणि आसपासच्या गावांतून भक्त येतात. एका दिवसासाठी आयरेवाडी जगाचं केंद्र बनतं — आणि इथले प्रत्येक जण, कुठेही असला तरी, घरी परततो.</p>
               </>
             )}
           </div>
@@ -659,7 +660,7 @@ function Member_Initiatives({ lang }) {
 function Village_Festivals({ lang }) {
   const t = LANG[lang].festivals;
   return (
-    <section className="page-section festivals-section">
+    <section className="page-section">
       <div className="sec-header">
         <span className="eyebrow">{t.eyebrow}</span>
         <h2>{t.title}</h2>
@@ -679,7 +680,7 @@ function Village_Festivals({ lang }) {
 function Events_Preview({ events, nav, lang }) {
   const t = LANG[lang].eventsPreview;
   return (
-    <section className="page-section events-preview-section" style={{ paddingTop: 0 }}>
+    <section className="page-section events-preview-section">
       <div className="sec-header">
         <span className="eyebrow">{t.eyebrow}</span>
         <h2>{t.title}</h2>
@@ -693,7 +694,7 @@ function Events_Preview({ events, nav, lang }) {
           </div>
         ))}
       </div>
-      <button className="btn-accent-sm" style={{ marginTop: "16px" }} onClick={() => nav("events")}>
+      <button className="btn-accent-sm" onClick={() => nav("events")}>
         {t.btn}
       </button>
     </section>
@@ -710,6 +711,7 @@ function Team_Members({ lang }) {
       initials: "BA",
       gradient: "linear-gradient(135deg, #0d5c30 0%, #1aad5c 100%)",
       quote: "आयरेवाडी गावाचा विकास हे आमचे ध्येय. प्रत्येक निर्णय गावाच्या भविष्यासाठी घेतो.",
+      quoteEn: "Ayarewadi's growth is our purpose. Every decision we make is for the village's future.",
     },
     {
       name: "Anant Ayare",
@@ -717,6 +719,7 @@ function Team_Members({ lang }) {
       initials: "AA",
       gradient: "linear-gradient(135deg, #0d3d5c 0%, #1a7db8 100%)",
       quote: "गावाचे सर्व उपक्रम व्यवस्थित चालावेत यासाठी सतत प्रयत्नशील असतो.",
+      quoteEn: "I work to keep every village initiative running smoothly — no task too small.",
     },
     {
       name: "Pawan Ayare",
@@ -724,6 +727,7 @@ function Team_Members({ lang }) {
       initials: "PA",
       gradient: "linear-gradient(135deg, #5c200d 0%, #b84020 100%)",
       quote: "गावाचा प्रत्येक पैसा योग्य कामी लागावा यासाठी पारदर्शकतेने काम करतो.",
+      quoteEn: "Every rupee the village earns must serve the village. I work with full transparency.",
     },
     {
       name: "Amit Ayare",
@@ -731,6 +735,7 @@ function Team_Members({ lang }) {
       initials: "AA",
       gradient: "linear-gradient(135deg, #3a0d5c 0%, #7a2db8 100%)",
       quote: "गावातील युवापिढीसाठी नवीन संधी निर्माण करणे हे आमचे स्वप्न आहे.",
+      quoteEn: "My dream is to create new opportunities for the youth of Ayarewadi.",
     },
   ];
 
@@ -778,7 +783,7 @@ function Team_Members({ lang }) {
             <div className="team-role-mr">{lang === "mr" ? m.roleMr : m.roleEn}</div>
             <div className="team-role-en">{lang === "mr" ? m.roleEn : m.roleMr}</div>
             <div className="team-divider" />
-            <p className="team-quote">"{m.quote}"</p>
+            <p className="team-quote">"{lang === "mr" ? m.quote : m.quoteEn}"</p>
             <div className="team-socials">
               <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" className="team-social-btn" title="WhatsApp">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
@@ -884,7 +889,7 @@ function Emergency_Page({ lang }) {
               <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
               <p>{h.addr}</p>
               {h.phone && (
-                <a href={`tel:${h.phone}`} className="btn-call" style={{ marginTop: "10px", display: "inline-block" }}>
+                <a href={`tel:${h.phone}`} className="btn-call">
                   📞 {h.phone}
                 </a>
               )}
@@ -893,17 +898,17 @@ function Emergency_Page({ lang }) {
         ))}
       </div>
 
-      <div className="hosp-card ambulance-card" style={{ marginTop: "20px" }}>
+      <div className="hosp-card ambulance-card">
         <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
         <div className="ambulance-body">
-          <h3 style={{ color: "var(--accent)", marginBottom: "10px" }}>{t.tollfree}</h3>
+          <h3>{t.tollfree}</h3>
           <p><strong>108</strong> — {t.freeAmb}</p>
           <p><strong>102</strong> — {t.ambHelp}</p>
           <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
         </div>
       </div>
 
-      <div className="info-card" style={{ marginTop: "20px" }}>
+      <div className="info-card">
         <h3>{t.other}</h3>
         <ul>
           <li>{t.police} <strong>100</strong></li>
@@ -943,12 +948,12 @@ function Portal_Page({ lang }) {
       setLoggedIn(true); setErr("");
     } catch {
       if (id === "AYR001" && pass === "village") {
-        setMember({ household_name: "Patil", house_no: "12" });
+        setMember({ household_name: "Ayare", house_no: "7" });
         setFamily([
-          { id: 1, name: "Ramesh Patil",  role: "Head",     phone: "9876543210" },
-          { id: 2, name: "Sunita Patil",  role: "Wife",      phone: "9876543211" },
-          { id: 3, name: "Akash Patil",   role: "Son",       phone: "9876543212" },
-          { id: 4, name: "Priya Patil",   role: "Daughter",  phone: null },
+          { id: 1, name: "Bhalchandra Ayare", role: "Head",     phone: "8149822015" },
+          { id: 2, name: "Anant Ayare",        role: "Brother",  phone: "9876543211" },
+          { id: 3, name: "Amit Ayare",         role: "Son",      phone: "9876543212" },
+          { id: 4, name: "Pawan Ayare",        role: "Son",      phone: "9876543213" },
         ]);
         setBudget([
           { id: 1, description: "Gram Panchayat Fund",   type: "income",  amount: 150000 },
@@ -971,6 +976,7 @@ function Portal_Page({ lang }) {
   if (!loggedIn) return (
     <section className="page-section center-section">
       <div className="login-box">
+        <img src={IMG.logo} alt="Ayarewadi" className="login-logo" />
         <h2>{t.title}<br /><small>{t.subtitle}</small></h2>
         <label>{t.idLabel}</label>
         <input value={id} onChange={e => setId(e.target.value)} placeholder="e.g. AYR001" />
@@ -1004,7 +1010,7 @@ function Portal_Page({ lang }) {
         </div>
       </div>
 
-      <div className="info-card" style={{ marginTop: "20px" }}>
+      <div className="info-card">
         <h3>{t.budget}</h3>
         <div className="budget-table-wrap">
           <table className="budget-table">
@@ -1028,8 +1034,7 @@ function Portal_Page({ lang }) {
         </div>
       </div>
 
-      <button className="btn-green"
-        style={{ marginTop: "16px", width: "auto", padding: "10px 28px" }}
+      <button className="btn-green btn-narrow"
         onClick={() => { setLoggedIn(false); setId(""); setPass(""); }}>
         {t.logout}
       </button>
@@ -1156,10 +1161,10 @@ function Gallery_Page({ lang }) {
 function Events_Page({ events, lang }) {
   const t = LANG[lang].events;
   const fallback = [
-    { id: 1, title: "रवळनाथ जत्रा",               description: "Annual Ravalnath Jatra — ढोल-ताशांचा गजर, मिरवणुका.", date: "2025-11-15", tag: "Festival" },
-    { id: 2, title: "Gram Sabha | ग्रामसभा",       description: "Monthly village development meeting.", date: "2025-06-20", tag: "Meeting" },
-    { id: 3, title: "Cricket Tournament | क्रिकेट", description: "Annual inter-village cricket tournament.", date: "2025-07-10", tag: "Sports" },
-    { id: 4, title: "Ganeshotsav | गणेशोत्सव",    description: "10-day Ganesh festival with cultural programs.", date: "2025-08-29", tag: "Festival" },
+    { id: 1, title: "रवळनाथ जत्रा",               description: "Annual Ravalnath Jatra — ढोल-ताशांचा गजर, मिरवणुका, आणि भक्तांचा उत्साह.", date: "2026-11-15", tag: "Festival" },
+    { id: 2, title: "Gram Sabha | ग्रामसभा",       description: "Village development meeting — all residents welcome. Budget review & upcoming works.", date: "2026-06-20", tag: "Meeting" },
+    { id: 3, title: "Cricket Tournament | क्रिकेट", description: "Inter-village cricket with teams from Ayarewadi, Uple, Kolpe & Netal.", date: "2026-07-10", tag: "Sports" },
+    { id: 4, title: "Ganeshotsav | गणेशोत्सव",    description: "10-day Ganesh festival with cultural programs, processions & community prasad.", date: "2026-08-22", tag: "Festival" },
   ];
   const list = events.length > 0 ? events : fallback;
 
@@ -1180,12 +1185,12 @@ function Events_Page({ events, lang }) {
         ))}
       </div>
 
-      <div className="info-card" style={{ marginTop: "24px" }}>
+      <div className="info-card">
         <h3>{t.noticeTitle}</h3>
-        <ul style={{ marginTop: "8px" }}>
-          <li>Newsletter: <strong>contact@ayarewadi.in</strong></li>
-          <li>Village tax deadline: <strong>30th June 2025</strong></li>
-          <li>Ration cards: Apply at Gram Panchayat before 15th June</li>
+        <ul>
+          <li>Village tax deadline: <strong>30 June 2026</strong> — pay at Gram Panchayat office</li>
+          <li>Ration card updates: Apply before <strong>15 June 2026</strong></li>
+          <li>Contact & feedback: <strong>contact@ayarewadi.in</strong></li>
         </ul>
       </div>
     </section>
@@ -1201,22 +1206,9 @@ function Footer_Section({ nav, lang }) {
     <footer className="footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <div className="footer-brand-name">
-            {lang === "mr" ? "आयरेवाडी" : "AYAREWADI"}
-          </div>
+          <img src={IMG.logo} alt="Ayarewadi" className="footer-logo" />
           <p>आयरेवाडी (मांगवली) · वैभववाडी<br />सिंधुदुर्ग · महाराष्ट्र</p>
           <p className="footer-tagline">"एक गाव, एक ओळख, एक नातं"</p>
-          <div className="footer-socials">
-            <a href="https://wa.me/918149822015" target="_blank" rel="noreferrer" aria-label="WhatsApp" className="footer-social-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="footer-social-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </a>
-            <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="footer-social-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            </a>
-          </div>
         </div>
 
         <div className="footer-col">
@@ -1242,7 +1234,7 @@ function Footer_Section({ nav, lang }) {
         <div className="footer-col">
           <h4>{t.contact}</h4>
           <ul>
-            <li><a href="mailto:contact@ayarewadi.in">contact@ayarewadi.in</a></li>
+            <li>contact@ayarewadi.in</li>
             <li>Vaibhavwadi, Sindhudurg</li>
             <li>Maharashtra — 416810</li>
           </ul>
@@ -1251,7 +1243,6 @@ function Footer_Section({ nav, lang }) {
 
       <div className="footer-bottom">
         <p>{t.copy}</p>
-        <p className="footer-credit">Designed &amp; Developed by <strong>Amit Raju Ayare</strong> · Masters in Computer Science</p>
       </div>
     </footer>
   );

@@ -1,0 +1,667 @@
+================================================================================
+  AYAREWADI.IN — COMPLETE WEBSITE PLAN & BUILD SUMMARY
+  Project: Village Website — Ayarewadi (Sindhudurg, Maharashtra)
+  Developer: Amit Raju Ayare (Masters in Computer Science)
+  Contact: amitayareofficial@gmail.com
+  Live Backend: https://ayarewadi-project.onrender.com
+  Deploy: Vercel (client) + Render (server)
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+1. PROJECT OVERVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+A bilingual (मराठी / English) village information portal for Ayarewadi village,
+Sindhudurg district, Maharashtra, India.
+
+Purpose:
+  - Central information hub for village residents
+  - Emergency contacts and nearby hospitals
+  - Events, festivals, and village news
+  - Member portal (family tree + village budget — login required)
+  - Photo gallery
+  - Blog / village news articles
+  - Admin panel to manage all content from the browser
+  - WhatsApp community link
+
+Domain: ayarewadi.in
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. TECH STACK
+────────────────────────────────────────────────────────────────────────────────
+
+CLIENT (Frontend)
+  Framework    : React 19 (Vite 8 bundler)
+  Styling      : Pure CSS (custom design system) + Tailwind CSS v4 (utility layer)
+  HTTP         : axios
+  Markdown     : react-markdown  (for Blog post rendering)
+  Animations   : framer-motion (installed, available for use)
+  Icons        : lucide-react (installed, available)
+  Path alias   : @ → ./src
+
+SERVER (Backend)
+  Runtime      : Node.js
+  Framework    : Express 5
+  Database     : PostgreSQL (via `pg` pool)
+  Auth         : JWT (jsonwebtoken) + bcrypt (password hashing)
+  File Upload  : multer (memory storage) → Cloudinary
+  Image CDN    : Cloudinary (village photos stored and served from there)
+  Env Vars     : dotenv
+
+DEPLOYMENT
+  Client  → Vercel  (cd client && vercel --prod)
+  Server  → Render  (https://ayarewadi-project.onrender.com)
+  DB      → PostgreSQL on Render (DATABASE_URL in server/.env)
+
+BUILD COMMAND (client)
+  npm run build   → runs vite build → outputs to client/dist/
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. FOLDER STRUCTURE
+────────────────────────────────────────────────────────────────────────────────
+
+aw-project/
+├── client/                        ← React/Vite frontend
+│   ├── index.html                 ← HTML entry (sets <title> etc.)
+│   ├── vite.config.js             ← Vite config (React plugin, Tailwind, @ alias)
+│   ├── package.json
+│   └── src/
+│       ├── main.jsx               ← ReactDOM.createRoot entry point
+│       ├── index.css              ← Global reset + Tailwind import
+│       ├── App.jsx                ← ALL pages + components (single-file SPA)
+│       ├── App.css                ← Complete design system CSS
+│       ├── lib/
+│       │   └── utils.js           ← clsx/tailwind-merge helper
+│       ├── assets/
+│       │   └── images/            ← Local images (hero, emergency, gallery, etc.)
+│       ├── components/
+│       │   ├── Emergency.jsx      ← Tabbed emergency component (unused in main nav)
+│       │   ├── GramUpdates.jsx    ← Public data tabs component (unused in main nav)
+│       │   └── Marquee.jsx        ← Standalone marquee component (unused in main nav)
+│       └── pages/
+│           ├── Admin.jsx          ← Full admin panel (all CRUD tabs)
+│           └── Blog.jsx           ← Blog listing + single post reader
+│
+└── server/
+    ├── index.js                   ← All Express routes
+    ├── db.js                      ← PostgreSQL pool connection
+    ├── package.json
+    └── .env                       ← Secrets (not in git)
+
+NOTE: The main SPA lives entirely in App.jsx — all pages (Home, Emergency,
+Portal, Gallery, Events, Footer, Navbar) are components in that one file.
+Admin.jsx and Blog.jsx are the only separate page files.
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. NAVIGATION ARCHITECTURE (Single-Page App)
+────────────────────────────────────────────────────────────────────────────────
+
+No React Router is used. Navigation is state-based:
+
+  const [section, setSection] = useState("home");
+
+  Sections:  home | emergency | portal | gallery | events | blog | admin
+
+  nav(s) function:
+    - setSection(s)
+    - setMenuOpen(false)
+    - window.scrollTo({ top: 0, behavior: "smooth" })
+
+The navbar conditionally applies the "scrolled" class at window.scrollY > 60,
+which switches it from transparent/white-text to white/dark-text.
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. DATABASE SCHEMA (PostgreSQL)
+────────────────────────────────────────────────────────────────────────────────
+
+TABLE: admins
+  id          SERIAL PRIMARY KEY
+  username    TEXT NOT NULL UNIQUE
+  password    TEXT NOT NULL          ← bcrypt hashed
+  created_at  TIMESTAMP DEFAULT NOW()
+
+TABLE: events
+  id          SERIAL PRIMARY KEY
+  title       TEXT NOT NULL
+  description TEXT
+  date        DATE
+  category    TEXT DEFAULT 'General'
+  is_marquee  BOOLEAN DEFAULT false
+  created_at  TIMESTAMP DEFAULT NOW()
+
+TABLE: announcements
+  id          SERIAL PRIMARY KEY
+  text        TEXT NOT NULL
+  active      BOOLEAN DEFAULT true
+  created_at  TIMESTAMP DEFAULT NOW()
+
+TABLE: gallery
+  id             SERIAL PRIMARY KEY
+  url            TEXT NOT NULL        ← Cloudinary full URL
+  thumbnail_url  TEXT                 ← Cloudinary URL with /upload/w_400/
+  caption        TEXT
+  category       TEXT
+  uploaded_at    TIMESTAMP DEFAULT NOW()
+
+TABLE: emergency
+  id                 SERIAL PRIMARY KEY
+  name               TEXT NOT NULL
+  type               TEXT               ← Hospital | Police | School | Government
+  phone              TEXT
+  address            TEXT
+  maps_url           TEXT
+  emergency_contact  TEXT
+
+TABLE: budget
+  id          SERIAL PRIMARY KEY
+  description TEXT NOT NULL
+  type        TEXT                     ← income | expense
+  amount      NUMERIC
+  month       TEXT
+  created_at  TIMESTAMP DEFAULT NOW()
+
+TABLE: blog_posts
+  id           SERIAL PRIMARY KEY
+  title        TEXT NOT NULL
+  slug         TEXT UNIQUE             ← auto-generated from title
+  content      TEXT                    ← Markdown content
+  category     TEXT DEFAULT 'Village News'
+  cover_image  TEXT                    ← URL (optional)
+  published    BOOLEAN DEFAULT false
+  created_at   TIMESTAMP DEFAULT NOW()
+  updated_at   TIMESTAMP DEFAULT NOW()
+
+TABLE: members
+  id          SERIAL PRIMARY KEY
+  member_id   TEXT UNIQUE              ← e.g. AYR001
+  password    TEXT                     ← plain text (simple village use)
+  household_name TEXT
+  house_no    TEXT
+
+TABLE: family
+  id          SERIAL PRIMARY KEY
+  member_id   TEXT                     ← FK to members.member_id
+  name        TEXT
+  role        TEXT                     ← Head | Wife | Son | Daughter etc.
+  phone       TEXT
+
+
+────────────────────────────────────────────────────────────────────────────────
+6. API ENDPOINTS (server/index.js)
+────────────────────────────────────────────────────────────────────────────────
+
+BASE URL: https://ayarewadi-project.onrender.com
+
+PUBLIC (no auth required):
+  GET  /                          → Health check
+  GET  /events                    → All events (newest first)
+  GET  /announcements             → Active announcements only
+  GET  /gallery                   → All photos (optional ?category=X)
+  GET  /emergency                 → All emergency contacts
+  GET  /budget                    → All budget entries
+  GET  /blog                      → Published blog posts only
+  POST /login                     → Member login {member_id, password}
+  GET  /family/:member_id         → Family members for a member
+
+ADMIN (requires JWT Bearer token):
+  POST   /admin/login             → {username, password} → returns {token}
+  POST   /events                  → Create event
+  PUT    /events/:id              → Update event
+  DELETE /events/:id              → Delete event
+  POST   /announcements           → Create announcement
+  DELETE /announcements/:id       → Delete announcement
+  POST   /gallery/upload          → Upload photo (multipart/form-data, field: "photo")
+  DELETE /gallery/:id             → Delete photo
+  POST   /emergency               → Create emergency contact
+  PUT    /emergency/:id           → Update emergency contact
+  DELETE /emergency/:id           → Delete emergency contact
+  POST   /budget                  → Create budget entry
+  DELETE /budget/:id              → Delete budget entry
+  GET    /blog/all                → All posts (incl. unpublished)
+  POST   /blog                    → Create post
+  PUT    /blog/:id                → Update post
+  DELETE /blog/:id                → Delete post
+
+AUTH FLOW:
+  Admin logs in → POST /admin/login → receives JWT
+  JWT stored in localStorage as "admin_token"
+  All admin requests send: Authorization: Bearer <token>
+  Token expires: 7 days
+
+
+────────────────────────────────────────────────────────────────────────────────
+7. FRONTEND PAGES & SECTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+HOME PAGE (section="home") — composed of these sections in order:
+  1.  Hero_Section           ← Full-bleed image, eyebrow + tagline, marquee bar at bottom
+  2.  Village_Details        ← Split-screen: photo left, stats/info right (pale bg)
+  3.  Ravalnath_Temple       ← Dark section, temple photo + description
+  4.  Village_Services       ← 2×2 bento grid (Emergency, Events, Gallery, Portal)
+  5.  Member_Initiatives     ← 3-card grid on pale bg (temple reno, bus stand, sports)
+  6.  Village_Festivals      ← 3-photo grid
+  7.  Events_Preview         ← Shows up to 3 upcoming events (only if events exist)
+  8.  Team_Members           ← Dark green section, 4 glassmorphism cards + member marquee
+  9.  Join_Community         ← Dark CTA section, WhatsApp + email buttons
+
+EMERGENCY PAGE (section="emergency")
+  - Alert banner (108, 102, local number)
+  - 3 hospital cards with images, tags, phone link
+  - Ambulance card (toll-free numbers)
+  - Other helplines card (police 100, fire 101, etc.)
+
+PORTAL PAGE (section="portal")
+  - Login form (member_id + password)
+  - Demo credentials: AYR001 / village
+  - On login: shows family tree + village budget table + balance
+  - Fallback demo data if API unavailable
+
+GALLERY PAGE (section="gallery")
+  - Search bar (client-side filter by label/caption)
+  - Masonry-style auto-fill grid
+  - Hover overlay with caption + download button
+  - Falls back to GALLERY_DEFAULTS (local images) if API unavailable
+
+EVENTS PAGE (section="events")
+  - Events list in 3-col grid
+  - Notice board card (newsletter, deadlines)
+  - Falls back to 4 hardcoded events if API unavailable
+
+BLOG PAGE (section="blog")  ← Blog.jsx
+  - Category filter buttons (7 categories)
+  - Card grid with cover image, category tag, excerpt, date
+  - Click card → full post reader (react-markdown)
+  - Back button returns to listing
+
+ADMIN PAGE (section="admin")  ← Admin.jsx
+  Tabs: Events | Announcements | Gallery | Budget | Emergency | Blog
+  - Protected by JWT (local login form first)
+  - Events: add/edit/delete with date, category, is_marquee toggle
+  - Announcements: add/delete scrolling ticker items
+  - Gallery: upload from disk (sent to Cloudinary), delete, filter by category
+  - Budget: add income/expense entries, running balance shown
+  - Emergency: add/edit/delete by type (Hospital/Police/School/Government)
+  - Blog: write in Markdown with live preview, publish/unpublish toggle
+
+
+────────────────────────────────────────────────────────────────────────────────
+8. BILINGUAL SYSTEM (मराठी / English)
+────────────────────────────────────────────────────────────────────────────────
+
+All user-facing text lives in a LANG object at top of App.jsx:
+
+  const LANG = {
+    en: { nav, hero, marquee, services, vd, rt, initiatives,
+          festivals, eventsPreview, team, join, footer,
+          emergency, portal, gallery, events },
+    mr: { ... same keys, Marathi values ... }
+  }
+
+State: const [lang, setLang] = useState("mr");   ← defaults to मराठी
+Language toggle buttons sit in the navbar (English | मराठी).
+
+Each section reads:  const t = LANG[lang].sectionKey;
+Then uses:           {t.title}, {t.subtitle} etc.
+
+Hard-coded text that doesn't change (team member names, addresses, phone numbers)
+stays in English in both language modes.
+
+Rule: Always write मराठी in Devanagari script, never romanized "marathi".
+
+
+────────────────────────────────────────────────────────────────────────────────
+9. DESIGN SYSTEM (CSS Variables — App.css)
+────────────────────────────────────────────────────────────────────────────────
+
+:root {
+  --primary:  #1a1a1a;        ← Near black (navbar, dark bg, buttons)
+  --primary2: #2a2a2a;        ← Slightly lighter dark
+  --accent:   #DB4035;        ← Red (brand accent, CTAs, highlights)
+  --accent2:  #B8352B;        ← Darker red (hover state)
+  --green:    #3B8C4B;        ← Green (sub-titles, income tags)
+  --pale:     #F4F3F1;        ← Off-white (section backgrounds, chips)
+  --border:   #E8E8E8;        ← Light border
+  --text:     #202020;        ← Body text
+  --muted:    #7C7C7C;        ← Secondary text
+  --white:    #ffffff;
+  --radius:   12px;           ← Standard border-radius
+  --shadow:   0 2px 20px rgba(0,0,0,0.08);
+}
+
+TYPOGRAPHY
+  Font stack: 'Inter', 'Segoe UI', sans-serif
+  Body font-smoothing: antialiased
+  Eyebrow labels: 0.7rem, uppercase, letter-spacing: 3px, color: accent
+  Section h2: 1.9rem, weight 800, letter-spacing -0.4px
+
+SECTION LAYOUT TIERS
+  Standard inner pages (.page-section): max-width 960px, padding 56px 24px
+  Featured full-bleed sections:         padding 80px 40px
+  Wide containers (team, footer):       max-width 1100px
+
+DARK SECTIONS (create page rhythm):
+  Ravalnath Temple  ← linear-gradient(135deg, #0c0400 → #2a1200)
+  Team Members      ← linear-gradient(145deg, #061410 → #0e3d24)
+  Join Community    ← linear-gradient(135deg, #0d1b0f → #1a2e1c)
+  Footer            ← #0f0f0f with 3px accent border-top
+
+PALE SECTION:
+  Village Details (right column)  ← var(--pale)
+  Member Initiatives              ← var(--pale)
+
+
+────────────────────────────────────────────────────────────────────────────────
+10. KEY CSS COMPONENTS & PATTERNS
+────────────────────────────────────────────────────────────────────────────────
+
+EYEBROW LABEL (.eyebrow)
+  - Small uppercase label above section headings
+  - Has a short horizontal red bar via ::before pseudo-element
+  - Used universally across all sections for visual consistency
+
+SECTION HEADERS (.sec-header)
+  - text-align: center  (all sections)
+  - margin-bottom: 36px
+  - Contains an .eyebrow span + h2
+
+BENTO GRID (.svc-bento)
+  - 2×2 grid, each card 320px tall
+  - Cards are background-image covers with dark overlay
+  - Glass panel at bottom (backdrop-filter blur)
+  - Green tag badge at top-left of each card
+
+GLASSMORPHISM CARDS (.team-card)
+  - background: rgba(255,255,255,0.055)
+  - backdrop-filter: blur(28px)
+  - Used for team member cards on dark background
+
+MARQUEE ANIMATION
+  - @keyframes scroll-left: translateX(0) → translateX(-50%)
+  - Items doubled in JS ([...arr, ...arr]) for seamless loop
+  - Pauses on hover
+  - Used in: hero bottom bar, team section top banner
+
+SCROLLING MARQUEE AT HERO BOTTOM (.hero-marquee-bar)
+  - position: absolute, bottom: 0, z-index: 4
+  - Semi-transparent dark bg with backdrop blur
+  - Shows slogans in the active language
+
+NAVBAR BEHAVIOR
+  - Transparent with white text when at top of hero
+  - White bg with dark text once scrolled > 60px (or on non-home section)
+  - Hamburger menu on mobile (< 768px)
+  - Language toggle buttons (pill style) next to brand name
+
+INFO CARD (.info-card)
+  - White card with 3px left accent border (red)
+  - Used for budget, notice board, other helplines
+  - Adjacent cards use CSS sibling selector for spacing:
+    .info-card + .info-card { margin-top: 20px }
+
+EVENT CARDS (.event-card)
+  - 3-col grid on desktop, 2-col tablet, 1-col mobile
+  - 4px top border accent, white bg
+
+
+────────────────────────────────────────────────────────────────────────────────
+11. IMAGES & ASSETS
+────────────────────────────────────────────────────────────────────────────────
+
+LOCAL IMAGES (src/assets/images/):
+  main_image_home.png       ← Hero background (full village aerial/landscape)
+  ravalnath_temple.png      ← Temple section + gallery
+  emergency.png             ← Service bento card bg
+  news.png                  ← Service bento card bg
+  gallery.png               ← Service bento card bg
+  portal.png                ← Service bento card bg
+  village_info_iamge.png    ← Village Details left column (typo preserved)
+
+EXTERNAL IMAGES (Zyrosite CDN — auto-cropped/resized):
+  templeReno, busStand, sports  ← Member initiatives
+  festival1, festival2, festival3  ← Festival grid
+  nature1, nature2, nature3     ← Gallery defaults
+  ruralHosp, aaaanadi, marathe  ← Hospital photos
+
+AMBULANCE:
+  Unsplash photo (free license)
+
+GALLERY PHOTOS (dynamic):
+  Uploaded by admin → stored in Cloudinary
+  Thumbnail URL = full URL with /upload/w_400/ injected
+  Falls back to GALLERY_DEFAULTS array if API returns empty
+
+
+────────────────────────────────────────────────────────────────────────────────
+12. RESPONSIVE BREAKPOINTS
+────────────────────────────────────────────────────────────────────────────────
+
+1200px  → Reduce padding on some full-bleed sections
+1024px  → Tablet landscape: footer 2-col, rt-container narrows, events 2-col
+ 768px  → Tablet portrait: hamburger nav, hero image goes natural ratio,
+           village-details stacks, temple section stacks, festival 2-col
+ 480px  → Small mobile: service bento goes 1-col (4×160px), gallery 2-col,
+           events 1-col, footer 1-col
+ 360px  → Very small Android: smallest font sizes
+
+TOUCH DEVICE OVERRIDES (@media hover:none pointer:coarse):
+  - Gallery overlay always visible (no hover needed)
+  - Service bento arrow always red (always visible)
+  - Disable translateY hover transforms (prevents "stuck hover")
+  - Events list forced to 1-col
+
+
+────────────────────────────────────────────────────────────────────────────────
+13. ADMIN PANEL FEATURES
+────────────────────────────────────────────────────────────────────────────────
+
+Auth: Username + password → JWT stored in localStorage (7-day expiry)
+
+EVENTS tab:
+  - Add/edit/delete events
+  - Fields: title, description, date, category (dropdown), is_marquee (checkbox)
+  - Displayed newest-first
+
+ANNOUNCEMENTS tab:
+  - Add ticker-style short texts
+  - Active announcements scroll in marquee bar (if used)
+
+GALLERY tab:
+  - Upload photo from device (multipart → Cloudinary)
+  - Add caption + category
+  - Shows all uploaded photos in grid
+  - Filter by category
+  - Delete individual photos
+
+BUDGET tab:
+  - Add income / expense entries (description, type, amount, month)
+  - Running balance calculated client-side
+  - Delete entries
+
+EMERGENCY tab:
+  - Add/edit/delete contacts
+  - Types: Hospital | Police | School | Government
+  - Fields: name, phone, address, maps_url, emergency_contact
+
+BLOG tab:
+  - Write posts in Markdown with live preview
+  - Set title, category, cover image URL, published toggle
+  - Edit/delete existing posts
+  - Unpublished posts not visible to public
+
+
+────────────────────────────────────────────────────────────────────────────────
+14. ENVIRONMENT VARIABLES (server/.env)
+────────────────────────────────────────────────────────────────────────────────
+
+DATABASE_URL=postgresql://...          ← Render PostgreSQL connection string
+JWT_SECRET=...                         ← Random secret string for JWT signing
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+
+────────────────────────────────────────────────────────────────────────────────
+15. DEPLOYMENT WORKFLOW
+────────────────────────────────────────────────────────────────────────────────
+
+SERVER (Render):
+  - Render auto-deploys from GitHub on push to main
+  - Start command: node server/index.js
+  - Port: 5000 (Render maps to public HTTPS)
+  - PostgreSQL database also on Render (same project)
+
+CLIENT (Vercel):
+  cd /home/amit/Music/website/aw-project/client
+  npm run build          ← produces dist/
+  vercel --prod          ← deploys to Vercel CDN
+
+  First time only:
+  vercel link            ← links local folder to Vercel project
+
+LOCAL DEV:
+  Client: cd client && npm run dev     → http://localhost:5173
+  Server: cd server && node index.js   → http://localhost:5000
+  (API URL in App.jsx points to Render — works without local server during dev)
+
+
+────────────────────────────────────────────────────────────────────────────────
+16. WHAT WAS BUILT / SESSIONS SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+
+SESSION WORK DONE:
+
+1. FULL SITE ARCHITECTURE
+   - Single-file SPA in App.jsx (no router)
+   - State-based navigation
+   - LANG bilingual object covering every string on the page
+
+2. HOME PAGE — all 9 sections
+   - Hero with full-bleed image, eyebrow, tagline, marquee bar
+   - Village Details split-screen with stats grid + transport cards
+   - Ravalnath Temple dark section with temple history (both languages)
+   - Village Services 2×2 glassmorphism bento grid
+   - Member Initiatives 3-card grid
+   - Festival photo grid
+   - Events preview (conditional — only shows if events exist)
+   - Team Members with glassmorphism cards + scrolling member marquee
+   - Join Community dark CTA with WhatsApp button
+
+3. INNER PAGES
+   - Emergency: hospital cards + ambulance strip + helplines
+   - Portal: login + family tree + budget table
+   - Gallery: search + grid + download + Cloudinary integration
+   - Events: list + notice board
+   - Blog: list with category filter + single post markdown reader
+
+4. ADMIN PANEL
+   - JWT auth with localStorage persistence
+   - 6 CRUD tabs: Events, Announcements, Gallery, Budget, Emergency, Blog
+   - Cloudinary photo upload from admin panel
+   - Blog markdown editor with live preview
+
+5. BACKEND API
+   - Express 5, PostgreSQL via pg pool
+   - 8 database tables
+   - Public GET endpoints + admin-gated POST/PUT/DELETE
+   - Cloudinary integration for image uploads
+   - Member login (family data access)
+
+6. DESIGN SYSTEM
+   - Custom CSS design system (no Tailwind utility classes used in App.css)
+   - 5 CSS custom properties for colors
+   - Consistent eyebrow → h2 pattern across all sections
+   - Responsive from 360px to 1440px+
+   - Dark/light section alternation for visual rhythm
+
+7. CONSISTENCY NORMALIZATION (final session)
+   - Removed conflicting body rules from index.css
+   - Unified sec-header to centered text-align everywhere
+   - Removed border-left from h2 (eyebrow bar handles visual accent)
+   - Changed vd-eyebrow dot → bar (matches all other eyebrows)
+   - Standardized section padding (80px for featured, 56px for content)
+   - Unified max-widths to 1100px for wide sections, 960px for content
+   - Moved all inline style={} props to proper CSS classes
+   - Added -webkit-font-smoothing: antialiased to body
+
+
+────────────────────────────────────────────────────────────────────────────────
+17. REUSABLE PATTERNS FOR NEXT WEBSITE
+────────────────────────────────────────────────────────────────────────────────
+
+ARCHITECTURE PATTERNS TO REUSE:
+  ✓ Single LANG object for full bilingual support — easy to extend
+  ✓ State-based SPA navigation (no router needed for small sites)
+  ✓ Single App.jsx with all page components — simple to maintain
+  ✓ Fallback data arrays when API unavailable (gallery, events)
+  ✓ JWT in localStorage for admin auth (no cookie complexity)
+
+CSS PATTERNS TO REUSE:
+  ✓ :root CSS variables for the full color system
+  ✓ Eyebrow label (::before bar + small caps text) above every heading
+  ✓ .sec-header centered pattern (eyebrow + h2 + optional subtitle)
+  ✓ Dark section gradient backgrounds for visual rhythm
+  ✓ Glassmorphism cards (rgba bg + backdrop-filter blur)
+  ✓ Bento grid (named grid areas or auto-fill)
+  ✓ Marquee animation (doubled array + CSS animation scroll-left)
+  ✓ Gallery grid with hover overlay (opacity 0 → 1)
+  ✓ Responsive navbar: transparent → white on scroll + hamburger on mobile
+
+BACKEND PATTERNS TO REUSE:
+  ✓ Single index.js with all routes (fine for small projects)
+  ✓ authAdmin middleware wrapping all write endpoints
+  ✓ pool.query with parameterized queries (no ORM needed)
+  ✓ multer memoryStorage → stream directly to Cloudinary
+  ✓ Thumbnail URL = insert w_400 into Cloudinary upload URL
+
+THINGS TO IMPROVE NEXT TIME:
+  → Use React Router for clean URLs (bookmarkable pages)
+  → Hash passwords for member login (currently plain text)
+  → Add loading states on all API calls (skeleton loaders)
+  → Keep components in separate files from the start
+  → Use a single shared API_BASE constant across all files
+  → Add error boundaries for graceful failure
+  → Consider Supabase instead of Render PostgreSQL (better free tier)
+  → Add image lazy loading + Intersection Observer for gallery
+
+
+────────────────────────────────────────────────────────────────────────────────
+18. BLOG POST CATEGORIES
+────────────────────────────────────────────────────────────────────────────────
+
+  "All" | "Village News" | "Announcement" | "Development" |
+  "Culture" | "Health" | "Education"
+
+
+────────────────────────────────────────────────────────────────────────────────
+19. GALLERY DEFAULT PHOTOS (when DB is empty)
+────────────────────────────────────────────────────────────────────────────────
+
+  Temple Renovation, Bus Stand, Sports Events, Ravalnath Temple,
+  Festival (×3), Village Life, Village (×2)
+  All from Zyrosite CDN (auto-cropped) or local assets
+
+
+────────────────────────────────────────────────────────────────────────────────
+20. TEAM MEMBERS (hardcoded in App.jsx)
+────────────────────────────────────────────────────────────────────────────────
+
+  Bhalchandra Ayare  — अध्यक्ष (President)    gradient: dark green
+  Anant Ayare        — सचिव   (Secretary)     gradient: dark blue
+  Pawan Ayare        — खजिनदार (Treasurer)    gradient: dark red
+  Amit Ayare         — सभासद  (Member)        gradient: dark purple
+
+  Additional scrolling members:
+  Raju, Ganesh, Mahendra, Avinash, Akshay, Sandeep, Sidhesh Ayare
+
+
+────────────────────────────────────────────────────────────────────────────────
+END OF DOCUMENT
+Website: ayarewadi.in
+Developer: Amit Raju Ayare
+Email: amitayareofficial@gmail.com
+================================================================================
