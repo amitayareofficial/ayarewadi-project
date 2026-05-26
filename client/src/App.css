@@ -109,6 +109,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ── HERO ──────────────────────────────────────────────── */
 .hero {
   height: 92vh;
+  height: 92svh;
   margin-top: 62px;
   margin-bottom: 0;
   width: 100%;
@@ -1176,8 +1177,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
   /* ── Hero ── */
-  .hero { padding: 0; margin-top: 56px; height: 50vh; }
-  .hero-img-wrap { border-radius: 12px; }
+  .hero { padding: 0; margin-top: 56px; height: 50vh; height: 50svh; }
+  .hero-img-wrap { border-radius: 0; box-shadow: none; }
   .hero-img { object-position: center center; }
   .hero-content-top {
     top: 50%; left: 50%;
@@ -1262,8 +1263,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero { padding: 0; height: 40vh; }
-  .hero-img-wrap { border-radius: 10px; }
+  .hero { padding: 0; height: 40vh; height: 40svh; }
   .hero-content-top { padding: 0 16px; }
   .hero-tagline  { font-size: 0.82rem; }
   .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 2px; }
@@ -1347,12 +1347,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ─ Landscape mobile ─────────────────────────────────── */
 @media (max-width: 900px) and (orientation: landscape) {
-  .hero { margin-top: 56px; padding: 0 10px; }
-  .hero-img-wrap {
-    border-radius: 14px;
-    max-height: 80vh;
-  }
-  .hero-img { height: 80vh; max-height: 80vh; }
+  .hero { margin-top: 56px; padding: 0; height: 80vh; height: 80svh; }
+  .hero-img-wrap { border-radius: 0; box-shadow: none; }
   .hero-content-top {
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
