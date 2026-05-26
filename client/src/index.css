@@ -11,6 +11,16 @@
 }
 
 /* ── Keyframes ────────────────────────────────────────── */
+@keyframes parallax_fg {
+  0%   { background-position: 2765px 100%; }
+  100% { background-position: 550px  100%; }
+}
+
+@keyframes parallax_bike {
+  0%   { background-position: -300px 100%; }
+  100% { background-position: 2000px 100%; }
+}
+
 @keyframes ripple {
   0%, 100% { transform: translate(-50%, -50%) scale(1);   }
   50%       { transform: translate(-50%, -50%) scale(0.9); }

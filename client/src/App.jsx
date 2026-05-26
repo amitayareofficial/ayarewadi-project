@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
 import "./App.css";
+import MountainVistaParallax from "./components/ui/mountain-vista-bg";
 
 const Register        = lazy(() => import("./pages/portal/Register.jsx"));
 const MemberLogin     = lazy(() => import("./pages/portal/MemberLogin.jsx"));
@@ -434,18 +435,14 @@ function Home_Page({ nav, events, lang }) {
 /* ── HERO ── */
 function Hero_Section({ lang }) {
   const t = LANG[lang].hero;
+  const title = lang === "mr" ? "आयरेवाडी" : "Ayarewadi";
   return (
     <section className="hero">
-      <div className="hero-img-wrap">
-        <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
-        <div className="hero-overlay" />
-        <div className="hero-content hero-content-top">
-          <p className="hero-tagline">{t.tagline}</p>
-        </div>
+      <MountainVistaParallax title={title} subtitle={t.tagline}>
         <div className="hero-marquee-bar">
           <Slogan_Marquee lang={lang} />
         </div>
-      </div>
+      </MountainVistaParallax>
     </section>
   );
 }

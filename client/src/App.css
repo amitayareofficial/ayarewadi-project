@@ -170,6 +170,53 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   text-shadow: 0 2px 20px rgba(0,0,0,0.9), 0 4px 40px rgba(0,0,0,0.7);
   letter-spacing: 0.2px; margin: 0;
 }
+
+/* ── MOUNTAIN VISTA PARALLAX ────────────────────────────── */
+.mountain-vista {
+  position: relative;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    #4A90C4 0%,
+    #7AB8D9 20%,
+    #A8D5E8 45%,
+    #C6E8B2 70%,
+    #6E9E55 100%
+  );
+}
+.parallax-layer {
+  position: absolute;
+  width: 100%; height: 100%;
+  bottom: 0; left: 0;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  animation-name: parallax_fg;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.mountain-hero-content {
+  position: absolute;
+  top: 34%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  text-align: center;
+  width: 100%;
+  padding: 0 24px;
+  pointer-events: none;
+}
+.mountain-hero-title {
+  font-size: 4rem; font-weight: 800; line-height: 1.05;
+  color: #fff; margin: 0 0 10px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 4px 48px rgba(0,0,0,0.35);
+  letter-spacing: -0.5px;
+}
+.mountain-hero-subtitle {
+  font-size: 1.2rem; font-weight: 600; font-style: italic;
+  color: rgba(255,255,255,0.96); margin: 0;
+  text-shadow: 0 1px 14px rgba(0,0,0,0.65), 0 2px 24px rgba(0,0,0,0.4);
+  letter-spacing: 0.15px;
+}
+
 .btn-accent {
   background: var(--accent); color: #fff; border: none;
   padding: 14px 34px; border-radius: 8px; font-size: 0.95rem;
@@ -1180,6 +1227,10 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .hero { padding: 0; margin-top: 56px; height: 50vh; height: 50svh; }
   .hero-img-wrap { border-radius: 0; box-shadow: none; }
   .hero-img { object-position: center center; }
+  /* ── Mountain Vista mobile ── */
+  .mountain-hero-content { top: 32%; }
+  .mountain-hero-title    { font-size: 2.4rem; }
+  .mountain-hero-subtitle { font-size: 0.95rem; }
   .hero-content-top {
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -1267,6 +1318,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .hero-content-top { padding: 0 16px; }
   .hero-tagline  { font-size: 0.82rem; }
   .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 2px; }
+  /* ── Mountain Vista small mobile ── */
+  .mountain-hero-title    { font-size: 1.9rem; }
+  .mountain-hero-subtitle { font-size: 0.82rem; }
 
   /* ── Slogan marquee — even more compact on small phones ── */
   .marquee-wrap                        { height: 26px; }
