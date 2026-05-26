@@ -366,7 +366,7 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
   return (
     <nav className={`navbar ${scrolled || section !== "home" ? "scrolled" : ""}`}>
       <div className="nav-brand" onClick={() => nav("home")}>
-        <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" />
+        <img src={IMG.logo} alt="Ayarewadi" className="nav-logo" style={{ background: "transparent" }} />
       </div>
 
       <div className="nav-location">
@@ -444,7 +444,8 @@ function Hero_Section({ lang }) {
           <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
         </picture>
         <div className="hero-overlay" />
-        <div className="hero-content hero-content-top">
+        <div className="hero-content-top">
+          <p className="hero-eyebrow">{t.eyebrow}</p>
           <p className="hero-tagline">{t.tagline}</p>
         </div>
         <div className="hero-marquee-bar">
@@ -462,14 +463,12 @@ function Slogan_Marquee({ lang }) {
   return (
     <div className="marquee-wrap slogan-marquee">
       <span className="marquee-label">{t.label}</span>
-      <div className="marquee-track">
-        <div className="marquee-inner">
-          {items.map((s, i) => (
-            <span key={i} className="marquee-item">
-              {s}&nbsp;<span className="marquee-sep">✦</span>&nbsp;
-            </span>
-          ))}
-        </div>
+      <div className="marquee-inner">
+        {items.map((item, i) => (
+          <span key={i} className="marquee-item">
+            {item}&nbsp;&nbsp;✦&nbsp;&nbsp;
+          </span>
+        ))}
       </div>
     </div>
   );

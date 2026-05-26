@@ -31,23 +31,23 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   display: flex; align-items: center;
   padding: 2px 40px; gap: 12px;
   transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
-  background: rgba(0, 0, 0, 0.92);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: #000000;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 .nav-links { margin-left: auto; }
 .navbar.scrolled {
-  background: rgba(0, 0, 0, 0.98);
+  background: #000000;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
   padding: 4px 40px;
 }
-.nav-brand { cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.nav-brand { cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 8px; background: transparent; padding: 0; border: none; outline: none; }
 .nav-location {
   position: absolute; left: 50%; transform: translateX(-50%);
   color: rgba(255,255,255,0.75); font-size: 0.95rem;
   font-weight: 600; letter-spacing: 1.5px;
   white-space: nowrap; pointer-events: none;
 }
-.nav-logo { height: 75px; width: auto; object-fit: contain; display: block; }
+.nav-logo { height: 48px; width: auto; object-fit: contain; display: block; background: transparent; mix-blend-mode: lighten; filter: brightness(1.1); }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .nav-links { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .nav-links button {
@@ -108,14 +108,14 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ── HERO ──────────────────────────────────────────────── */
 .hero {
-  height: 92vh;
-  height: 92svh;
+  height: calc(100vh - 62px);
   margin-top: 62px;
   margin-bottom: 0;
   width: 100%;
   overflow: hidden;
   display: block;
   padding: 0;
+  line-height: 0;
   position: relative;
 }
 .hero-img-wrap {
@@ -124,10 +124,10 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   height: 100%;
   margin: 0;
   padding: 0;
+  font-size: 0;
   line-height: 0;
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 .hero-img {
   width: 100%;
@@ -136,6 +136,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   object-position: center center;
   display: block;
   vertical-align: bottom;
+  margin: 0;
+  padding: 0;
 }
 .hero-overlay {
   position: absolute; inset: 0; z-index: 1;
@@ -152,12 +154,13 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .hero-content-top {
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 54px; left: 50%;
+  transform: translateX(-50%);
   z-index: 3;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   padding: 0 24px;
   width: 100%;
+  pointer-events: none;
 }
 .hero-eyebrow {
   font-size: 0.78rem; letter-spacing: 3px; text-transform: uppercase;
@@ -873,19 +876,49 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ── MARQUEE ───────────────────────────────────────────── */
 .marquee-wrap {
-  background: var(--primary); border-bottom: 2px solid var(--accent);
-  display: flex; align-items: center; overflow: hidden; height: 38px;
+  width: 100%;
+  height: 42px;
+  background: #1a2e1a;
+  border-top: 2px solid #e07b2a;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
 }
 .marquee-label {
-  background: var(--accent); color: #fff; padding: 0 14px;
-  font-size: 0.75rem; font-weight: 700; white-space: nowrap;
-  height: 100%; display: flex; align-items: center; flex-shrink: 0;
+  background: #e07b2a;
+  color: #fff;
+  padding: 0 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 2;
 }
-.marquee-track  { flex: 1; overflow: hidden; }
-.marquee-inner  { display: flex; white-space: nowrap; animation: scroll-left 30s linear infinite; }
-.marquee-inner:hover { animation-play-state: paused; }
-.marquee-item   { color: rgba(255,255,255,0.88); font-size: 0.82rem; padding: 0 8px; }
-.marquee-sep    { color: var(--accent); opacity: 0.7; }
+.marquee-inner {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: marquee-scroll 40s linear infinite;
+  will-change: transform;
+}
+.marquee-inner:hover {
+  animation-play-state: paused;
+}
+.marquee-item {
+  color: #ffffff;
+  font-size: 0.82rem;
+  padding: 0 36px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.marquee-sep    { color: #e07b2a; opacity: 0.7; }
 .hero-marquee-bar {
   position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
 }
@@ -895,7 +928,11 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
 }
-.slogan-marquee .marquee-inner { animation-duration: 38s; }
+.slogan-marquee .marquee-inner { animation-duration: 40s; }
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 @keyframes scroll-left {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -1224,25 +1261,23 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
   /* ── Hero ── */
-  .hero { padding: 0; margin-top: 56px; height: 50vh; height: 50svh; }
-  .hero-img-wrap { border-radius: 0; box-shadow: none; }
+  .hero { padding: 0; margin-top: 56px; height: 48vh; }
   .hero-img { object-position: center center; }
   /* ── Mountain Vista mobile ── */
   .mountain-hero-content { top: 32%; }
   .mountain-hero-title    { font-size: 2.4rem; }
   .mountain-hero-subtitle { font-size: 0.95rem; }
   .hero-content-top {
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
+    bottom: 46px;
     padding: 0 20px;
   }
   .hero-tagline { font-size: 0.92rem; }
 
   /* ── Slogan marquee — smaller & faster on mobile ── */
-  .marquee-wrap                        { height: 30px; }
-  .marquee-label                       { font-size: 0.65rem; padding: 0 10px; }
-  .marquee-item                        { font-size: 0.70rem; padding: 0 6px; }
-  .slogan-marquee .marquee-inner       { animation-duration: 22s; }
+  .marquee-wrap                        { height: 36px; }
+  .marquee-label                       { font-size: 0.70rem; padding: 0 12px; }
+  .marquee-item                        { font-size: 0.75rem; padding: 0 20px; }
+  .slogan-marquee .marquee-inner       { animation-duration: 30s; }
 
   /* ── Service bento ── */
   .svc-section           { padding: 60px 20px; }
@@ -1314,8 +1349,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero { padding: 0; height: 40vh; height: 40svh; }
-  .hero-content-top { padding: 0 16px; }
+  .hero { padding: 0; height: 38vh; }
+  .hero-content-top { bottom: 40px; padding: 0 16px; }
   .hero-tagline  { font-size: 0.82rem; }
   .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 2px; }
   /* ── Mountain Vista small mobile ── */
@@ -1323,9 +1358,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .mountain-hero-subtitle { font-size: 0.82rem; }
 
   /* ── Slogan marquee — even more compact on small phones ── */
-  .marquee-wrap                        { height: 26px; }
+  .marquee-wrap                        { height: 30px; }
   .marquee-label                       { font-size: 0.58rem; padding: 0 8px; }
-  .marquee-item                        { font-size: 0.62rem; padding: 0 5px; }
+  .marquee-item                        { font-size: 0.68rem; padding: 0 12px; }
   .slogan-marquee .marquee-inner       { animation-duration: 18s; }
 
   /* ── Lang buttons ── */
@@ -1624,7 +1659,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   /* Navbar: compact mobile header */
   .navbar                        { padding: 4px 16px; }
   .navbar.scrolled               { padding: 4px 16px; }
-  .nav-logo                      { height: 55px; }
+  .nav-logo                      { height: 40px; }
 
   /* Navbar: logo left — lang buttons + hamburger pushed to right */
   .nav-lang-group                { display: flex; order: 2; margin-left: auto; gap: 4px; }
