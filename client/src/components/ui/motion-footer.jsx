@@ -196,20 +196,28 @@ export function CinematicFooter({ nav, lang = "mr" }) {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         giantTextRef.current,
-        { y: "10vh", scale: 0.85, opacity: 0 },
-        { y: "0vh", scale: 1, opacity: 1, ease: "power1.out",
+        { y: "10vh", scale: 0.85 },
+        { y: "0vh", scale: 1, ease: "power1.out",
           scrollTrigger: { trigger: wrapperRef.current, start: "top 80%", end: "bottom bottom", scrub: 1 } }
       );
       gsap.fromTo(
         [headingRef.current, linksRef.current],
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.15, ease: "power3.out",
+        { y: 30 },
+        { y: 0, stagger: 0.15, ease: "power3.out",
           scrollTrigger: { trigger: wrapperRef.current, start: "top 40%", end: "bottom bottom", scrub: 1 } }
       );
     }, wrapperRef);
 
+    ScrollTrigger.refresh();
+
     return () => ctx.revert();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const t = setTimeout(() => ScrollTrigger.refresh(), 100);
+    return () => clearTimeout(t);
+  }, [lang]);
 
   const goTo = (section) => {
     if (nav) nav(section);
@@ -257,23 +265,6 @@ export function CinematicFooter({ nav, lang = "mr" }) {
 
           {/* Giant background text — intentionally empty */}
           <div ref={giantTextRef} className="absolute pointer-events-none select-none" style={{ zIndex: 0 }} />
-
-          {/* Marquee bar */}
-          <div className="absolute left-0 w-full overflow-hidden"
-            style={{
-              top: "28px", zIndex: 10, transform: "rotate(-2deg) scaleX(1.1)",
-              borderTop: "1px solid rgba(240,244,240,0.08)",
-              borderBottom: "1px solid rgba(240,244,240,0.08)",
-              background: "rgba(10,15,10,0.60)",
-              backdropFilter: "blur(10px)",
-              padding: "14px 0",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-            }}>
-            <div className="cf-marquee flex w-max">
-              <MarqueeItem lang={lang} />
-              <MarqueeItem lang={lang} />
-            </div>
-          </div>
 
           {/* Center content */}
           <div className="relative flex flex-1 flex-col items-start justify-center px-6 mx-auto w-full"

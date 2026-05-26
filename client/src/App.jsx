@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
 import "./App.css";
@@ -311,6 +312,11 @@ export default function App() {
   useEffect(() => {
     axios.get(`${API}/events`).then(r => setEvents(r.data)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => ScrollTrigger.refresh(), 150);
+    return () => clearTimeout(t);
+  }, [section]);
 
   const nav = s => {
     setSection(s);
