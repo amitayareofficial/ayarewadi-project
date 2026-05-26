@@ -12,7 +12,7 @@ const Admin           = lazy(() => import("./pages/Admin.jsx"));
 const Blog_Page       = lazy(() => import("./pages/Blog.jsx"));
 const Gallery_Page    = lazy(() => import("./pages/Gallery.jsx"));
 import logoImg        from "./assets/images/ayarewadi-logo.png";
-import { CinematicFooter } from "./components/ui/motion-footer";
+import { VillageFooter } from "./components/ui/village-footer";
 import { TimelineContent } from "./components/ui/timeline-animation.jsx";
 import heroImg        from "./assets/images/hero_images/desktop_hero_image.png";
 import heroMobileImg  from "./assets/images/hero_images/hero_mobile_section.png";
@@ -339,7 +339,7 @@ export default function App() {
           {section === "admin"     && <Admin />}
         </Suspense>
       </main>
-      <CinematicFooter nav={nav} lang={lang} />
+      <VillageFooter nav={nav} lang={lang} />
     </div>
   );
 }
