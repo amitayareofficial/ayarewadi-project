@@ -13,7 +13,7 @@ const Gallery_Page    = lazy(() => import("./pages/Gallery.jsx"));
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { CinematicFooter } from "./components/ui/motion-footer";
 import { TimelineContent } from "./components/ui/timeline-animation.jsx";
-import heroImg        from "./assets/images/main_image_home.png";
+import heroImg        from "./assets/images/hero_image.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
 import galleryImg     from "./assets/images/gallery.png";
@@ -436,13 +436,15 @@ function Hero_Section({ lang }) {
   const t = LANG[lang].hero;
   return (
     <section className="hero">
-      <img src={IMG.hero} alt="Ayarewadi Village" className="hero-bg" />
-      <div className="hero-overlay" />
-      <div className="hero-content hero-content-top">
-        <p className="hero-tagline">{t.tagline}</p>
-      </div>
-      <div className="hero-marquee-bar">
-        <Slogan_Marquee lang={lang} />
+      <div className="hero-img-wrap">
+        <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
+        <div className="hero-overlay" />
+        <div className="hero-content hero-content-top">
+          <p className="hero-tagline">{t.tagline}</p>
+        </div>
+        <div className="hero-marquee-bar">
+          <Slogan_Marquee lang={lang} />
+        </div>
       </div>
     </section>
   );

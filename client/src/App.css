@@ -108,37 +108,60 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ── HERO ──────────────────────────────────────────────── */
 .hero {
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex; align-items: center; justify-content: center;
-  position: relative; text-align: center; overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center top;
+  height: 92vh;
+  margin-top: 62px;
+  margin-bottom: 0;
+  width: 100%;
+  overflow: hidden;
   display: block;
+  padding: 0;
+  position: relative;
 }
-/* Mobile gradient overlay — always on for mobile (see breakpoints below) */
+.hero-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  vertical-align: bottom;
+}
 .hero-overlay {
-  display: none;
   position: absolute; inset: 0; z-index: 1;
   pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(26,46,26,0.55) 0%,
+    rgba(0,0,0,0.08) 45%,
+    rgba(0,0,0,0.50) 100%
+  );
 }
 .hero-content {
   position: relative; z-index: 2; color: #fff;
-  display: flex; align-items: center; justify-content: center;
 }
 .hero-content-top {
-  position: absolute; top: 110px; left: 0; right: 0; z-index: 3;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 0 24px;
+  width: 100%;
 }
 .hero-eyebrow {
   font-size: 0.78rem; letter-spacing: 3px; text-transform: uppercase;
   color: rgba(255,255,255,0.95); font-weight: 700; text-align: center;
   text-shadow: 0 1px 12px rgba(0,0,0,0.8), 0 2px 24px rgba(0,0,0,0.6);
-  margin-top: 1.4em;
 }
 .hero-tagline {
   font-size: 1.55rem; font-weight: 700; font-style: italic;
@@ -185,7 +208,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ── ABOUT STRIP ───────────────────────────────────────── */
 /* ── VILLAGE DETAILS SECTION ─────────────────────────────── */
-.vd-section { background: #fff; padding: 0; }
+.vd-section { background: #fff; padding: 0; margin-top: 0; }
 .vd-grid {
   display: grid; grid-template-columns: 1fr 1fr; min-height: 600px;
 }
@@ -1152,35 +1175,16 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links button      { width: 100%; text-align: left; padding: 12px 16px; color: rgba(255,255,255,0.9) !important; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
-  /* ── Hero — full image visible on mobile, no cropping ── */
-  .hero {
-    min-height: 0;
-    height: auto;
-    display: block;
-    overflow: hidden;
+  /* ── Hero ── */
+  .hero { padding: 0; margin-top: 56px; height: 50vh; }
+  .hero-img-wrap { border-radius: 12px; }
+  .hero-img { object-position: center center; }
+  .hero-content-top {
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0 20px;
   }
-  .hero-bg {
-    position: relative;
-    inset: unset;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-  }
-  .hero-overlay {
-    display: block;
-    background: linear-gradient(
-      to bottom,
-      rgba(0,0,0,0.70) 0%,
-      rgba(0,0,0,0.35) 45%,
-      rgba(0,0,0,0.10) 100%
-    );
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-  }
-  /* Push tagline below fixed navbar (navbar ≈ 63px on mobile) */
-  .hero-content-top      { top: 64px; padding: 0 20px; }
-  .hero-tagline          { font-size: 0.92rem; }
+  .hero-tagline { font-size: 0.92rem; }
 
   /* ── Slogan marquee — smaller & faster on mobile ── */
   .marquee-wrap                        { height: 30px; }
@@ -1258,9 +1262,11 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero-content-top      { top: 60px; padding: 0 16px; }
-  .hero-tagline          { font-size: 0.82rem; }
-  .hero-eyebrow          { font-size: 0.68rem; letter-spacing: 2px; }
+  .hero { padding: 0; height: 40vh; }
+  .hero-img-wrap { border-radius: 10px; }
+  .hero-content-top { padding: 0 16px; }
+  .hero-tagline  { font-size: 0.82rem; }
+  .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 2px; }
 
   /* ── Slogan marquee — even more compact on small phones ── */
   .marquee-wrap                        { height: 26px; }
@@ -1325,9 +1331,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ─ 360px: Very small / old Android ─────────────────── */
 @media (max-width: 360px) {
-  .hero-content-top      { top: 64px; padding: 0 12px; gap: 5px; }
-  .hero-tagline          { font-size: 0.75rem; }
-  .hero-eyebrow          { font-size: 0.62rem; letter-spacing: 1.5px; }
+  .hero-content-top { padding: 0 12px; gap: 5px; }
+  .hero-tagline     { font-size: 0.75rem; }
+  .hero-eyebrow     { font-size: 0.62rem; letter-spacing: 1.5px; }
   .svc-bento             { grid-template-rows: repeat(4, 140px); }
   .stat strong           { font-size: 1.6rem; }
   .sec-header h2         { font-size: 1.2rem; }
@@ -1341,20 +1347,18 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ─ Landscape mobile ─────────────────────────────────── */
 @media (max-width: 900px) and (orientation: landscape) {
-  .hero {
-    min-height: 100dvh;
-    height: 100dvh;
-    display: flex;
-    overflow: hidden;
+  .hero { margin-top: 56px; padding: 0 10px; }
+  .hero-img-wrap {
+    border-radius: 14px;
+    max-height: 80vh;
   }
-  .hero-bg {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
+  .hero-img { height: 80vh; max-height: 80vh; }
+  .hero-content-top {
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0 24px;
   }
-  .hero-overlay { display: block; }
-  .hero-content-top { top: 56px; padding: 0 24px; }
-  .hero-tagline     { font-size: 0.85rem; }
+  .hero-tagline { font-size: 0.85rem; }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1544,7 +1548,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     animation: none;
     overflow-x: auto;
   }
-  .hero-bg,
+  .hero-img,
   .vd-img-wrap img,
   .rt-img-frame img,
   .festival-img img,
