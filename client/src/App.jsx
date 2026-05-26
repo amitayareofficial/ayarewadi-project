@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
 import "./App.css";
-import MountainVistaParallax from "./components/ui/mountain-vista-bg";
 
 const Register        = lazy(() => import("./pages/portal/Register.jsx"));
 const MemberLogin     = lazy(() => import("./pages/portal/MemberLogin.jsx"));
@@ -14,7 +13,8 @@ const Gallery_Page    = lazy(() => import("./pages/Gallery.jsx"));
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { CinematicFooter } from "./components/ui/motion-footer";
 import { TimelineContent } from "./components/ui/timeline-animation.jsx";
-import heroImg        from "./assets/images/hero_image.png";
+import heroImg        from "./assets/images/hero_images/desktop_hero_image.png";
+import heroMobileImg  from "./assets/images/hero_images/hero_mobile_section.png";
 import emergencyImg   from "./assets/images/emergency.png";
 import eventsImg      from "./assets/images/news.png";
 import galleryImg     from "./assets/images/gallery.png";
@@ -26,6 +26,7 @@ const API = "https://ayarewadi-project.onrender.com";
 
 const IMG = {
   hero:       heroImg,
+  heroMobile: heroMobileImg,
   temple:     templeImg,
   templeReno: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=165.20076481835565;0;479.08221797323137;0/YNq2a76xB3Ip7LZZ/img_20231008_171637-AMq8ka5gQ9T49MZn.jpg",
   busStand:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=296.7117988394584;74.3175965665236;373.15280464216636;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-06-07-at-7.06.56-pm-mePJZ51Bekfgav0a.jpeg",
@@ -435,14 +436,21 @@ function Home_Page({ nav, events, lang }) {
 /* ── HERO ── */
 function Hero_Section({ lang }) {
   const t = LANG[lang].hero;
-  const title = lang === "mr" ? "आयरेवाडी" : "Ayarewadi";
   return (
     <section className="hero">
-      <MountainVistaParallax title={title} subtitle={t.tagline}>
+      <div className="hero-img-wrap">
+        <picture>
+          <source media="(max-width: 768px)" srcSet={IMG.heroMobile} />
+          <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
+        </picture>
+        <div className="hero-overlay" />
+        <div className="hero-content hero-content-top">
+          <p className="hero-tagline">{t.tagline}</p>
+        </div>
         <div className="hero-marquee-bar">
           <Slogan_Marquee lang={lang} />
         </div>
-      </MountainVistaParallax>
+      </div>
     </section>
   );
 }

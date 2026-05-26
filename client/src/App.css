@@ -2,15 +2,15 @@
    COLOR VARIABLES — if site looks unstyled, this was missing
    ══════════════════════════════════════════════════════ */
 :root {
-  --primary:  #1a1a1a;
-  --primary2: #2a2a2a;
+  --primary:  #2e7d32;
+  --primary2: #1b5e20;
   --accent:   #DB4035;
   --accent2:  #B8352B;
-  --green:    #3B8C4B;
-  --pale:     #F4F3F1;
-  --border:   #E8E8E8;
-  --text:     #202020;
-  --muted:    #7C7C7C;
+  --green:    #4caf50;
+  --pale:     #f0e9e0;
+  --border:   #e0d6c9;
+  --text:     #3e2723;
+  --muted:    #6d4c41;
   --white:    #ffffff;
   --radius:   12px;
   --shadow:   0 2px 20px rgba(0,0,0,0.08);
