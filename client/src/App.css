@@ -1223,7 +1223,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
   /* ── Hero ── */
-  .hero                  { padding: 0; margin-top: 48px; height: 56vh; }
+  .hero                  { padding: 0; margin-top: 56px; height: 58vw; min-height: 280px; max-height: 380px; }
   .hero-img              { object-fit: cover; object-position: center center; }
   .hero-content h1       { font-size: 2rem; }
   .hero-content-top      { bottom: 46px; padding: 0 20px; }
@@ -1242,8 +1242,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
   /* ── Village Details ── */
   .vd-grid               { grid-template-columns: 1fr; }
-  .vd-image-col          { min-height: 300px; }
-  .vd-info-col           { padding: 36px 24px; gap: 14px; }
+  .vd-image-col          { height: 240px; min-height: unset; }
+  .vd-img-wrap img       { height: 240px; object-fit: cover; object-position: center top; }
+  .vd-info-col           { padding: 28px 18px; gap: 14px; }
   .vd-title              { font-size: 1.8rem; }
 
   /* ── Ravalnath Temple ── */
@@ -1304,7 +1305,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 480px: Small mobile ──────────────────────────────── */
 @media (max-width: 480px) {
   /* ── Hero ── */
-  .hero { padding: 0; height: 52vh; }
+  .hero { padding: 0; margin-top: 54px; height: 62vw; min-height: 260px; max-height: 340px; }
   .hero-content-top { bottom: 40px; padding: 0 16px; }
   .hero-tagline  { font-size: 0.82rem; }
   .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 1.5px; }
@@ -1327,6 +1328,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .svc-arrow             { width: 28px; height: 28px; font-size: 0.85rem; }
 
   /* ── Village Details ── */
+  .vd-image-col          { height: 200px; }
+  .vd-img-wrap img       { height: 200px; }
   .vd-info-col           { padding: 24px 16px; gap: 14px; }
   .vd-title              { font-size: 1.5rem; }
   .vd-stat-card strong   { font-size: 1.25rem; }
