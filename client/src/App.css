@@ -24,12 +24,19 @@ a    { text-decoration: none; }
 ul   { list-style: none; }
 img  { max-width: 100%; display: block; }
 
-/* ── Page section fade-in on mount ── */
-#main-content > * { animation: page-fade-in 0.3s ease; }
+/* ── KEYFRAMES ─────────────────────────────────────────── */
 @keyframes page-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes glry-spin { to { transform: rotate(360deg); } }
+
+/* ── Page section fade-in on mount ── */
+#main-content > * { animation: page-fade-in 0.3s ease; }
 
 /* ── Universal card hover lift ── */
 .init-card, .festival-img, .event-card, .hosp-card, .team-card, .vd-stat-card {
@@ -165,7 +172,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   object-fit: cover;
   object-position: 90% center;
   display: block;
-  vertical-align: bottom;
   margin: 0;
   padding: 0;
 }
@@ -204,51 +210,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   letter-spacing: 0.2px; margin: 0;
 }
 
-/* ── MOUNTAIN VISTA PARALLAX ────────────────────────────── */
-.mountain-vista {
-  position: relative;
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: linear-gradient(180deg,
-    #4A90C4 0%,
-    #7AB8D9 20%,
-    #A8D5E8 45%,
-    #C6E8B2 70%,
-    #6E9E55 100%
-  );
-}
-.parallax-layer {
-  position: absolute;
-  width: 100%; height: 100%;
-  bottom: 0; left: 0;
-  background-repeat: repeat-x;
-  background-position: 0 100%;
-  animation-name: parallax_fg;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-.mountain-hero-content {
-  position: absolute;
-  top: 34%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  text-align: center;
-  width: 100%;
-  padding: 0 24px;
-  pointer-events: none;
-}
-.mountain-hero-title {
-  font-size: 4rem; font-weight: 800; line-height: 1.05;
-  color: #fff; margin: 0 0 10px;
-  text-shadow: 0 2px 24px rgba(0,0,0,0.55), 0 4px 48px rgba(0,0,0,0.35);
-  letter-spacing: -0.5px;
-}
-.mountain-hero-subtitle {
-  font-size: 1.2rem; font-weight: 600; font-style: italic;
-  color: rgba(255,255,255,0.96); margin: 0;
-  text-shadow: 0 1px 14px rgba(0,0,0,0.65), 0 2px 24px rgba(0,0,0,0.4);
-  letter-spacing: 0.15px;
-}
 
 .btn-accent {
   background: var(--accent); color: #fff; border: none;
@@ -257,14 +218,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   box-shadow: 0 4px 14px rgba(219,64,53,0.35); min-height: 44px;
 }
 .btn-accent:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(219,64,53,0.4); }
-.btn-outline-white {
-  background: transparent; color: #fff;
-  border: 2px solid rgba(255,255,255,0.7);
-  padding: 13px 32px; border-radius: 8px;
-  font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s, border-color 0.2s;
-  min-height: 44px;
-}
-.btn-outline-white:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
 
 /* ── EYEBROW ───────────────────────────────────────────── */
 .eyebrow {
@@ -500,19 +453,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .init-body h3 { font-size: 1rem; color: var(--text); font-weight: 700; margin-bottom: 4px; }
 .init-body p  { font-size: 0.82rem; color: var(--muted); }
 
-/* ── TEMPLE SECTION ────────────────────────────────────── */
-.temple-section { display: grid; grid-template-columns: 1fr 1fr; min-height: 400px; }
-.temple-text {
-  background: var(--primary2); color: #fff;
-  padding: 56px 48px; display: flex; flex-direction: column;
-  justify-content: center; gap: 16px;
-}
-.temple-text h2 { font-size: 1.8rem; }
-.temple-text p  { font-size: 0.9rem; line-height: 1.75; opacity: 0.88; }
-.temple-quote   { font-style: italic; opacity: 0.7 !important; font-size: 0.84rem !important; border-left: 3px solid var(--accent); padding-left: 12px; }
-.temple-imgs    { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; }
-.temple-imgs img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.temple-imgs img:first-child { grid-column: 1 / -1; }
 
 /* ── FESTIVAL GRID ─────────────────────────────────────── */
 .festival-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -829,7 +769,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .gallery-search-clear:hover { color: var(--accent); }
 .gallery-empty { color: var(--muted); font-size: 0.88rem; margin-bottom: 16px; }
-.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; contain: layout style; }
 .gallery-item {
   border-radius: var(--radius); overflow: hidden; aspect-ratio: 1;
   position: relative; cursor: pointer;
@@ -959,14 +899,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   backdrop-filter: blur(4px);
 }
 .slogan-marquee .marquee-inner { animation-duration: 40s; }
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-@keyframes scroll-left {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
 
 /* ── EMERGENCY TABS ────────────────────────────────────── */
 .emg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
@@ -998,7 +930,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .balance-display strong { font-size: 1.8rem; color: var(--accent); }
 
 /* ── ADMIN PANEL ───────────────────────────────────────── */
-.admin-wrap { display: flex; min-height: 100vh; }
+.admin-wrap { display: flex; min-height: 100vh; contain: layout style; }
 .admin-sidebar {
   width: 220px; background: var(--primary); padding: 20px 12px;
   display: flex; flex-direction: column; gap: 6px;
@@ -1085,7 +1017,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .team-marquee-inner {
   display: flex; white-space: nowrap;
-  animation: scroll-left 28s linear infinite;
+  animation: marquee-scroll 28s linear infinite;
+  will-change: transform;
 }
 .team-marquee-inner:hover { animation-play-state: paused; }
 .team-marquee-item {
@@ -1259,7 +1192,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 @media (max-width: 1024px) {
   .svc-bento              { grid-template-rows: 280px 280px; }
   .footer-grid            { grid-template-columns: 1fr 1fr; gap: 32px; padding: 48px 32px 32px; }
-  .about-text             { padding: 48px 40px; }
   /* ── Village Details & Ravalnath Temple ── */
   .rt-container           { grid-template-columns: 340px 1fr; gap: 48px; }
   .rt-heading-main        { font-size: 2.2rem; }
@@ -1270,17 +1202,17 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 /* ─ 768px: Tablet portrait / large mobile ──────────────  */
 @media (max-width: 768px) {
   /* ── Navbar ── */
-  .navbar                { padding: 10px 16px; flex-wrap: wrap; gap: 0; }
-  .navbar.scrolled       { padding: 8px 16px; }
-  .logo                  { height: 46px; }
+  .navbar                { padding: 4px 16px; flex-wrap: wrap; gap: 0; }
+  .navbar.scrolled       { padding: 4px 16px; }
+  .nav-logo              { height: 40px; }
   .nav-location          { display: none; }
   .nav-brand             { order: 1; }
-  .nav-actions           { order: 2; }
+  .nav-lang-group        { display: flex; order: 2; margin-left: auto; gap: 4px; }
+  .nav-actions           { order: 3; margin-left: 4px; }
   .hamburger             { display: flex; }
-  .nav-lang-group        { gap: 4px; }
   .lang-btn              { font-size: 0.70rem; padding: 4px 10px; min-height: 32px; }
   .nav-links {
-    order: 3; display: none; width: 100%; flex-direction: column;
+    order: 4; display: none; width: 100%; flex-direction: column;
     background: rgba(0, 0, 0, 0.96); border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px; padding: 8px; margin-top: 8px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
@@ -1291,23 +1223,17 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .nav-links .nav-cta    { margin: 4px 0; text-align: center !important; }
 
   /* ── Hero ── */
-  .hero { padding: 0; margin-top: 48px; height: 56vh; }
-  .hero-img { object-fit: cover; object-position: center center; }
-  /* ── Mountain Vista mobile ── */
-  .mountain-hero-content { top: 32%; }
-  .mountain-hero-title    { font-size: 2.4rem; }
-  .mountain-hero-subtitle { font-size: 0.95rem; }
-  .hero-content-top {
-    bottom: 46px;
-    padding: 0 20px;
-  }
-  .hero-tagline { font-size: 0.92rem; }
+  .hero                  { padding: 0; margin-top: 48px; height: 56vh; }
+  .hero-img              { object-fit: cover; object-position: center center; }
+  .hero-content h1       { font-size: 2rem; }
+  .hero-content-top      { bottom: 46px; padding: 0 20px; }
+  .hero-tagline          { font-size: 0.92rem; }
 
-  /* ── Slogan marquee — smaller & faster on mobile ── */
-  .marquee-wrap                        { height: 36px; }
-  .marquee-label                       { font-size: 0.70rem; padding: 0 12px; }
-  .marquee-item                        { font-size: 0.75rem; padding: 0 20px; }
-  .slogan-marquee .marquee-inner       { animation-duration: 30s; }
+  /* ── Slogan marquee ── */
+  .marquee-wrap                  { height: 36px; }
+  .marquee-label                 { font-size: 0.70rem; padding: 0 12px; }
+  .marquee-item                  { font-size: 0.75rem; padding: 0 20px; }
+  .slogan-marquee .marquee-inner { animation-duration: 30s; }
 
   /* ── Service bento ── */
   .svc-section           { padding: 60px 20px; }
@@ -1319,6 +1245,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .vd-image-col          { min-height: 300px; }
   .vd-info-col           { padding: 36px 24px; gap: 14px; }
   .vd-title              { font-size: 1.8rem; }
+
   /* ── Ravalnath Temple ── */
   .rt-section            { padding: 52px 24px; }
   .rt-container          { grid-template-columns: 1fr; gap: 32px; }
@@ -1326,21 +1253,24 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .rt-heading-main       { font-size: 1.9rem; }
   .rt-deco               { font-size: 6rem; right: 24px; top: 16px; }
   .initiatives-section   { padding: 48px 20px; }
-  .init-grid             { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .init-grid             { grid-template-columns: 1fr; }
 
   /* ── Festival grid ── */
-  .festival-grid         { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .festival-grid         { grid-template-columns: 1fr; }
 
   /* ── Stats strip ── */
-  .stats-strip           { padding: 40px 20px; gap: 0; }
+  .stats-strip           { padding: 40px 20px; gap: 0; display: grid; grid-template-columns: repeat(2, 1fr); }
   .stat                  { flex: 1; min-width: 120px; padding: 16px 12px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
   .stat:nth-child(odd)   { border-right: 1px solid rgba(255,255,255,0.08); }
   .stat:nth-last-child(-n+2) { border-bottom: none; }
   .stat strong           { font-size: 2rem; }
 
-  /* ── Section headers ── */
-  .page-section          { padding: 48px 20px; }
+  /* ── Section headers & padding ── */
+  .page-section          { padding: 24px 16px; }
   .sec-header h2, .section-title { font-size: 1.55rem; }
+
+  /* ── Quick cards ── */
+  .cards-grid            { grid-template-columns: repeat(2, 1fr); }
 
   /* ── Join section ── */
   .join-section          { padding: 56px 24px; }
@@ -1369,11 +1299,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   /* ── Hospital ambulance ── */
   .ambulance-card        { flex-direction: column !important; }
   .ambulance-img         { width: 100% !important; height: 180px !important; border-radius: 0 !important; }
-
-  /* ── Temple section ── */
-  .temple-section        { grid-template-columns: 1fr; }
-  .temple-text           { padding: 40px 24px; }
-  .temple-imgs           { grid-template-columns: 1fr 1fr; height: 240px; }
 }
 
 /* ─ 480px: Small mobile ──────────────────────────────── */
@@ -1382,10 +1307,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .hero { padding: 0; height: 52vh; }
   .hero-content-top { bottom: 40px; padding: 0 16px; }
   .hero-tagline  { font-size: 0.82rem; }
-  .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 2px; }
-  /* ── Mountain Vista small mobile ── */
-  .mountain-hero-title    { font-size: 1.9rem; }
-  .mountain-hero-subtitle { font-size: 0.82rem; }
+  .hero-eyebrow  { font-size: 0.68rem; letter-spacing: 1.5px; }
 
   /* ── Slogan marquee — even more compact on small phones ── */
   .marquee-wrap                        { height: 30px; }
@@ -1411,7 +1333,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .vd-transport-row      { flex-direction: column; }
 
   /* ── Section ── */
-  .page-section          { padding: 36px 16px; }
+  .page-section          { padding: 24px 16px; }
   .sec-header h2, .section-title { font-size: 1.35rem; }
   /* ── Ravalnath Temple ── */
   .rt-section            { padding: 36px 16px; }
@@ -1681,52 +1603,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   }
 }
 
-/* ══ MOBILE LAYOUT PATCHES ══════════════════════════════════
-   Fixes: navbar crowding, hero h1 cap, about-strip, section
-   padding, cards-grid, festival-grid, stats-strip, init-grid
-   ════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  /* Navbar: compact mobile header */
-  .navbar                        { padding: 4px 16px; }
-  .navbar.scrolled               { padding: 4px 16px; }
-  .nav-logo                      { height: 40px; }
-
-  /* Navbar: logo left — lang buttons + hamburger pushed to right */
-  .nav-lang-group                { display: flex; order: 2; margin-left: auto; gap: 4px; }
-  .nav-actions                   { order: 3; margin-left: 4px; }
-
-  /* Hero h1 cap on mobile */
-  .hero-content h1               { font-size: 2rem; }
-
-  /* About strip → single column */
-  .about-strip                   { grid-template-columns: 1fr; gap: 16px; }
-
-  /* Tighter section padding */
-  .page-section                  { padding: 24px 16px; }
-
-  /* Quick cards: explicit 2-column grid */
-  .cards-grid                    { grid-template-columns: repeat(2, 1fr); }
-
-  /* Festival grid: 1 column on mobile */
-  .festival-grid                 { grid-template-columns: 1fr; }
-
-  /* Stats strip: switch to explicit 2-column grid */
-  .stats-strip                   { display: grid; grid-template-columns: repeat(2, 1fr); }
-  .stat                          { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .stat:nth-child(odd)           { border-right: 1px solid rgba(255,255,255,0.08); }
-  .stat:nth-last-child(-n+2)     { border-bottom: none; }
-
-  /* Initiatives grid: 1 column on mobile */
-  .init-grid                     { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 480px) {
-  /* Hero eyebrow: tighter letter-spacing on small phones */
-  .hero-eyebrow                  { letter-spacing: 1.5px; }
-
-  /* Section padding stays consistent at 480px */
-  .page-section                  { padding: 24px 16px; }
-}
 
 
 /* ═══════════════════════════════════════════════════════════
@@ -1893,7 +1769,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   border-radius: 50%;
   animation: glry-spin 0.7s linear infinite;
 }
-@keyframes glry-spin { to { transform: rotate(360deg); } }
 
 /* ── Empty state ── */
 .glry-empty-state {
