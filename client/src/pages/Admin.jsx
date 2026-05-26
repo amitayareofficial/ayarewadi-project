@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
-const API = "https://ayarewadi-project.onrender.com"; // ← change if URL changes
+const API = "https://ayarewadi-project.onrender.com";
+
+const EVENT_CATEGORIES  = ["General", "Festival", "Meeting", "Sports", "Cultural", "Health"];
+const GALLERY_CATS      = ["Sports","Ravalnath Temple","Meetings","Village Festivals","Mumbai Meeting","Ganesh Chaturthi","Gudhi Padwa","Shimga (Holi)"];
+const EMERGENCY_TYPES   = ["Hospital", "Police", "School", "Government"];
 
 // ── Helper: get stored token ──────────────────────────────
 const getToken = () => localStorage.getItem("admin_token");
@@ -92,8 +96,6 @@ function AdminEvents() {
   const [toast, setToast]     = useState("");
   const [confirmId, setConfirmId] = useState(null);
 
-  const CATEGORIES = ["General", "Festival", "Meeting", "Sports", "Cultural", "Health"];
-
   const load = () => axios.get(`${API}/events`).then(r => setEvents(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
 
@@ -143,7 +145,7 @@ function AdminEvents() {
         <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
         <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
         <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          {EVENT_CATEGORIES.map(c => <option key={c}>{c}</option>)}
         </select>
         <label className="checkbox-label">
           <input type="checkbox" checked={form.is_marquee}
@@ -194,13 +196,17 @@ function AdminAnnouncements() {
 
   const add = async () => {
     if (!text.trim()) return;
-    await axios.post(`${API}/announcements`, { text }, { headers: authHeader() });
-    setText(""); load();
+    try {
+      await axios.post(`${API}/announcements`, { text }, { headers: authHeader() });
+      setText(""); load();
+    } catch { /* silent — list stays unchanged */ }
   };
 
   const del = async id => {
-    await axios.delete(`${API}/announcements/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/announcements/${id}`, { headers: authHeader() });
+      load();
+    } catch { /* silent */ }
   };
 
   return (
@@ -237,7 +243,6 @@ function AdminGallery() {
   const [toast, setToast]       = useState("");
   const [confirmId, setConfirmId] = useState(null);
 
-  const CATS  = ["Sports","Ravalnath Temple","Meetings","Village Festivals","Mumbai Meeting","Ganesh Chaturthi","Gudhi Padwa","Shimga (Holi)"];
   const YEARS = Array.from({ length: 6 }, (_, i) => String(new Date().getFullYear() - i));
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
@@ -287,7 +292,7 @@ function AdminGallery() {
         <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])} />
         <input placeholder="Caption (optional)" value={caption} onChange={e => setCaption(e.target.value)} />
         <select value={category} onChange={e => setCategory(e.target.value)}>
-          {CATS.map(c => <option key={c}>{c}</option>)}
+          {GALLERY_CATS.map(c => <option key={c}>{c}</option>)}
         </select>
         <select value={year} onChange={e => setYear(e.target.value)}>
           {YEARS.map(y => <option key={y}>{y}</option>)}
@@ -346,14 +351,18 @@ function AdminBudget() {
   useEffect(() => { load(); }, []);
 
   const add = async () => {
-    await axios.post(`${API}/budget`, form, { headers: authHeader() });
-    setForm({ description: "", type: "income", amount: "", month: "" });
-    load();
+    try {
+      await axios.post(`${API}/budget`, form, { headers: authHeader() });
+      setForm({ description: "", type: "income", amount: "", month: "" });
+      load();
+    } catch { /* silent */ }
   };
 
   const del = async id => {
-    await axios.delete(`${API}/budget/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/budget/${id}`, { headers: authHeader() });
+      load();
+    } catch { /* silent */ }
   };
 
   // Calculate balance
@@ -409,25 +418,28 @@ function AdminEmergency() {
   const [form, setForm]   = useState({ name: "", type: "Hospital", phone: "", address: "", maps_url: "", emergency_contact: "" });
   const [editing, setEditing] = useState(null);
 
-  const TYPES = ["Hospital", "Police", "School", "Government"];
 
   const load = () => axios.get(`${API}/emergency`).then(r => setList(r.data));
   useEffect(() => { load(); }, []);
 
   const save = async () => {
-    if (editing) {
-      await axios.put(`${API}/emergency/${editing}`, form, { headers: authHeader() });
-      setEditing(null);
-    } else {
-      await axios.post(`${API}/emergency`, form, { headers: authHeader() });
-    }
-    setForm({ name: "", type: "Hospital", phone: "", address: "", maps_url: "", emergency_contact: "" });
-    load();
+    try {
+      if (editing) {
+        await axios.put(`${API}/emergency/${editing}`, form, { headers: authHeader() });
+        setEditing(null);
+      } else {
+        await axios.post(`${API}/emergency`, form, { headers: authHeader() });
+      }
+      setForm({ name: "", type: "Hospital", phone: "", address: "", maps_url: "", emergency_contact: "" });
+      load();
+    } catch { /* silent */ }
   };
 
   const del = async id => {
-    await axios.delete(`${API}/emergency/${id}`, { headers: authHeader() });
-    load();
+    try {
+      await axios.delete(`${API}/emergency/${id}`, { headers: authHeader() });
+      load();
+    } catch { /* silent */ }
   };
 
   const edit = item => {
@@ -443,7 +455,7 @@ function AdminEmergency() {
         <h3>{editing ? "✏️ Edit Contact" : "➕ Add Contact"}</h3>
         <input placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
         <select value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-          {TYPES.map(t => <option key={t}>{t}</option>)}
+          {EMERGENCY_TYPES.map(t => <option key={t}>{t}</option>)}
         </select>
         <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
         <input placeholder="Address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />

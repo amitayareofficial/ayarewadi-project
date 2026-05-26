@@ -23,6 +23,32 @@ body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #ffffff; color:
 a    { text-decoration: none; }
 ul   { list-style: none; }
 img  { max-width: 100%; display: block; }
+
+/* ── Page section fade-in on mount ── */
+#main-content > * { animation: page-fade-in 0.3s ease; }
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Universal card hover lift ── */
+.init-card, .festival-img, .event-card, .hosp-card, .team-card, .vd-stat-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.init-card:hover, .festival-img:hover, .event-card:hover,
+.hosp-card:hover, .team-card:hover, .vd-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+}
+
+/* ── Button press effect ── */
+button, .btn-accent, .btn-whatsapp, .btn-email, .btn-call {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+button:active, .btn-accent:active, .btn-whatsapp:active, .btn-email:active, .btn-call:active {
+  transform: scale(0.96);
+  opacity: 0.88;
+}
 button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 /* ── NAVBAR ────────────────────────────────────────────── */
@@ -34,7 +60,6 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   background: #000000;
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
-.nav-links { margin-left: auto; }
 .navbar.scrolled {
   background: #000000;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -49,7 +74,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .nav-logo { height: 48px; width: auto; object-fit: contain; display: block; background: transparent; mix-blend-mode: lighten; filter: brightness(1.1); }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
-.nav-links { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.nav-links { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 .nav-links button {
   background: none; border: none; color: #fff;
   padding: 7px 14px; border-radius: 6px; font-size: 0.88rem;

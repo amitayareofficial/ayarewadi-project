@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
@@ -35,9 +35,6 @@ const IMG = {
   festival1:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;209.69450101832996;0;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.06.58-am-AzGNwDaNRWIk2lae.jpeg",
   festival2:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;384.54211956521743;0;362.81657608695656/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.07.00-am-1-mP4MkNVWqrTxwBb0.jpeg",
   festival3:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;117.31160896130346;0;463.3808553971487/YNq2a76xB3Ip7LZZ/img_20230923_151456-dOqDklw1xKup1yxM.jpg",
-  nature1:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=310,fit=crop,trim=0;59.96330275229358;0;34.715596330275226/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-1.24.59-am-ALpPkJDvqQFz7l0N.jpeg",
-  nature2:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=310,fit=crop,trim=425.32323232323233;0;514.1565656565656;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.06.52-am-mv0J6lZwOyiRQzkn.jpeg",
-  nature3:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=337,fit=crop,trim=0;128;0;132.92307692307693/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.30.51-am-1-A0xjJrWaDDt2zOMB.jpeg",
   ruralHosp:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/rural-hospital-vaibhavwadi-mk3JOK95lPFqKXZx.webp",
   aaaanadi:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/anadi-hospital-A85VKX1j4xFDB4Zy.png",
   marathe:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop,trim=0;81.04735062006765;0;158.608793686584/YNq2a76xB3Ip7LZZ/marathe-clinic-hospital-YanJ8K4l8pCllDbZ.png",
@@ -318,11 +315,11 @@ export default function App() {
     return () => clearTimeout(t);
   }, [section]);
 
-  const nav = s => {
+  const nav = useCallback(s => {
     setSection(s);
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, []);
 
   return (
     <div className="app">
@@ -447,7 +444,7 @@ function Hero_Section({ lang }) {
       <div className="hero-img-wrap">
         <picture>
           <source media="(max-width: 768px)" srcSet={IMG.heroMobile} />
-          <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
+          <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" loading="eager" />
         </picture>
         <div className="hero-overlay" />
         <div className="hero-marquee-bar">
@@ -861,59 +858,53 @@ function Join_Community({ lang }) {
 /* ═══════════════════════════════════════════════════════════
    EMERGENCY PAGE
 ═══════════════════════════════════════════════════════════ */
+const REVEAL_VARIANTS = {
+  visible: (i) => ({
+    y: 0, opacity: 1, filter: "blur(0px)",
+    transition: { delay: i * 0.15, duration: 0.45 },
+  }),
+  hidden: { filter: "blur(8px)", y: 18, opacity: 0 },
+};
+
+const HOSPITALS = [
+  {
+    name:  "Rural Hospital Vaibhavwadi",
+    img:   IMG.ruralHosp,
+    addr:  "Khambalwadi, Maharashtra 416810",
+    phone: "02367-237222",
+    tags:  ["Ambulance", "24/7"],
+  },
+  {
+    name:  "Aanadi Hospital",
+    img:   IMG.aaaanadi,
+    addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
+    phone: null,
+    tags:  ["General"],
+  },
+  {
+    name:  "Dr. Sanjay Marathe — Marathe Clinic",
+    img:   IMG.marathe,
+    addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
+    phone: null,
+    tags:  ["Clinic"],
+  },
+];
+
 function Emergency_Page({ lang }) {
   const t = LANG[lang].emergency;
   const sectionRef = useRef(null);
 
-  const revealVariants = {
-    visible: (i) => ({
-      y: 0,
-      opacity: 1,
-      filter: "blur(0px)",
-      transition: { delay: i * 0.15, duration: 0.45 },
-    }),
-    hidden: {
-      filter: "blur(8px)",
-      y: 18,
-      opacity: 0,
-    },
-  };
-
-  const hospitals = [
-    {
-      name:  "Rural Hospital Vaibhavwadi",
-      img:   IMG.ruralHosp,
-      addr:  "Khambalwadi, Maharashtra 416810",
-      phone: "02367-237222",
-      tags:  ["Ambulance", "24/7"],
-    },
-    {
-      name:  "Aanadi Hospital",
-      img:   IMG.aaaanadi,
-      addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-      phone: null,
-      tags:  ["General"],
-    },
-    {
-      name:  "Dr. Sanjay Marathe — Marathe Clinic",
-      img:   IMG.marathe,
-      addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-      phone: null,
-      tags:  ["Clinic"],
-    },
-  ];
-
   return (
     <section ref={sectionRef} className="page-section">
 
-      <TimelineContent animationNum={1} timelineRef={sectionRef} customVariants={revealVariants} once>
+      <TimelineContent animationNum={1} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="sec-header">
           <span className="eyebrow">{t.eyebrow}</span>
           <h2>{t.title}</h2>
         </div>
       </TimelineContent>
 
-      <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={revealVariants} once>
+      <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="alert-banner">
           ⚠️ &nbsp;
           <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
@@ -922,17 +913,17 @@ function Emergency_Page({ lang }) {
         </div>
       </TimelineContent>
 
-      <TimelineContent animationNum={3} timelineRef={sectionRef} customVariants={revealVariants} once>
+      <TimelineContent animationNum={3} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <h3 className="sub-title">{t.nearby}</h3>
       </TimelineContent>
 
       <div className="hosp-cards">
-        {hospitals.map((h, index) => (
+        {HOSPITALS.map((h, index) => (
           <TimelineContent
             key={h.name}
             animationNum={4 + index}
             timelineRef={sectionRef}
-            customVariants={revealVariants}
+            customVariants={REVEAL_VARIANTS}
             once
           >
             <div className="hosp-card">
@@ -952,9 +943,9 @@ function Emergency_Page({ lang }) {
         ))}
       </div>
 
-      <TimelineContent animationNum={7} timelineRef={sectionRef} customVariants={revealVariants} once>
+      <TimelineContent animationNum={7} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="hosp-card ambulance-card">
-          <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" />
+          <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" loading="lazy" />
           <div className="ambulance-body">
             <h3>{t.tollfree}</h3>
             <p><strong>108</strong> — {t.freeAmb}</p>
@@ -964,7 +955,7 @@ function Emergency_Page({ lang }) {
         </div>
       </TimelineContent>
 
-      <TimelineContent animationNum={8} timelineRef={sectionRef} customVariants={revealVariants} once>
+      <TimelineContent animationNum={8} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="info-card">
           <h3>{t.other}</h3>
           <ul>
@@ -1020,13 +1011,6 @@ function Portal_Page({ lang }) {
 ═══════════════════════════════════════════════════════════ */
 function Events_Page({ events, lang }) {
   const t = LANG[lang].events;
-  const fallback = [
-    { id: 1, title: "रवळनाथ जत्रा",               description: "Annual Ravalnath Jatra — ढोल-ताशांचा गजर, मिरवणुका, आणि भक्तांचा उत्साह.", date: "2026-11-15", tag: "Festival" },
-    { id: 2, title: "Gram Sabha | ग्रामसभा",       description: "Village development meeting — all residents welcome. Budget review & upcoming works.", date: "2026-06-20", tag: "Meeting" },
-    { id: 3, title: "Cricket Tournament | क्रिकेट", description: "Inter-village cricket with teams from Ayarewadi, Uple, Kolpe & Netal.", date: "2026-07-10", tag: "Sports" },
-    { id: 4, title: "Ganeshotsav | गणेशोत्सव",    description: "10-day Ganesh festival with cultural programs, processions & community prasad.", date: "2026-08-22", tag: "Festival" },
-  ];
-  const list = events.length > 0 ? events : fallback;
 
   return (
     <section className="page-section">
@@ -1035,7 +1019,12 @@ function Events_Page({ events, lang }) {
         <h2>{t.title}</h2>
       </div>
       <div className="events-list">
-        {list.map(ev => (
+        {events.length === 0 && (
+          <p style={{ color: "#aaa", textAlign: "center", padding: "2rem 0" }}>
+            {lang === "mr" ? "सध्या कोणतेही कार्यक्रम नाहीत." : "No upcoming events at the moment."}
+          </p>
+        )}
+        {events.map(ev => (
           <div className="event-card" key={ev.id}>
             <div className="event-date">📅 {new Date(ev.date).toDateString()}</div>
             <h3>{ev.title}</h3>
