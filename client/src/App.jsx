@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth } from "./context/AuthContext.jsx";
-import Register        from "./pages/portal/Register.jsx";
-import MemberLogin     from "./pages/portal/MemberLogin.jsx";
-import MemberDashboard from "./pages/portal/MemberDashboard.jsx";
-import ForgotPassword  from "./pages/portal/ForgotPassword.jsx";
 import "./App.css";
-import Admin from "./pages/Admin.jsx";
-import Blog_Page from "./pages/Blog.jsx";
-import Gallery_Page from "./pages/Gallery.jsx";
+
+const Register        = lazy(() => import("./pages/portal/Register.jsx"));
+const MemberLogin     = lazy(() => import("./pages/portal/MemberLogin.jsx"));
+const MemberDashboard = lazy(() => import("./pages/portal/MemberDashboard.jsx"));
+const ForgotPassword  = lazy(() => import("./pages/portal/ForgotPassword.jsx"));
+const Admin           = lazy(() => import("./pages/Admin.jsx"));
+const Blog_Page       = lazy(() => import("./pages/Blog.jsx"));
+const Gallery_Page    = lazy(() => import("./pages/Gallery.jsx"));
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { CinematicFooter } from "./components/ui/motion-footer";
 import { TimelineContent } from "./components/ui/timeline-animation.jsx";
@@ -323,13 +324,15 @@ export default function App() {
         lang={lang} setLang={setLang}
       />
       <main id="main-content">
-        {section === "home"      && <Home_Page nav={nav} events={events} lang={lang} />}
-        {section === "emergency" && <Emergency_Page lang={lang} />}
-        {section === "portal"    && <Portal_Page lang={lang} />}
-        {section === "gallery"   && <Gallery_Page lang={lang} />}
-        {section === "events"    && <Events_Page events={events} lang={lang} />}
-        {section === "blog"      && <Blog_Page />}
-        {section === "admin"     && <Admin />}
+        <Suspense fallback={<div style={{ padding: "4rem", textAlign: "center", color: "#2e7d32" }}>Loading...</div>}>
+          {section === "home"      && <Home_Page nav={nav} events={events} lang={lang} />}
+          {section === "emergency" && <Emergency_Page lang={lang} />}
+          {section === "portal"    && <Portal_Page lang={lang} />}
+          {section === "gallery"   && <Gallery_Page lang={lang} />}
+          {section === "events"    && <Events_Page events={events} lang={lang} />}
+          {section === "blog"      && <Blog_Page />}
+          {section === "admin"     && <Admin />}
+        </Suspense>
       </main>
       <CinematicFooter nav={nav} lang={lang} />
     </div>
@@ -985,13 +988,19 @@ function Portal_Page({ lang }) {
     </section>
   );
 
-  if (member) return <MemberDashboard />;
+  if (member) return (
+    <Suspense fallback={<div style={{ padding: "4rem", textAlign: "center", color: "#2e7d32" }}>Loading...</div>}>
+      <MemberDashboard />
+    </Suspense>
+  );
 
   return (
     <div style={{ marginTop: "-1px" }}>
-      {view === "login"    && <MemberLogin lang={lang} onGoRegister={() => setView("register")} onGoForgot={() => setView("forgot")} onLoginSuccess={() => {}} />}
-      {view === "register" && <Register    lang={lang} onGoLogin={() => setView("login")} />}
-      {view === "forgot"   && <ForgotPassword onGoBack={() => setView("login")} />}
+      <Suspense fallback={<div style={{ padding: "4rem", textAlign: "center", color: "#2e7d32" }}>Loading...</div>}>
+        {view === "login"    && <MemberLogin lang={lang} onGoRegister={() => setView("register")} onGoForgot={() => setView("forgot")} onLoginSuccess={() => {}} />}
+        {view === "register" && <Register    lang={lang} onGoLogin={() => setView("login")} />}
+        {view === "forgot"   && <ForgotPassword onGoBack={() => setView("login")} />}
+      </Suspense>
     </div>
   );
 }
