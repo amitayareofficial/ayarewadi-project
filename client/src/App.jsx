@@ -444,10 +444,6 @@ function Hero_Section({ lang }) {
           <img src={IMG.hero} alt="Ayarewadi Village" className="hero-img" />
         </picture>
         <div className="hero-overlay" />
-        <div className="hero-content-top">
-          <p className="hero-eyebrow">{t.eyebrow}</p>
-          <p className="hero-tagline">{t.tagline}</p>
-        </div>
         <div className="hero-marquee-bar">
           <Slogan_Marquee lang={lang} />
         </div>
