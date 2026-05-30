@@ -138,7 +138,7 @@ const s = {
   wrap: {
     maxWidth: 560,
     margin: "0 auto",
-    padding: "1.5rem 1rem 3rem",
+    padding: "72px 1rem 3rem",
     display: "flex",
     flexDirection: "column",
     gap: "1rem",

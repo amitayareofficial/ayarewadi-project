@@ -170,7 +170,7 @@ function EntryRow({ entry, type }) {
 }
 
 const s = {
-  wrap:    { maxWidth: 560, margin: "0 auto", padding: "1.5rem 1rem 3rem", display: "flex", flexDirection: "column", gap: "1rem" },
+  wrap:    { maxWidth: 560, margin: "0 auto", padding: "72px 1rem 3rem", display: "flex", flexDirection: "column", gap: "1rem" },
   header:  { marginBottom: "0.25rem" },
   backBtn: { background: "none", border: "none", color: "#2e7d32", fontWeight: 700, cursor: "pointer", fontSize: "0.85rem", padding: "0 0 6px 0" },
   title:   { fontSize: "1.2rem", fontWeight: 800, color: "#1b5e20", margin: "4px 0 2px" },
