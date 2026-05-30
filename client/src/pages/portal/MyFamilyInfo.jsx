@@ -4,8 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 
 const API = "https://ayarewadi-project.onrender.com";
 
-const capWords = v => v.replace(/\b\w/g, c => c.toUpperCase());
-
 const RELATIONS = [
   { value: "father",  label: "Father / वडील" },
   { value: "mother",  label: "Mother / आई" },
@@ -208,28 +206,28 @@ export default function MyFamilyInfo({ member, onBack }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>First Name *</label>
                 <input style={inp} placeholder="e.g. Ramchandra" value={person.first_name}
-                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                  onChange={e => setField("first_name", capWords(e.target.value))} />
+                  autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                  onChange={e => setField("first_name", e.target.value.toUpperCase())} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Middle Name / Father's Name *</label>
                 <input style={inp} placeholder="e.g. Balu" value={person.middle_name}
-                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                  onChange={e => setField("middle_name", capWords(e.target.value))} />
+                  autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                  onChange={e => setField("middle_name", e.target.value.toUpperCase())} />
               </div>
             </div>
             <div style={g2}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Last Name *</label>
                 <input style={inp} placeholder="e.g. Ayare" value={person.last_name}
-                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                  onChange={e => setField("last_name", capWords(e.target.value))} />
+                  autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                  onChange={e => setField("last_name", e.target.value.toUpperCase())} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Nickname</label>
                 <input style={inp} placeholder="e.g. Ramya" value={person.nickname}
-                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                  onChange={e => setField("nickname", capWords(e.target.value))} />
+                  autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                  onChange={e => setField("nickname", e.target.value.toUpperCase())} />
               </div>
             </div>
             <div style={g2}>
@@ -279,19 +277,19 @@ export default function MyFamilyInfo({ member, onBack }) {
                   </div>
                   <div style={g2}>
                     <input style={inp} placeholder="First Name *" value={rel.first_name}
-                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                      onChange={e => updateRelation(idx, "first_name", capWords(e.target.value))} />
+                      autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                      onChange={e => updateRelation(idx, "first_name", e.target.value.toUpperCase())} />
                     <input style={inp} placeholder="Middle Name" value={rel.middle_name}
-                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                      onChange={e => updateRelation(idx, "middle_name", capWords(e.target.value))} />
+                      autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                      onChange={e => updateRelation(idx, "middle_name", e.target.value.toUpperCase())} />
                   </div>
                   <div style={g2}>
                     <input style={inp} placeholder="Last Name *" value={rel.last_name}
-                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                      onChange={e => updateRelation(idx, "last_name", capWords(e.target.value))} />
+                      autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                      onChange={e => updateRelation(idx, "last_name", e.target.value.toUpperCase())} />
                     <input style={inp} placeholder="Nickname" value={rel.nickname}
-                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
-                      onChange={e => updateRelation(idx, "nickname", capWords(e.target.value))} />
+                      autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                      onChange={e => updateRelation(idx, "nickname", e.target.value.toUpperCase())} />
                   </div>
                   <div style={g2}>
                     <input style={inp} type="tel" placeholder="Mobile" value={rel.mobile}
@@ -337,5 +335,5 @@ const s = {
 };
 
 const lbl = { fontSize: "0.73rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 4 };
-const inp = { width: "100%", height: 38, border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "0 10px", fontSize: "0.85rem", outline: "none", background: "#fafafa", boxSizing: "border-box", textTransform: "capitalize" };
+const inp = { width: "100%", height: 38, border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "0 10px", fontSize: "0.85rem", outline: "none", background: "#fafafa", boxSizing: "border-box", textTransform: "uppercase" };
 const g2  = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 };
