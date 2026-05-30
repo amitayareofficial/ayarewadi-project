@@ -224,7 +224,8 @@ export function VillageFooter({ nav, lang = "mr" }) {
           <img
             src={logoImg}
             alt="Ayarewadi"
-            style={{ height: "80px", mixBlendMode: "lighten", filter: "brightness(1.1)", flexShrink: 0 }}
+            className="vf-brand-logo"
+            style={{ mixBlendMode: "lighten", filter: "brightness(1.1)", flexShrink: 0 }}
           />
           <p
             style={{

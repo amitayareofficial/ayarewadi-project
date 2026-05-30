@@ -49,7 +49,7 @@ const IMG = {
 const LANG = {
   en: {
     nav: {
-      home: "Home", emergency: "Emergency", portal: "Portal",
+      home: "Home", emergency: "Help & Services", portal: "Portal",
       gallery: "Gallery", events: "Events", blog: "Blog", members: "Members", admin: "⚙️ Admin",
     },
     hero: {
@@ -174,7 +174,7 @@ const LANG = {
 
   mr: {
     nav: {
-      home: "मुख्यपान", emergency: "आपत्कालीन", portal: "पोर्टल",
+      home: "मुख्यपान", emergency: "मदत व सेवा", portal: "पोर्टल",
       gallery: "गॅलरी", events: "कार्यक्रम", blog: "ब्लॉग", members: "सदस्य", admin: "⚙️ व्यवस्थापन",
     },
     hero: {
@@ -332,7 +332,7 @@ export default function App() {
       <main id="main-content">
         <Suspense fallback={<div style={{ padding: "4rem", textAlign: "center", color: "#2e7d32" }}>Loading...</div>}>
           {section === "home"      && <Home_Page nav={nav} events={events} lang={lang} />}
-          {section === "emergency" && <Emergency_Page lang={lang} />}
+          {section === "emergency" && <HelpServices_Page lang={lang} />}
           {section === "portal"    && <Portal_Page lang={lang} />}
           {section === "gallery"   && <Gallery_Page lang={lang} />}
           {section === "events"    && <Events_Page events={events} lang={lang} />}
@@ -868,107 +868,237 @@ const REVEAL_VARIANTS = {
 
 const HOSPITALS = [
   {
-    name:  "Rural Hospital Vaibhavwadi",
-    img:   IMG.ruralHosp,
-    addr:  "Khambalwadi, Maharashtra 416810",
-    phone: "02367-237222",
-    tags:  ["Ambulance", "24/7"],
+    name:     "Rural Hospital Vaibhavwadi",
+    img:      IMG.ruralHosp,
+    addr:     "Khambalwadi, Maharashtra 416810",
+    phone:    "02367-237222",
+    tags:     ["Ambulance", "24/7"],
+    maps_url: "https://maps.google.com/?q=Rural+Hospital+Vaibhavwadi+Khambalwadi+Maharashtra",
   },
   {
-    name:  "Aanadi Hospital",
-    img:   IMG.aaaanadi,
-    addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-    phone: null,
-    tags:  ["General"],
+    name:     "Aanadi Hospital",
+    img:      IMG.aaaanadi,
+    addr:     "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
+    phone:    null,
+    tags:     ["General"],
+    maps_url: "https://maps.google.com/?q=Aanadi+Hospital+Sindhudurg+Maharashtra",
   },
   {
-    name:  "Dr. Sanjay Marathe — Marathe Clinic",
-    img:   IMG.marathe,
-    addr:  "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-    phone: null,
-    tags:  ["Clinic"],
+    name:     "Dr. Sanjay Marathe — Marathe Clinic",
+    img:      IMG.marathe,
+    addr:     "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
+    phone:    null,
+    tags:     ["Clinic"],
+    maps_url: "https://maps.google.com/?q=Marathe+Clinic+Vaibhavwadi+Maharashtra",
   },
 ];
 
-function Emergency_Page({ lang }) {
+/* ── Help & Services tabs config ── */
+const HS_TABS = [
+  { id: "emergency",  icon: "🚨", en: "Emergency Contacts", mr: "आपत्कालीन संपर्क" },
+  { id: "government", icon: "🏛️", en: "Government Offices",  mr: "सरकारी कार्यालये" },
+  { id: "healthcare", icon: "🏥", en: "Healthcare",          mr: "आरोग्य सेवा"      },
+  { id: "education",  icon: "🎓", en: "Schools & Education", mr: "शाळा व शिक्षण"    },
+  { id: "business",   icon: "🏪", en: "Local Businesses",    mr: "स्थानिक व्यवसाय"  },
+  { id: "important",  icon: "📌", en: "Important Contacts",  mr: "महत्त्वाचे संपर्क" },
+];
+
+const CAT_STYLE = {
+  emergency:  { bg: "#fdecea", color: "#c62828", border: "#ffcdd2" },
+  government: { bg: "#e3f2fd", color: "#1565c0", border: "#90caf9" },
+  healthcare: { bg: "#e8f5e9", color: "#2e7d32", border: "#c8e6c9" },
+  education:  { bg: "#f3e5f5", color: "#7b1fa2", border: "#ce93d8" },
+  business:   { bg: "#fff3e0", color: "#e65100", border: "#ffcc80" },
+  important:  { bg: "#fffde7", color: "#f57f17", border: "#ffe082" },
+};
+
+function HelpServices_Page({ lang }) {
   const t = LANG[lang].emergency;
   const sectionRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("emergency");
+  const [data, setData]           = useState({});
+  const [loading, setLoading]     = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "emergency" || data[activeTab]) return;
+    setLoading(true);
+    const url = activeTab === "healthcare"
+      ? `${API}/medical`
+      : `${API}/services?category=${activeTab}`;
+    axios.get(url)
+      .then(r => setData(prev => ({ ...prev, [activeTab]: r.data })))
+      .catch(()  => setData(prev => ({ ...prev, [activeTab]: [] })))
+      .finally(() => setLoading(false));
+  }, [activeTab]);
+
+  const tabLabel = tab => lang === "mr" ? tab.mr : tab.en;
 
   return (
-    <section ref={sectionRef} className="page-section">
+    <section ref={sectionRef} className="page-section hs-page">
 
+      {/* Header */}
       <TimelineContent animationNum={1} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="sec-header">
-          <span className="eyebrow">{t.eyebrow}</span>
-          <h2>{t.title}</h2>
+          <span className="eyebrow">{lang === "mr" ? "मदत व सेवा" : "Help & Services"}</span>
+          <h2>{lang === "mr" ? "🏘️ ग्राम सेवा केंद्र" : "🏘️ Village Services"}</h2>
+          <p>{lang === "mr" ? "आयरेवाडी गावातील सर्व सेवा एकाच ठिकाणी" : "All village services in one place"}</p>
         </div>
       </TimelineContent>
 
+      {/* Alert banner */}
       <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="alert-banner">
           ⚠️ &nbsp;
           <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
           <strong>102</strong> – {t.alertHelpline} &nbsp;|&nbsp;
-          {t.alertDistrict}: <strong>8149822015</strong> / <strong>7030397514</strong>
+          {t.alertDistrict}: <strong>8149822015</strong>
         </div>
       </TimelineContent>
 
+      {/* Tab bar */}
       <TimelineContent animationNum={3} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
-        <h3 className="sub-title">{t.nearby}</h3>
+        <div className="hs-tabs">
+          {HS_TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`hs-tab${activeTab === tab.id ? " active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <span>{tab.icon}</span>
+              <span className="hs-tab-label">{tabLabel(tab)}</span>
+            </button>
+          ))}
+        </div>
       </TimelineContent>
 
-      <div className="hosp-cards">
-        {HOSPITALS.map((h, index) => (
-          <TimelineContent
-            key={h.name}
-            animationNum={4 + index}
-            timelineRef={sectionRef}
-            customVariants={REVEAL_VARIANTS}
-            once
-          >
-            <div className="hosp-card">
-              <img src={h.img} alt={h.name} loading="lazy" />
-              <div className="hosp-body">
-                <h3>{h.name}</h3>
-                <div className="tags">{h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
-                <p>{h.addr}</p>
-                {h.phone && (
-                  <a href={`tel:${h.phone}`} className="btn-call">
-                    📞 {h.phone}
-                  </a>
-                )}
+      {/* Tab content */}
+      <div className="hs-content">
+        {activeTab === "emergency" && (
+          <>
+            <h3 className="sub-title">{t.nearby}</h3>
+            <div className="hosp-cards">
+              {HOSPITALS.map(h => (
+                <div key={h.name} className="hosp-card">
+                  <div className="hosp-img-col">
+                    <img src={h.img} alt={h.name} loading="lazy" />
+                  </div>
+                  <div className="hosp-body">
+                    <h3>{h.name}</h3>
+                    <div className="tags">
+                      {h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}
+                    </div>
+                    <p className="hosp-addr">📍 {h.addr}</p>
+                    <div className="hosp-actions">
+                      {h.phone && <a href={`tel:${h.phone}`} className="btn-call">📞 {h.phone}</a>}
+                      {h.maps_url && (
+                        <a href={h.maps_url} target="_blank" rel="noreferrer" className="btn-location">
+                          🗺️ Get Directions
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="hosp-card ambulance-card" style={{ marginTop: 20 }}>
+              <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" loading="lazy" />
+              <div className="ambulance-body">
+                <h3>{t.tollfree}</h3>
+                <p><strong>108</strong> — {t.freeAmb}</p>
+                <p><strong>102</strong> — {t.ambHelp}</p>
+                <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
               </div>
             </div>
-          </TimelineContent>
-        ))}
+            <div className="info-card" style={{ marginTop: 20 }}>
+              <h3>{t.other}</h3>
+              <ul>
+                <li>{t.police} <strong>100</strong></li>
+                <li>{t.fire} <strong>101</strong></li>
+                <li>{t.women} <strong>1091</strong></li>
+                <li>{t.child} <strong>1098</strong></li>
+                <li>Email: <strong>contact@ayarewadi.in</strong></li>
+              </ul>
+            </div>
+          </>
+        )}
+
+        {activeTab !== "emergency" && (
+          loading
+            ? <p className="hs-loading">Loading…</p>
+            : <HsServiceGrid
+                items={data[activeTab] || []}
+                category={activeTab}
+                lang={lang}
+              />
+        )}
       </div>
 
-      <TimelineContent animationNum={7} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
-        <div className="hosp-card ambulance-card">
-          <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" loading="lazy" />
-          <div className="ambulance-body">
-            <h3>{t.tollfree}</h3>
-            <p><strong>108</strong> — {t.freeAmb}</p>
-            <p><strong>102</strong> — {t.ambHelp}</p>
-            <p><strong>{t.district}</strong> 8149822015 / 7030397514</p>
+    </section>
+  );
+}
+
+function HsServiceGrid({ items, category, lang }) {
+  const style = CAT_STYLE[category] || CAT_STYLE.important;
+  const tab   = HS_TABS.find(t => t.id === category);
+
+  if (items.length === 0) {
+    return (
+      <div className="hs-empty">
+        <span style={{ fontSize: "2.5rem" }}>{tab?.icon || "📂"}</span>
+        <p>{lang === "mr" ? "अद्याप कोणतीही नोंद नाही." : "No entries yet — add from Admin panel."}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="srv-grid">
+      {items.map(item => (
+        <div key={item.id} className="srv-card">
+          {item.image_url ? (
+            <div className="srv-img-col">
+              <img src={item.image_url} alt={item.name} loading="lazy" />
+            </div>
+          ) : (
+            <div className="srv-icon-col" style={{ background: style.bg, color: style.color }}>
+              {tab?.icon || "📌"}
+            </div>
+          )}
+          <div className="srv-body">
+            {item.subcategory && (
+              <span className="srv-badge"
+                style={{ background: style.bg, color: style.color, border: `1px solid ${style.border}` }}>
+                {item.subcategory}
+              </span>
+            )}
+            <h3 className="srv-name">{item.name}</h3>
+            {item.description && <p className="srv-desc">{item.description}</p>}
+            {item.specialist   && <p className="srv-meta">🩺 {item.specialist}</p>}
+            {item.timing       && <p className="srv-meta">🕐 {item.timing}</p>}
+            {item.phone        && <p className="srv-meta">📞 <a href={`tel:${item.phone}`}>{item.phone}</a></p>}
+            {item.working_hours && <p className="srv-meta">🕐 {item.working_hours}</p>}
+            {item.address      && <p className="srv-meta">📍 {item.address}</p>}
+            <div className="srv-links">
+              {item.phone && (
+                <a href={`tel:${item.phone}`} className="btn-call" style={{ fontSize: "0.8rem" }}>
+                  📞 Call
+                </a>
+              )}
+              {item.maps_url && (
+                <a href={item.maps_url} target="_blank" rel="noreferrer" className="btn-location">
+                  🗺️ Directions
+                </a>
+              )}
+              {item.website && (
+                <a href={item.website} target="_blank" rel="noreferrer" className="btn-location"
+                  style={{ background: "#e8f5e9", color: "#2e7d32", borderColor: "#c8e6c9" }}>
+                  🌐 Website
+                </a>
+              )}
+            </div>
           </div>
         </div>
-      </TimelineContent>
-
-      <TimelineContent animationNum={8} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
-        <div className="info-card">
-          <h3>{t.other}</h3>
-          <ul>
-            <li>{t.police} <strong>100</strong></li>
-            <li>{t.fire} <strong>101</strong></li>
-            <li>{t.women} <strong>1091</strong></li>
-            <li>{t.child} <strong>1098</strong></li>
-            <li>Email: <strong>contact@ayarewadi.in</strong></li>
-          </ul>
-        </div>
-      </TimelineContent>
-
-    </section>
+      ))}
+    </div>
   );
 }
 

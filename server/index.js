@@ -255,6 +255,146 @@ app.delete("/emergency/:id", authAdmin, async (req, res) => {
   }
 });
 
+// ── MEDICAL CONTACTS ──────────────────────────────────────
+pool.query(`
+  CREATE TABLE IF NOT EXISTS medical_contacts (
+    id            SERIAL PRIMARY KEY,
+    name          VARCHAR(200) NOT NULL,
+    type          VARCHAR(60)  DEFAULT 'Hospital',
+    phone         VARCHAR(40),
+    address       TEXT,
+    maps_url      TEXT,
+    specialist    VARCHAR(120),
+    working_hours VARCHAR(120),
+    image_url     TEXT,
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
+
+app.get("/medical", async (req, res) => {
+  try {
+    const r = await pool.query("SELECT * FROM medical_contacts ORDER BY type, name");
+    res.json(r.rows);
+  } catch {
+    res.status(500).json({ error: "Failed to fetch medical contacts" });
+  }
+});
+
+app.post("/medical", authAdmin, async (req, res) => {
+  try {
+    const { name, type, phone, address, maps_url, specialist, working_hours, image_url } = req.body;
+    const r = await pool.query(
+      `INSERT INTO medical_contacts (name,type,phone,address,maps_url,specialist,working_hours,image_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [name, type || "Hospital", phone || null, address || null,
+       maps_url || null, specialist || null, working_hours || null, image_url || null]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch {
+    res.status(500).json({ error: "Failed to create medical contact" });
+  }
+});
+
+app.put("/medical/:id", authAdmin, async (req, res) => {
+  try {
+    const { name, type, phone, address, maps_url, specialist, working_hours, image_url } = req.body;
+    const r = await pool.query(
+      `UPDATE medical_contacts
+       SET name=$1,type=$2,phone=$3,address=$4,maps_url=$5,specialist=$6,working_hours=$7,image_url=$8
+       WHERE id=$9 RETURNING *`,
+      [name, type, phone || null, address || null,
+       maps_url || null, specialist || null, working_hours || null, image_url || null, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Not found" });
+    res.json(r.rows[0]);
+  } catch {
+    res.status(500).json({ error: "Failed to update medical contact" });
+  }
+});
+
+app.delete("/medical/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM medical_contacts WHERE id=$1", [req.params.id]);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Failed to delete medical contact" });
+  }
+});
+
+// ── VILLAGE SERVICES (Help & Services page) ──────────────
+pool.query(`
+  CREATE TABLE IF NOT EXISTS village_services (
+    id            SERIAL PRIMARY KEY,
+    category      VARCHAR(60)  NOT NULL,
+    subcategory   VARCHAR(80),
+    name          VARCHAR(200) NOT NULL,
+    phone         VARCHAR(60),
+    address       TEXT,
+    maps_url      TEXT,
+    website       VARCHAR(250),
+    description   TEXT,
+    timing        VARCHAR(150),
+    image_url     TEXT,
+    display_order INT DEFAULT 0,
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
+
+app.get("/services", async (req, res) => {
+  try {
+    const { category } = req.query;
+    const q = category
+      ? "SELECT * FROM village_services WHERE category=$1 ORDER BY display_order, name"
+      : "SELECT * FROM village_services ORDER BY category, display_order, name";
+    const r = await pool.query(q, category ? [category] : []);
+    res.json(r.rows);
+  } catch {
+    res.status(500).json({ error: "Failed to fetch services" });
+  }
+});
+
+app.post("/services", authAdmin, async (req, res) => {
+  try {
+    const { category, subcategory, name, phone, address, maps_url, website, description, timing, image_url, display_order } = req.body;
+    const r = await pool.query(
+      `INSERT INTO village_services
+       (category,subcategory,name,phone,address,maps_url,website,description,timing,image_url,display_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [category, subcategory||null, name, phone||null, address||null, maps_url||null,
+       website||null, description||null, timing||null, image_url||null, display_order||0]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch {
+    res.status(500).json({ error: "Failed to create service" });
+  }
+});
+
+app.put("/services/:id", authAdmin, async (req, res) => {
+  try {
+    const { category, subcategory, name, phone, address, maps_url, website, description, timing, image_url, display_order } = req.body;
+    const r = await pool.query(
+      `UPDATE village_services SET category=$1,subcategory=$2,name=$3,phone=$4,address=$5,
+       maps_url=$6,website=$7,description=$8,timing=$9,image_url=$10,display_order=$11
+       WHERE id=$12 RETURNING *`,
+      [category, subcategory||null, name, phone||null, address||null, maps_url||null,
+       website||null, description||null, timing||null, image_url||null, display_order||0, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Not found" });
+    res.json(r.rows[0]);
+  } catch {
+    res.status(500).json({ error: "Failed to update service" });
+  }
+});
+
+app.delete("/services/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM village_services WHERE id=$1", [req.params.id]);
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Failed to delete service" });
+  }
+});
+
 // ── BUDGET ────────────────────────────────────────────────
 app.get("/budget", async (req, res) => {
   try {
@@ -317,6 +457,23 @@ app.post("/blog/upload-image", authAdmin, upload.single("image"), async (req, re
       const stream = cloudinary.uploader.upload_stream(
         { folder: "ayarewadi/blog", resource_type: "image",
           transformation: [{ width: 1200, crop: "limit" }, { quality: "auto:good" }] },
+        (err, result) => { if (err) reject(err); else resolve(result); }
+      );
+      stream.end(req.file.buffer);
+    });
+    res.json({ url: result.secure_url });
+  } catch {
+    res.status(500).json({ error: "Image upload failed" });
+  }
+});
+
+app.post("/services/upload-image", authAdmin, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file provided" });
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "ayarewadi/services", resource_type: "image",
+          transformation: [{ width: 900, crop: "limit" }, { quality: "auto:good" }] },
         (err, result) => { if (err) reject(err); else resolve(result); }
       );
       stream.end(req.file.buffer);

@@ -30,8 +30,9 @@ export default function Admin() {
           { id: "announcements", icon: "📢", label: "Announcements" },
           { id: "gallery",       icon: "🖼️", label: "Gallery" },
           { id: "budget",        icon: "💰", label: "Budget" },
-          { id: "emergency",     icon: "🚨", label: "Emergency" },
+          { id: "emergency",     icon: "🏘️", label: "Help & Services" },
           { id: "blog",          icon: "📝", label: "Blog" },
+          { id: "medical",       icon: "💊", label: "Medical" },
           { id: "members",       icon: "👥", label: "Members" },
           { id: "marquee",       icon: "🎞️", label: "Marquee" },
           { id: "gram_members",  icon: "🏘️", label: "Members Page" },
@@ -50,8 +51,9 @@ export default function Admin() {
         {tab === "announcements" && <AdminAnnouncements />}
         {tab === "gallery"       && <AdminGallery />}
         {tab === "budget"        && <AdminBudget />}
-        {tab === "emergency"     && <AdminEmergency />}
+        {tab === "emergency"     && <AdminHelpServices />}
         {tab === "blog"          && <AdminBlog />}
+        {tab === "medical"       && <AdminMedical />}
         {tab === "members"       && <AdminMembers />}
         {tab === "marquee"       && <AdminMarquee />}
         {tab === "gram_members"  && <AdminGramMembers />}
@@ -416,7 +418,316 @@ function AdminBudget() {
   );
 }
 
-/* ── EMERGENCY MANAGER ───────────────────────────────────── */
+/* ── HELP & SERVICES MANAGER ─────────────────────────────── */
+const SRV_CATS = [
+  { id: "emergency",  label: "🚨 Emergency Contacts" },
+  { id: "government", label: "🏛️ Government Offices",  subs: ["Talathi", "Gram Panchayat", "Police", "Revenue Office", "Forest Office", "Other"] },
+  { id: "education",  label: "🎓 Schools & Education", subs: ["Primary School", "High School", "College", "Coaching", "Other"] },
+  { id: "business",   label: "🏪 Local Businesses",    subs: ["Shop", "Restaurant", "Transport", "Agriculture", "Contractor", "Other"] },
+  { id: "important",  label: "📌 Important Contacts",  subs: [] },
+];
+const EMPTY_SRV = {
+  category: "government", subcategory: "", name: "", phone: "",
+  address: "", maps_url: "", website: "", description: "", timing: "", image_url: "", display_order: "0",
+};
+
+function AdminHelpServices() {
+  const [items, setItems]         = useState([]);
+  const [catFilter, setCatFilter] = useState("government");
+  const [form, setForm]           = useState(EMPTY_SRV);
+  const [editing, setEditing]     = useState(null);
+  const [saving, setSaving]       = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast]         = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [imgFile, setImgFile]     = useState(null);
+  const [imgPreview, setImgPreview] = useState("");
+  const imgInputRef = useRef(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  const f = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const load = (cat = catFilter) =>
+    axios.get(`${API}/services?category=${cat}`, { headers: authHeader() })
+      .then(r => setItems(r.data)).catch(() => {});
+
+  useEffect(() => { load(catFilter); }, [catFilter]);
+
+  const activeCat = SRV_CATS.find(c => c.id === catFilter);
+
+  const handleImgSelect = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImgFile(file);
+    setImgPreview(URL.createObjectURL(file));
+  };
+
+  const handleImgRemove = e => {
+    e.stopPropagation();
+    setImgFile(null);
+    setImgPreview("");
+    f("image_url", "");
+    if (imgInputRef.current) imgInputRef.current.value = "";
+  };
+
+  const save = async () => {
+    if (!form.name.trim()) return showToast("Name is required.");
+    setSaving(true);
+    try {
+      let imageUrl = form.image_url;
+      if (imgFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append("image", imgFile);
+        const r = await axios.post(`${API}/services/upload-image`, fd, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" },
+        });
+        imageUrl = r.data.url;
+        setUploading(false);
+      }
+      const payload = { ...form, image_url: imageUrl, display_order: Number(form.display_order) || 0 };
+      if (editing) {
+        await axios.put(`${API}/services/${editing}`, payload, { headers: authHeader() });
+        setEditing(null); showToast("Updated.");
+      } else {
+        await axios.post(`${API}/services`, payload, { headers: authHeader() });
+        showToast("Entry added.");
+      }
+      setForm({ ...EMPTY_SRV, category: catFilter });
+      setImgFile(null); setImgPreview("");
+      load(catFilter);
+    } catch { showToast("Error saving."); }
+    finally { setSaving(false); setUploading(false); }
+  };
+
+  const del = async id => {
+    try {
+      await axios.delete(`${API}/services/${id}`, { headers: authHeader() });
+      setConfirmId(null); showToast("Deleted."); load(catFilter);
+    } catch { showToast("Delete failed."); }
+  };
+
+  const edit = item => {
+    setEditing(item.id);
+    setForm({
+      category: item.category, subcategory: item.subcategory || "",
+      name: item.name, phone: item.phone || "", address: item.address || "",
+      maps_url: item.maps_url || "", website: item.website || "",
+      description: item.description || "", timing: item.timing || "",
+      image_url: item.image_url || "", display_order: String(item.display_order ?? 0),
+    });
+    setImgFile(null);
+    setImgPreview(item.image_url || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <div className="admin-section">
+      <h2>🏘️ Help &amp; Services</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* Category selector */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+        {SRV_CATS.map(c => (
+          <button key={c.id}
+            onClick={() => { setCatFilter(c.id); setEditing(null); setForm({ ...EMPTY_SRV, category: c.id }); }}
+            style={{
+              padding: "7px 16px", borderRadius: 99, fontSize: "0.82rem", fontWeight: 600,
+              cursor: "pointer", border: "1.5px solid",
+              background: catFilter === c.id ? "#2e7d32" : "#f4f3f1",
+              color: catFilter === c.id ? "#fff" : "#555",
+              borderColor: catFilter === c.id ? "#2e7d32" : "#ddd",
+            }}
+          >{c.label}</button>
+        ))}
+      </div>
+
+      {/* Form */}
+      <div className="admin-form">
+        <h3>{editing ? "✏️ Edit Entry" : `➕ Add to ${activeCat?.label || catFilter}`}</h3>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Name *</label>
+            <input placeholder="Office / school / business name" value={form.name} onChange={e => f("name", e.target.value)} />
+          </div>
+          {activeCat?.subs?.length > 0 ? (
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Sub-category</label>
+              <select value={form.subcategory} onChange={e => f("subcategory", e.target.value)}>
+                <option value="">— Select —</option>
+                {activeCat.subs.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Sub-category (optional)</label>
+              <input placeholder="e.g. Ward Office, Sub-branch" value={form.subcategory} onChange={e => f("subcategory", e.target.value)} />
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Phone</label>
+            <input placeholder="Phone number" value={form.phone} onChange={e => f("phone", e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Timing / Hours</label>
+            <input placeholder="e.g. Mon–Fri 10am–5pm" value={form.timing} onChange={e => f("timing", e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Address</label>
+          <input placeholder="Full address" value={form.address} onChange={e => f("address", e.target.value)} />
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Description (optional)</label>
+          <textarea placeholder="Brief description of services offered" value={form.description}
+            onChange={e => f("description", e.target.value)} style={{ minHeight: 60, resize: "vertical" }} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Google Maps URL</label>
+            <input placeholder="https://maps.google.com/?q=..." value={form.maps_url} onChange={e => f("maps_url", e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Website URL (optional)</label>
+            <input placeholder="https://..." value={form.website} onChange={e => f("website", e.target.value)} />
+          </div>
+        </div>
+
+        {/* Image upload */}
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 6 }}>
+            Photo (optional)
+          </label>
+          <div
+            className={`blog-img-upload-box${(imgPreview || form.image_url) ? " has-image" : ""}`}
+            style={{ minHeight: 110 }}
+            onClick={() => !(imgPreview || form.image_url) && imgInputRef.current?.click()}
+          >
+            {(imgPreview || form.image_url) ? (
+              <>
+                <img
+                  src={imgPreview || form.image_url}
+                  alt="Preview"
+                  className="blog-img-upload-preview"
+                  style={{ height: 110, objectFit: "cover" }}
+                />
+                <div className="blog-img-upload-overlay">
+                  <button className="blog-img-change" type="button"
+                    onClick={e => { e.stopPropagation(); imgInputRef.current?.click(); }}>
+                    🔄 Change
+                  </button>
+                  <button className="blog-img-remove" type="button" onClick={handleImgRemove}>
+                    ✕ Remove
+                  </button>
+                </div>
+                {uploading && <div className="blog-img-uploading">Uploading…</div>}
+              </>
+            ) : (
+              <div className="blog-img-placeholder">
+                <span className="blog-img-icon">🖼️</span>
+                <span className="blog-img-label">Click to upload photo</span>
+                <span className="blog-img-hint">JPG, PNG, WebP</span>
+              </div>
+            )}
+            <input
+              ref={imgInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleImgSelect}
+            />
+          </div>
+          {/* Fallback: paste URL directly */}
+          <input
+            placeholder="Or paste image URL directly"
+            value={imgPreview ? "" : form.image_url}
+            onChange={e => { f("image_url", e.target.value); setImgPreview(""); setImgFile(null); }}
+            style={{ marginTop: 6, fontSize: "0.8rem" }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Display Order</label>
+          <input type="number" min={0} value={form.display_order} onChange={e => f("display_order", e.target.value)} style={{ width: 100 }} />
+        </div>
+
+        <div className="form-btns">
+          <button className="btn-save" onClick={save} disabled={saving || uploading}>
+            {uploading ? "Uploading image…" : saving ? "Saving…" : editing ? "Update" : "Add Entry"}
+          </button>
+          {editing && (
+            <button className="btn-cancel" onClick={() => {
+              setEditing(null);
+              setForm({ ...EMPTY_SRV, category: catFilter });
+              setImgFile(null); setImgPreview("");
+            }}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* List */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <h3 style={{ margin: 0, fontSize: "0.9rem", color: "#555" }}>
+          {items.length} entr{items.length !== 1 ? "ies" : "y"} in {activeCat?.label}
+        </h3>
+      </div>
+
+      <div className="admin-list">
+        {items.length === 0 && (
+          <p style={{ color: "#aaa", textAlign: "center", padding: "20px 0" }}>
+            No entries yet. Add one above.
+          </p>
+        )}
+        {items.map(item => (
+          <div className="admin-item" key={item.id} style={{ alignItems: "flex-start", gap: 14 }}>
+            {item.image_url && (
+              <img src={item.image_url} alt={item.name}
+                style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e0e0e0", flexShrink: 0 }} />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                <strong>{item.name}</strong>
+                {item.subcategory && (
+                  <span style={{ background: "#e8f5e9", color: "#2e7d32", border: "1px solid #c8e6c9", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
+                    {item.subcategory}
+                  </span>
+                )}
+                <span style={{ fontSize: "0.72rem", color: "#999" }}>Order: {item.display_order ?? 0}</span>
+              </div>
+              {item.description   && <div className="item-meta">📝 {item.description}</div>}
+              {item.phone         && <div className="item-meta">📞 {item.phone}</div>}
+              {item.timing        && <div className="item-meta">🕐 {item.timing}</div>}
+              {item.address       && <div className="item-meta">📍 {item.address}</div>}
+              {item.maps_url      && <a href={item.maps_url} target="_blank" rel="noreferrer" style={{ fontSize: "0.75rem", color: "#1565c0", marginTop: 4, display: "inline-block" }}>🗺️ Maps</a>}
+            </div>
+            <div className="item-btns">
+              <button className="btn-edit" onClick={() => edit(item)}>✏️ Edit</button>
+              {confirmId === item.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(item.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(item.id)}>🗑️</button>
+              }
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── EMERGENCY MANAGER (kept for reference) ──────────────── */
 function AdminEmergency() {
   const [list, setList]   = useState([]);
   const [form, setForm]   = useState({ name: "", type: "Hospital", phone: "", address: "", maps_url: "", emergency_contact: "" });
@@ -659,6 +970,258 @@ function AdminMembers() {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/* ── MEDICAL MANAGER ─────────────────────────────────── */
+const MEDICAL_TYPES = ["Hospital", "Clinic", "Pharmacy", "Laboratory", "Dental", "Eye Care", "Other"];
+const EMPTY_MED = { name: "", type: "Hospital", phone: "", address: "", maps_url: "", specialist: "", working_hours: "", image_url: "" };
+
+function AdminMedical() {
+  const [list, setList]           = useState([]);
+  const [form, setForm]           = useState(EMPTY_MED);
+  const [editing, setEditing]     = useState(null);
+  const [saving, setSaving]       = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast]         = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [imgFile, setImgFile]     = useState(null);
+  const [imgPreview, setImgPreview] = useState("");
+  const medImgRef = useRef(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/medical`, { headers: authHeader() })
+      .then(r => setList(r.data)).catch(() => {});
+  useEffect(() => { load(); }, []);
+
+  const f = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const handleImgSelect = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImgFile(file);
+    setImgPreview(URL.createObjectURL(file));
+  };
+
+  const handleImgRemove = e => {
+    e.stopPropagation();
+    setImgFile(null); setImgPreview("");
+    f("image_url", "");
+    if (medImgRef.current) medImgRef.current.value = "";
+  };
+
+  const save = async () => {
+    if (!form.name.trim()) return showToast("Name is required.");
+    setSaving(true);
+    try {
+      let imageUrl = form.image_url;
+      if (imgFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append("image", imgFile);
+        const r = await axios.post(`${API}/services/upload-image`, fd, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" },
+        });
+        imageUrl = r.data.url;
+        setUploading(false);
+      }
+      const payload = { ...form, image_url: imageUrl };
+      if (editing) {
+        await axios.put(`${API}/medical/${editing}`, payload, { headers: authHeader() });
+        setEditing(null); showToast("Updated.");
+      } else {
+        await axios.post(`${API}/medical`, payload, { headers: authHeader() });
+        showToast("Medical contact added.");
+      }
+      setForm(EMPTY_MED); setImgFile(null); setImgPreview(""); load();
+    } catch { showToast("Error saving. Please try again."); }
+    finally { setSaving(false); setUploading(false); }
+  };
+
+  const del = async id => {
+    try {
+      await axios.delete(`${API}/medical/${id}`, { headers: authHeader() });
+      setConfirmId(null); showToast("Deleted."); load();
+    } catch { showToast("Delete failed."); }
+  };
+
+  const edit = item => {
+    setEditing(item.id);
+    setForm({
+      name: item.name, type: item.type || "Hospital",
+      phone: item.phone || "", address: item.address || "",
+      maps_url: item.maps_url || "", specialist: item.specialist || "",
+      working_hours: item.working_hours || "", image_url: item.image_url || "",
+    });
+    setImgFile(null);
+    setImgPreview(item.image_url || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const TYPE_COLOR = {
+    Hospital: "#e8f5e9", Clinic: "#e3f2fd", Pharmacy: "#fff8e1",
+    Laboratory: "#f3e5f5", Dental: "#fce4ec", "Eye Care": "#e0f2f1", Other: "#f5f5f5",
+  };
+
+  return (
+    <div className="admin-section">
+      <h2>💊 Medical Contacts</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      <div className="admin-form">
+        <h3>{editing ? "✏️ Edit Contact" : "➕ Add Medical Contact"}</h3>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Name *</label>
+            <input placeholder="Hospital / Clinic / Doctor name" value={form.name} onChange={e => f("name", e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Type</label>
+            <select value={form.type} onChange={e => f("type", e.target.value)}>
+              {MEDICAL_TYPES.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Phone</label>
+            <input placeholder="Phone number" value={form.phone} onChange={e => f("phone", e.target.value)} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Specialist / Department</label>
+            <input placeholder="e.g. General, Orthopedic" value={form.specialist} onChange={e => f("specialist", e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Address</label>
+          <input placeholder="Full address" value={form.address} onChange={e => f("address", e.target.value)} />
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Working Hours</label>
+          <input placeholder="e.g. Mon–Sat 9am–6pm" value={form.working_hours} onChange={e => f("working_hours", e.target.value)} />
+        </div>
+
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Google Maps URL</label>
+          <input placeholder="https://maps.google.com/?q=..." value={form.maps_url} onChange={e => f("maps_url", e.target.value)} />
+        </div>
+
+        {/* Image upload */}
+        <div>
+          <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 6 }}>Photo (optional)</label>
+          <div
+            className={`blog-img-upload-box${(imgPreview || form.image_url) ? " has-image" : ""}`}
+            style={{ minHeight: 110 }}
+            onClick={() => !(imgPreview || form.image_url) && medImgRef.current?.click()}
+          >
+            {(imgPreview || form.image_url) ? (
+              <>
+                <img
+                  src={imgPreview || form.image_url}
+                  alt="Preview"
+                  className="blog-img-upload-preview"
+                  style={{ height: 110, objectFit: "cover" }}
+                />
+                <div className="blog-img-upload-overlay">
+                  <button className="blog-img-change" type="button"
+                    onClick={e => { e.stopPropagation(); medImgRef.current?.click(); }}>
+                    🔄 Change
+                  </button>
+                  <button className="blog-img-remove" type="button" onClick={handleImgRemove}>
+                    ✕ Remove
+                  </button>
+                </div>
+                {uploading && <div className="blog-img-uploading">Uploading…</div>}
+              </>
+            ) : (
+              <div className="blog-img-placeholder">
+                <span className="blog-img-icon">🏥</span>
+                <span className="blog-img-label">Click to upload photo</span>
+                <span className="blog-img-hint">JPG, PNG, WebP</span>
+              </div>
+            )}
+            <input
+              ref={medImgRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleImgSelect}
+            />
+          </div>
+          <input
+            placeholder="Or paste image URL directly"
+            value={imgPreview ? "" : form.image_url}
+            onChange={e => { f("image_url", e.target.value); setImgPreview(""); setImgFile(null); }}
+            style={{ marginTop: 6, fontSize: "0.8rem" }}
+          />
+        </div>
+
+        <div className="form-btns">
+          <button className="btn-save" onClick={save} disabled={saving || uploading}>
+            {uploading ? "Uploading image…" : saving ? "Saving…" : editing ? "Update" : "Add Contact"}
+          </button>
+          {editing && (
+            <button className="btn-cancel" onClick={() => {
+              setEditing(null); setForm(EMPTY_MED);
+              setImgFile(null); setImgPreview("");
+            }}>Cancel</button>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-list">
+        {list.length === 0 && <p style={{ color: "#aaa", textAlign: "center", padding: "20px 0" }}>No medical contacts yet.</p>}
+        {list.map(item => (
+          <div className="admin-item" key={item.id} style={{ alignItems: "flex-start", gap: 14 }}>
+
+            {/* Photo */}
+            {item.image_url && (
+              <img src={item.image_url} alt={item.name}
+                style={{ width: 64, height: 64, borderRadius: 10, objectFit: "cover", border: "1px solid #e0e0e0", flexShrink: 0 }} />
+            )}
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                <strong style={{ fontSize: "0.95rem" }}>{item.name}</strong>
+                <span style={{ background: TYPE_COLOR[item.type] || "#f5f5f5", border: "1px solid #ddd", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
+                  {item.type}
+                </span>
+              </div>
+              {item.specialist && <div className="item-meta">🩺 {item.specialist}</div>}
+              {item.phone && <div className="item-meta">📞 {item.phone}</div>}
+              {item.address && <div className="item-meta">📍 {item.address}</div>}
+              {item.working_hours && <div className="item-meta">🕐 {item.working_hours}</div>}
+              {item.maps_url && (
+                <a href={item.maps_url} target="_blank" rel="noreferrer"
+                  style={{ fontSize: "0.75rem", color: "#1565c0", marginTop: 4, display: "inline-block" }}>
+                  🗺️ View on Maps
+                </a>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="item-btns">
+              <button className="btn-edit" onClick={() => edit(item)}>✏️ Edit</button>
+              {confirmId === item.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(item.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(item.id)}>🗑️</button>
+              }
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
