@@ -7,6 +7,7 @@ export default function Members_Page({ lang }) {
   const [members,    setMembers]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [activeRole, setActiveRole] = useState("All");
+  const [query,      setQuery]      = useState("");
 
   const isMr = lang === "mr";
 
@@ -17,13 +18,21 @@ export default function Members_Page({ lang }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const roles   = ["All", ...new Set(members.map(m => m.role).filter(Boolean))];
-  const visible = activeRole === "All" ? members : members.filter(m => m.role === activeRole);
+  const roles = ["All", ...new Set(members.map(m => m.role).filter(Boolean))];
+
+  const q       = query.trim().toLowerCase();
+  const byRole  = activeRole === "All" ? members : members.filter(m => m.role === activeRole);
+  const visible = q
+    ? byRole.filter(m =>
+        [m.name, m.father_name, m.address, m.mumbai_location, m.bio]
+          .some(v => v && v.toLowerCase().includes(q))
+      )
+    : byRole;
 
   return (
     <div className="mem-page">
 
-      {/* ── HERO HEADER ── */}
+      {/* ── HERO ── */}
       <div className="mem-hero">
         <div className="mem-hero-bg" aria-hidden="true" />
         <div className="mem-hero-inner">
@@ -36,33 +45,49 @@ export default function Members_Page({ lang }) {
           </p>
           <div className="mem-hero-count">
             {!loading && (
-              <span>
-                {members.length} {isMr ? "नोंदणीकृत सदस्य" : "registered members"}
-              </span>
+              <span>{members.length} {isMr ? "नोंदणीकृत सदस्य" : "registered members"}</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* ── ROLE FILTER PILLS ── */}
-      {!loading && roles.length > 1 && (
+      {/* ── SEARCH + FILTER ── */}
+      {!loading && (
         <div className="mem-filter-bar">
-          <div className="mem-filters">
-            {roles.map(r => (
-              <button
-                key={r}
-                className={`mem-filter-btn${activeRole === r ? " active" : ""}`}
-                onClick={() => setActiveRole(r)}
-              >
-                {r}
-                {r !== "All" && (
-                  <span className="mem-filter-count">
-                    {members.filter(m => m.role === r).length}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="mem-search-wrap">
+            <svg className="mem-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              className="mem-search-input"
+              type="search"
+              placeholder={isMr ? "नाव, पत्ता शोधा…" : "Search by name, address…"}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            {query && (
+              <button className="mem-search-clear" onClick={() => setQuery("")} aria-label="Clear">✕</button>
+            )}
           </div>
+
+          {roles.length > 1 && (
+            <div className="mem-filters">
+              {roles.map(r => (
+                <button
+                  key={r}
+                  className={`mem-filter-btn${activeRole === r ? " active" : ""}`}
+                  onClick={() => setActiveRole(r)}
+                >
+                  {r}
+                  {r !== "All" && (
+                    <span className="mem-filter-count">
+                      {members.filter(m => m.role === r).length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -78,11 +103,20 @@ export default function Members_Page({ lang }) {
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty */}
         {!loading && visible.length === 0 && (
           <div className="mem-empty">
-            <span className="mem-empty-icon">👥</span>
-            <p>{isMr ? "कोणतेही सदस्य सापडले नाहीत." : "No members found."}</p>
+            <span className="mem-empty-icon">{q ? "🔍" : "👥"}</span>
+            <p>
+              {q
+                ? (isMr ? `"${query}" साठी कोणताही सदस्य सापडला नाही.` : `No members found for "${query}".`)
+                : (isMr ? "कोणतेही सदस्य सापडले नाहीत." : "No members found.")}
+            </p>
+            {(q || activeRole !== "All") && (
+              <button className="mem-search-reset" onClick={() => { setQuery(""); setActiveRole("All"); }}>
+                {isMr ? "फिल्टर साफ करा" : "Clear filters"}
+              </button>
+            )}
           </div>
         )}
 
@@ -102,7 +136,6 @@ export default function Members_Page({ lang }) {
 function MemberCard({ member: m, index }) {
   const initials = m.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
-  /* Cycle through gradient variants */
   const gradients = [
     "linear-gradient(135deg,#0d5c30,#1aad5c)",
     "linear-gradient(135deg,#0d3d5c,#1a7db8)",
@@ -130,9 +163,7 @@ function MemberCard({ member: m, index }) {
             <span className="mem-edu-badge">🎓 {m.education}</span>
           )}
         </div>
-        {m.father_name && (
-          <p className="mem-father">वडील: {m.father_name}</p>
-        )}
+        {m.father_name && <p className="mem-father">वडील: {m.father_name}</p>}
         {m.address && (
           <p className="mem-address">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

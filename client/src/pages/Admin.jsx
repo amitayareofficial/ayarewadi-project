@@ -1028,11 +1028,128 @@ function AdminMarquee() {
 
 /* ── MEMBERS PAGE ADMIN ───────────────────────────────── */
 const GRAM_ROLES = ["सदस्य", "अध्यक्ष", "उपाध्यक्ष", "सचिव", "खजिनदार", "सल्लागार", "युवा सदस्य"];
-const GRAM_EDU   = ["NA", "10वी पास", "12वी पास", "ITI", "Diploma", "B.A./B.Com/B.Sc.", "B.E./B.Tech", "MBBS", "LLB", "Post-Graduate", "PhD", "इतर"];
+const GRAM_EDU = [
+  "NA",
+  "10वी पास",
+  "12वी पास",
+  "Diploma",
+  "ITI",
+  "B.A.",
+  "B.Sc.",
+  "B.Sc. Computer Science",
+  "B.Com.",
+  "BCA",
+  "BBA",
+  "B.E. (Bachelor of Engineering)",
+  "B.Tech. (Bachelor of Technology)",
+  "M.A.",
+  "M.Sc.",
+  "M.Sc. Computer Science",
+  "M.Com.",
+  "MBA",
+  "MCA",
+  "M.E. (Master of Engineering)",
+  "M.Tech. (Master of Technology)",
+  "Engineering Postgraduate",
+  "Engineering Graduate",
+  "MBBS",
+  "LLB",
+  "CA",
+  "CS",
+  "CMA",
+  "Ph.D.",
+  "Other",
+];
+const MUMBAI_LOCATIONS = [
+  "",
+  // ── Mumbai – Western Line ──
+  "Churchgate, Mumbai",
+  "Marine Lines, Mumbai",
+  "Grant Road, Mumbai",
+  "Mumbai Central, Mumbai",
+  "Mahalaxmi, Mumbai",
+  "Lower Parel, Mumbai",
+  "Prabhadevi, Mumbai",
+  "Dadar, Mumbai",
+  "Matunga Road, Mumbai",
+  "Mahim, Mumbai",
+  "Bandra, Mumbai",
+  "Khar Road, Mumbai",
+  "Santacruz, Mumbai",
+  "Vile Parle, Mumbai",
+  "Andheri, Mumbai",
+  "Jogeshwari, Mumbai",
+  "Goregaon, Mumbai",
+  "Malad, Mumbai",
+  "Kandivali, Mumbai",
+  "Borivali, Mumbai",
+  "Dahisar, Mumbai",
+  "Mira Road, Mumbai",
+  "Bhayander, Mumbai",
+  "Nalasopara, Mumbai",
+  "Virar, Mumbai",
+  // ── Mumbai – Central Line ──
+  "CSMT, Mumbai",
+  "Sion, Mumbai",
+  "Kurla, Mumbai",
+  "Ghatkopar, Mumbai",
+  "Vikhroli, Mumbai",
+  "Kanjurmarg, Mumbai",
+  "Bhandup, Mumbai",
+  "Mulund, Mumbai",
+  "Thane, Mumbai",
+  "Dombivli, Mumbai",
+  "Kalyan, Mumbai",
+  "Ambernath, Mumbai",
+  "Badlapur, Mumbai",
+  // ── Mumbai – Areas ──
+  "Colaba, Mumbai",
+  "Fort, Mumbai",
+  "Nariman Point, Mumbai",
+  "Worli, Mumbai",
+  "Dharavi, Mumbai",
+  "Chembur, Mumbai",
+  "Govandi, Mumbai",
+  "Mankhurd, Mumbai",
+  "Wadala, Mumbai",
+  "Antop Hill, Mumbai",
+  "Powai, Mumbai",
+  "Chandivali, Mumbai",
+  "Sakinaka, Mumbai",
+  "Marol, Mumbai",
+  "Chakala, Mumbai",
+  "Versova, Mumbai",
+  "Oshiwara, Mumbai",
+  "Lokhandwala, Mumbai",
+  "Dahisar East, Mumbai",
+  "Mira-Bhayander, Mumbai",
+  // ── Navi Mumbai ──
+  "Airoli, Navi Mumbai",
+  "Ghansoli, Navi Mumbai",
+  "Rabale, Navi Mumbai",
+  "Turbhe, Navi Mumbai",
+  "Vashi, Navi Mumbai",
+  "Sanpada, Navi Mumbai",
+  "Juinagar, Navi Mumbai",
+  "Nerul, Navi Mumbai",
+  "Seawoods, Navi Mumbai",
+  "Belapur, Navi Mumbai",
+  "Kharghar, Navi Mumbai",
+  "Mansarovar, Navi Mumbai",
+  "Khandeshwar, Navi Mumbai",
+  "Panvel, Navi Mumbai",
+  "Taloja, Navi Mumbai",
+  "Ulwe, Navi Mumbai",
+  "Dronagiri, Navi Mumbai",
+  "Kamothe, Navi Mumbai",
+  "Kalamboli, Navi Mumbai",
+  "Kopar Khairane, Navi Mumbai",
+];
+
 const EMPTY_GM   = {
   first_name: "", middle_name: "", last_name: "",
   father_name: "", role: "सदस्य",
-  address: "", mumbai_location: "", education: "NA",
+  address: "आयरेवाडी", mumbai_location: "", education: "NA",
   bio: "", mobile: "", display_order: "0"
 };
 
@@ -1200,7 +1317,11 @@ function AdminGramMembers() {
             {/* Mumbai location */}
             <div>
               <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>मुंबई पत्ता</label>
-              <input placeholder="मुंबई पत्ता (optional)" value={form.mumbai_location} onChange={e => f("mumbai_location", e.target.value)} />
+              <select value={form.mumbai_location} onChange={e => f("mumbai_location", e.target.value)}>
+                {MUMBAI_LOCATIONS.map(loc => (
+                  <option key={loc} value={loc}>{loc || "— निवडा (optional) —"}</option>
+                ))}
+              </select>
             </div>
 
             {/* Bio */}
