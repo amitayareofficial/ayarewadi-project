@@ -686,6 +686,109 @@ app.delete("/gram-members/:id", authAdmin, async (req, res) => {
 const memberRoutes = require("./routes/members");
 app.use("/api/members", memberRoutes);
 
+// ── BUDGET YEARS (Year-wise village finances) ─────────────
+pool.query(`
+  CREATE TABLE IF NOT EXISTS budget_years (
+    id              SERIAL PRIMARY KEY,
+    year            INTEGER NOT NULL UNIQUE,
+    opening_balance NUMERIC(12,2) DEFAULT 0,
+    notes           TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS budget_entries (
+    id          SERIAL PRIMARY KEY,
+    year_id     INTEGER NOT NULL,
+    type        VARCHAR(20) NOT NULL,
+    description VARCHAR(300) NOT NULL,
+    amount      NUMERIC(12,2) NOT NULL,
+    date        DATE,
+    category    VARCHAR(80),
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
+
+app.get("/budget-years", async (req, res) => {
+  try {
+    const years = await pool.query("SELECT * FROM budget_years ORDER BY year DESC");
+    const result = await Promise.all(years.rows.map(async yr => {
+      const entries = await pool.query("SELECT * FROM budget_entries WHERE year_id=$1 ORDER BY date DESC, created_at DESC", [yr.id]);
+      const income  = entries.rows.filter(e => e.type === "income").reduce((s, e) => s + parseFloat(e.amount), 0);
+      const expense = entries.rows.filter(e => e.type === "expense").reduce((s, e) => s + parseFloat(e.amount), 0);
+      return { ...yr, income, expense, closing_balance: parseFloat(yr.opening_balance) + income - expense, entries: entries.rows };
+    }));
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/budget-years", authAdmin, async (req, res) => {
+  try {
+    const { year, opening_balance, notes } = req.body;
+    if (!year) return res.status(400).json({ error: "Year is required" });
+    const r = await pool.query(
+      "INSERT INTO budget_years (year, opening_balance, notes) VALUES ($1,$2,$3) RETURNING *",
+      [year, opening_balance || 0, notes || null]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) {
+    if (e.code === "23505") return res.status(409).json({ error: "Year already exists" });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put("/budget-years/:id", authAdmin, async (req, res) => {
+  try {
+    const { opening_balance, notes } = req.body;
+    const r = await pool.query(
+      "UPDATE budget_years SET opening_balance=$1, notes=$2 WHERE id=$3 RETURNING *",
+      [opening_balance || 0, notes || null, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Year not found" });
+    res.json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/budget-years/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM budget_entries WHERE year_id=$1", [req.params.id]);
+    await pool.query("DELETE FROM budget_years WHERE id=$1", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/budget-years/:yearId/entries", authAdmin, async (req, res) => {
+  try {
+    const { type, description, amount, date, category } = req.body;
+    if (!type || !description || !amount) return res.status(400).json({ error: "type, description, amount are required" });
+    const r = await pool.query(
+      "INSERT INTO budget_entries (year_id, type, description, amount, date, category) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+      [req.params.yearId, type, description, amount, date || null, category || null]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/budget-entries/:id", authAdmin, async (req, res) => {
+  try {
+    const { type, description, amount, date, category } = req.body;
+    const r = await pool.query(
+      "UPDATE budget_entries SET type=$1, description=$2, amount=$3, date=$4, category=$5 WHERE id=$6 RETURNING *",
+      [type, description, amount, date || null, category || null, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Entry not found" });
+    res.json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/budget-entries/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM budget_entries WHERE id=$1", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/", (req, res) => res.send("Ayarewadi Backend Running ✅"));
 
 app.use((err, req, res, next) => {

@@ -74,7 +74,7 @@ const LANG = {
       title: "Village Services",
       subtitle: "Everything you need from Ayarewadi — always at your fingertips.",
       tiles: [
-        { label: "Emergency", sub: "Hospitals & emergency contacts", tag: "Help & Safety" },
+        { label: "Help & Services", sub: "Hospitals, govt offices & contacts", tag: "Village Services" },
         { label: "Events",    sub: "Upcoming village programs",      tag: "Stay Updated"  },
         { label: "Gallery",   sub: "Village photo memories",         tag: "Photos"        },
         { label: "Portal",    sub: "Family tree & village budget",   tag: "Members Only"  },
@@ -199,7 +199,7 @@ const LANG = {
       title: "ग्राम सेवा",
       subtitle: "आयरेवाडीतील सर्व सेवा — नेहमी तुमच्या हाताशी.",
       tiles: [
-        { label: "आपत्कालीन", sub: "रुग्णालये व आपत्कालीन संपर्क", tag: "मदत व सुरक्षा" },
+        { label: "मदत व सेवा", sub: "रुग्णालये, शासकीय कार्यालये व संपर्क", tag: "ग्राम सेवा" },
         { label: "कार्यक्रम", sub: "येणारे गाव कार्यक्रम",          tag: "अद्ययावत राहा" },
         { label: "गॅलरी",    sub: "गावाच्या फोटो आठवणी",            tag: "फोटो" },
         { label: "पोर्टल",   sub: "कुटुंब वृक्ष व गाव अर्थसंकल्प", tag: "सभासद फक्त"   },

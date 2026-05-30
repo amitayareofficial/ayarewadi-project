@@ -5,7 +5,6 @@ import {
   Input, BoxReveal, Ripple, BottomGradient, Label,
 } from "@/components/ui/animated-auth";
 
-// ── Translations ──────────────────────────────────────────
 const T = {
   en: {
     leftWelcome: "Join Us",
@@ -15,13 +14,13 @@ const T = {
     heading:     "Member Registration",
     sub:         "नोंदणी करा · Ayarewadi Village Portal",
     photoLabel:  "Profile Photo",
-    photoHint:   "Upload Photo",
+    photoHint:   "Upload Photo (Required)",
     changePhoto: "Change Photo",
-    required:    "Required",
-    fullName:    "Full Name",      dob:     "Date of Birth",
-    mobile:      "Mobile Number",  email:   "Email (optional)",
-    address:     "Address (optional)",
-    password:    "Password",       confirm: "Confirm Password",
+    firstName:   "First Name",   middleName:  "Middle Name",
+    lastName:    "Last Name",    nickname:    "Nickname (Optional)",
+    dob:         "Date of Birth", mobile:     "Mobile Number",
+    email:       "Email (Optional)", address: "Address (Optional)",
+    password:    "Password",     confirm:     "Confirm Password",
     submitBtn:   "Create Account →",
     submitting:  "Creating account...",
     haveAccount: "Already have an account?",
@@ -41,13 +40,13 @@ const T = {
     heading:     "सभासद नोंदणी",
     sub:         "Member Registration · Ayarewadi Village Portal",
     photoLabel:  "प्रोफाइल फोटो",
-    photoHint:   "फोटो अपलोड करा",
+    photoHint:   "फोटो अपलोड करा (आवश्यक)",
     changePhoto: "फोटो बदला",
-    required:    "आवश्यक",
-    fullName:    "पूर्ण नाव",      dob:     "जन्मतारीख",
-    mobile:      "मोबाईल नंबर",   email:   "ईमेल (पर्यायी)",
-    address:     "पत्ता (पर्यायी)",
-    password:    "पासवर्ड",        confirm: "पासवर्ड पुन्हा टाका",
+    firstName:   "पहिले नाव",    middleName:  "वडिलांचे / मधले नाव",
+    lastName:    "आडनाव",        nickname:    "टोपणनाव (पर्यायी)",
+    dob:         "जन्मतारीख",    mobile:      "मोबाईल नंबर",
+    email:       "ईमेल (पर्यायी)", address:  "पत्ता (पर्यायी)",
+    password:    "पासवर्ड",       confirm:    "पासवर्ड पुन्हा टाका",
     submitBtn:   "नोंदणी करा →",
     submitting:  "खाते तयार होत आहे...",
     haveAccount: "आधीच खाते आहे?",
@@ -61,7 +60,6 @@ const T = {
   },
 };
 
-// ── Password strength ─────────────────────────────────────
 const STRENGTH = [
   { label: "Very Weak", mr: "अतिशय कमकुवत", color: "#ef4444" },
   { label: "Weak",      mr: "कमकुवत",        color: "#f97316" },
@@ -80,7 +78,6 @@ function passwordStrength(pw) {
   return Math.min(s, 4);
 }
 
-// ── Mobile prefix input ───────────────────────────────────
 function MobileInput({ value, onChange, placeholder }) {
   return (
     <div className="flex rounded-lg overflow-hidden border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-green-400 transition-all duration-300">
@@ -99,7 +96,6 @@ function MobileInput({ value, onChange, placeholder }) {
   );
 }
 
-// ── Success screen ────────────────────────────────────────
 function SuccessScreen({ t, onGoLogin }) {
   const steps = [
     { badge: "✓", bg: "bg-green-500",   label: t.step1 },
@@ -135,17 +131,19 @@ function SuccessScreen({ t, onGoLogin }) {
   );
 }
 
-// ── Main Register Component ───────────────────────────────
 export default function Register({ onGoLogin, lang = "mr" }) {
   const t = T[lang] ?? T.mr;
-  const [form, setForm]       = useState({ full_name: "", dob: "", mobile: "", email: "", address: "", password: "", confirm: "" });
-  const [photo, setPhoto]     = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [form, setForm] = useState({
+    first_name: "", middle_name: "", last_name: "", nickname: "",
+    dob: "", mobile: "", email: "", address: "", password: "", confirm: "",
+  });
+  const [photo, setPhoto]             = useState(null);
+  const [preview, setPreview]         = useState(null);
   const [showPass, setShowPass]       = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  const [done, setDone]       = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [done, setDone]               = useState(false);
   const fileRef = useRef();
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -162,12 +160,14 @@ export default function Register({ onGoLogin, lang = "mr" }) {
 
   const validate = () => {
     const mr = lang === "mr";
-    if (!form.full_name.trim())             return mr ? "पूर्ण नाव आवश्यक आहे"            : "Full name is required";
-    if (!form.dob)                          return mr ? "जन्मतारीख आवश्यक आहे"            : "Date of birth is required";
-    if (!/^[6-9]\d{9}$/.test(form.mobile)) return mr ? "वैध १०-अंकी मोबाईल नंबर टाका"    : "Enter a valid 10-digit mobile number";
-    if (!photo)                             return mr ? "प्रोफाइल फोटो आवश्यक आहे"         : "Profile photo is required";
-    if (form.password.length < 6)          return mr ? "पासवर्ड किमान ६ अक्षरांचा असावा" : "Password must be at least 6 characters";
-    if (form.password !== form.confirm)    return mr ? "पासवर्ड जुळत नाही"                : "Passwords do not match";
+    if (!form.first_name.trim())             return mr ? "पहिले नाव आवश्यक आहे"            : "First name is required";
+    if (!form.middle_name.trim())            return mr ? "मधले नाव आवश्यक आहे"             : "Middle name is required";
+    if (!form.last_name.trim())              return mr ? "आडनाव आवश्यक आहे"                : "Last name is required";
+    if (!form.dob)                           return mr ? "जन्मतारीख आवश्यक आहे"            : "Date of birth is required";
+    if (!/^[6-9]\d{9}$/.test(form.mobile))  return mr ? "वैध १०-अंकी मोबाईल नंबर टाका"   : "Enter a valid 10-digit mobile number";
+    if (!photo)                              return mr ? "प्रोफाइल फोटो आवश्यक आहे"        : "Profile photo is required";
+    if (form.password.length < 6)           return mr ? "पासवर्ड किमान ६ अक्षरांचा असावा" : "Password must be at least 6 characters";
+    if (form.password !== form.confirm)     return mr ? "पासवर्ड जुळत नाही"               : "Passwords do not match";
     return null;
   };
 
@@ -194,7 +194,7 @@ export default function Register({ onGoLogin, lang = "mr" }) {
   return (
     <section className="portal-page flex min-h-screen w-full">
 
-      {/* ── Left panel — desktop only ──────────────────── */}
+      {/* Left panel — desktop only */}
       <div className="hidden lg:flex lg:w-2/5 relative items-center justify-center overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-emerald-700 flex-shrink-0">
         <div className="absolute inset-0">
           <Ripple mainCircleSize={140} numCircles={6} />
@@ -215,10 +215,9 @@ export default function Register({ onGoLogin, lang = "mr" }) {
         </div>
       </div>
 
-      {/* ── Right panel ────────────────────────────────── */}
+      {/* Right panel */}
       <div className="w-full lg:w-3/5 flex flex-col bg-white flex-1">
 
-        {/* Mobile banner — hidden on desktop */}
         <div className="lg:hidden bg-gradient-to-r from-green-900 to-emerald-700 px-5 pt-4 pb-4">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🏠</div>
@@ -229,11 +228,9 @@ export default function Register({ onGoLogin, lang = "mr" }) {
           <p className="text-green-200 text-xs tracking-widest uppercase font-medium mt-2">{t.tagline}</p>
         </div>
 
-        {/* Form area */}
         <div className="portal-form-area flex-1 flex flex-col lg:justify-center items-center px-4 sm:px-8 lg:px-12 py-6 lg:py-10">
           <div className="w-full max-w-xl">
 
-            {/* Logo — desktop only */}
             <div className="hidden lg:flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-emerald-400 flex items-center justify-center text-white text-xl shadow-md">
                 🏠
@@ -243,7 +240,6 @@ export default function Register({ onGoLogin, lang = "mr" }) {
               </span>
             </div>
 
-            {/* Heading */}
             <BoxReveal boxColor="var(--skeleton)" duration={0.3} className="mb-1">
               <h2 className="font-black text-2xl sm:text-3xl text-neutral-800">{t.heading}</h2>
             </BoxReveal>
@@ -274,30 +270,49 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                   >
                     {preview ? t.changePhoto : t.photoHint}
                   </button>
-                  {!photo && <span className="text-xs text-red-500 font-medium">{t.required}</span>}
+                  {!photo && <span className="text-xs text-red-500 font-medium">{lang === "mr" ? "आवश्यक" : "Required"}</span>}
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
               </div>
             </BoxReveal>
 
-            {/* Form */}
             <form onSubmit={submit} className="flex flex-col gap-4">
 
-              {/* Full Name + DOB */}
+              {/* First / Middle / Last Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { key: "first_name",  label: t.firstName,  req: true,  ph: lang==="mr"?"अमित":"Amit" },
+                  { key: "middle_name", label: t.middleName, req: true,  ph: lang==="mr"?"बाळू":"Balu" },
+                  { key: "last_name",   label: t.lastName,   req: true,  ph: lang==="mr"?"आयरे":"Ayare" },
+                ].map(({ key, label, req, ph }) => (
+                  <div key={key} className="flex flex-col gap-2">
+                    <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                      <Label>{label} {req && <span className="text-red-500">*</span>}</Label>
+                    </BoxReveal>
+                    <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                      <Input type="text" placeholder={ph} value={form[key]} onChange={set(key)} />
+                    </BoxReveal>
+                  </div>
+                ))}
+              </div>
+
+              {/* Nickname */}
+              <div className="flex flex-col gap-2">
+                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                  <Label>{t.nickname}</Label>
+                </BoxReveal>
+                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                  <Input
+                    type="text"
+                    placeholder={lang === "mr" ? "उदा. अमित्या, बाळ्या..." : "e.g. Amitya, Balya..."}
+                    value={form.nickname}
+                    onChange={set("nickname")}
+                  />
+                </BoxReveal>
+              </div>
+
+              {/* DOB + Mobile */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                    <Label>{t.fullName} <span className="text-red-500">*</span></Label>
-                  </BoxReveal>
-                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                    <Input
-                      type="text"
-                      placeholder={lang === "mr" ? "उदा. अमित आयरे" : "e.g. Amit Ayare"}
-                      value={form.full_name}
-                      onChange={set("full_name")}
-                    />
-                  </BoxReveal>
-                </div>
                 <div className="flex flex-col gap-2">
                   <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
                     <Label>{t.dob} <span className="text-red-500">*</span></Label>
@@ -306,10 +321,6 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                     <Input type="date" value={form.dob} onChange={set("dob")} />
                   </BoxReveal>
                 </div>
-              </div>
-
-              {/* Mobile + Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
                     <Label>{t.mobile} <span className="text-red-500">*</span></Label>
@@ -322,34 +333,31 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                     />
                   </BoxReveal>
                 </div>
+              </div>
+
+              {/* Email + Address */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
                     <Label>{t.email}</Label>
                   </BoxReveal>
                   <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
+                    <Input type="email" placeholder="email@example.com" value={form.email} onChange={set("email")} />
+                  </BoxReveal>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
+                    <Label>{t.address}</Label>
+                  </BoxReveal>
+                  <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
                     <Input
-                      type="email"
-                      placeholder="email@example.com"
-                      value={form.email}
-                      onChange={set("email")}
+                      type="text"
+                      placeholder={lang === "mr" ? "गाव / शहर, जिल्हा" : "Village / Town, District"}
+                      value={form.address}
+                      onChange={set("address")}
                     />
                   </BoxReveal>
                 </div>
-              </div>
-
-              {/* Address */}
-              <div className="flex flex-col gap-2">
-                <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
-                  <Label>{t.address}</Label>
-                </BoxReveal>
-                <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                  <Input
-                    type="text"
-                    placeholder={lang === "mr" ? "गाव / शहर, जिल्हा" : "Village / Town, District"}
-                    value={form.address}
-                    onChange={set("address")}
-                  />
-                </BoxReveal>
               </div>
 
               {/* Password + Confirm */}
@@ -378,11 +386,8 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                   {form.password && (
                     <div className="flex items-center gap-1.5 mt-1">
                       {[0,1,2,3,4].map(i => (
-                        <div
-                          key={i}
-                          className="flex-1 h-1 rounded-full transition-all duration-300"
-                          style={{ background: i <= strength ? STRENGTH[strength].color : "#e5e7eb" }}
-                        />
+                        <div key={i} className="flex-1 h-1 rounded-full transition-all duration-300"
+                          style={{ background: i <= strength ? STRENGTH[strength].color : "#e5e7eb" }} />
                       ))}
                       <span className="text-xs font-bold ml-1 whitespace-nowrap" style={{ color: STRENGTH[strength].color }}>
                         {lang === "mr" ? STRENGTH[strength].mr : STRENGTH[strength].label}
@@ -414,14 +419,12 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                 </div>
               </div>
 
-              {/* Error */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm font-medium flex items-center gap-2">
                   ⚠️ {error}
                 </div>
               )}
 
-              {/* Submit */}
               <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3} overflow="visible">
                 <button
                   type="submit"
@@ -434,15 +437,10 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                 </button>
               </BoxReveal>
 
-              {/* Login link */}
               <BoxReveal boxColor="var(--skeleton)" duration={0.3}>
                 <p className="text-center text-sm text-neutral-400">
                   {t.haveAccount}{" "}
-                  <button
-                    type="button"
-                    onClick={onGoLogin}
-                    className="text-green-600 font-bold hover:underline outline-none"
-                  >
+                  <button type="button" onClick={onGoLogin} className="text-green-600 font-bold hover:underline outline-none">
                     {t.loginLink}
                   </button>
                 </p>

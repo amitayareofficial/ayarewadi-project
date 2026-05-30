@@ -14,7 +14,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
-  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog | members | marquee
+  const [tab, setTab] = useState("events"); // events | gallery | budget | budget_years | emergency | announcements | blog | members | marquee | family_people | family_requests
 
   const logout = () => { localStorage.removeItem("admin_token"); setLoggedIn(false); };
 
@@ -26,16 +26,19 @@ export default function Admin() {
       <aside className="admin-sidebar">
         <div className="admin-brand">⚙️ Admin Panel</div>
         {[
-          { id: "events",        icon: "📅", label: "Events" },
-          { id: "announcements", icon: "📢", label: "Announcements" },
-          { id: "gallery",       icon: "🖼️", label: "Gallery" },
-          { id: "budget",        icon: "💰", label: "Budget" },
-          { id: "emergency",     icon: "🏘️", label: "Help & Services" },
-          { id: "blog",          icon: "📝", label: "Blog" },
-          { id: "medical",       icon: "💊", label: "Medical" },
-          { id: "members",       icon: "👥", label: "Members" },
-          { id: "marquee",       icon: "🎞️", label: "Marquee" },
-          { id: "gram_members",  icon: "🏘️", label: "Members Page" },
+          { id: "events",          icon: "📅", label: "Events" },
+          { id: "announcements",   icon: "📢", label: "Announcements" },
+          { id: "gallery",         icon: "🖼️", label: "Gallery" },
+          { id: "budget",          icon: "💰", label: "Budget (Old)" },
+          { id: "budget_years",    icon: "📊", label: "Balance Sheet" },
+          { id: "emergency",       icon: "🏘️", label: "Help & Services" },
+          { id: "blog",            icon: "📝", label: "Blog" },
+          { id: "medical",         icon: "💊", label: "Medical" },
+          { id: "members",         icon: "👥", label: "Members" },
+          { id: "marquee",         icon: "🎞️", label: "Marquee" },
+          { id: "gram_members",    icon: "🏘️", label: "Members Page" },
+          { id: "family_people",   icon: "🌳", label: "Family Tree" },
+          { id: "family_requests", icon: "📋", label: "Family Approvals" },
         ].map(t => (
           <button key={t.id} className={`admin-tab ${tab === t.id ? "active" : ""}`}
             onClick={() => setTab(t.id)}>
@@ -47,16 +50,19 @@ export default function Admin() {
 
       {/* ADMIN CONTENT */}
       <main className="admin-content">
-        {tab === "events"        && <AdminEvents />}
-        {tab === "announcements" && <AdminAnnouncements />}
-        {tab === "gallery"       && <AdminGallery />}
-        {tab === "budget"        && <AdminBudget />}
-        {tab === "emergency"     && <AdminHelpServices />}
-        {tab === "blog"          && <AdminBlog />}
-        {tab === "medical"       && <AdminMedical />}
-        {tab === "members"       && <AdminMembers />}
-        {tab === "marquee"       && <AdminMarquee />}
-        {tab === "gram_members"  && <AdminGramMembers />}
+        {tab === "events"          && <AdminEvents />}
+        {tab === "announcements"   && <AdminAnnouncements />}
+        {tab === "gallery"         && <AdminGallery />}
+        {tab === "budget"          && <AdminBudget />}
+        {tab === "budget_years"    && <AdminBudgetYears />}
+        {tab === "emergency"       && <AdminHelpServices />}
+        {tab === "blog"            && <AdminBlog />}
+        {tab === "medical"         && <AdminMedical />}
+        {tab === "members"         && <AdminMembers />}
+        {tab === "marquee"         && <AdminMarquee />}
+        {tab === "gram_members"    && <AdminGramMembers />}
+        {tab === "family_people"   && <AdminFamilyPeople />}
+        {tab === "family_requests" && <AdminFamilyRequests />}
       </main>
     </div>
   );
@@ -2148,6 +2154,567 @@ function AdminGramMembers() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── BUDGET YEARS (Village Balance Sheet) ──────────────── */
+const ENTRY_CATS = ["Donation", "Collection", "Event Income", "Temple", "Infrastructure", "Salaries", "Maintenance", "Other"];
+
+function AdminBudgetYears() {
+  const [years,   setYears]   = useState([]);
+  const [activeYr, setActiveYr] = useState(null);
+  const [toast,   setToast]   = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+
+  // Year form
+  const [yrForm,  setYrForm]  = useState({ year: "", opening_balance: "", notes: "" });
+  const [yrEdit,  setYrEdit]  = useState(null);
+
+  // Entry form
+  const [entForm, setEntForm] = useState({ type: "income", description: "", amount: "", date: "", category: "" });
+  const [entEdit, setEntEdit] = useState(null);
+  const [confirmEntId, setConfirmEntId] = useState(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/budget-years`, { headers: authHeader() })
+      .then(r => {
+        setYears(r.data);
+        if (!activeYr && r.data.length > 0) setActiveYr(r.data[0].id);
+      })
+      .catch(() => showToast("Failed to load balance sheet."));
+
+  useEffect(() => { load(); }, []);
+
+  const saveYear = async () => {
+    if (!yrForm.year) return showToast("Year is required.");
+    try {
+      if (yrEdit) {
+        await axios.put(`${API}/budget-years/${yrEdit}`, yrForm, { headers: authHeader() });
+        setYrEdit(null);
+        showToast("Year updated.");
+      } else {
+        const r = await axios.post(`${API}/budget-years`, yrForm, { headers: authHeader() });
+        setActiveYr(r.data.id);
+        showToast("Year added.");
+      }
+      setYrForm({ year: "", opening_balance: "", notes: "" });
+      load();
+    } catch (e) { showToast(e.response?.data?.error || "Error saving year."); }
+  };
+
+  const deleteYear = async id => {
+    try {
+      await axios.delete(`${API}/budget-years/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      if (activeYr === id) setActiveYr(null);
+      showToast("Year deleted.");
+      load();
+    } catch { showToast("Error deleting year."); }
+  };
+
+  const saveEntry = async () => {
+    if (!entForm.description || !entForm.amount) return showToast("Description and amount are required.");
+    try {
+      if (entEdit) {
+        await axios.put(`${API}/budget-entries/${entEdit}`, entForm, { headers: authHeader() });
+        setEntEdit(null);
+        showToast("Entry updated.");
+      } else {
+        await axios.post(`${API}/budget-years/${activeYr}/entries`, entForm, { headers: authHeader() });
+        showToast("Entry added.");
+      }
+      setEntForm({ type: "income", description: "", amount: "", date: "", category: "" });
+      load();
+    } catch { showToast("Error saving entry."); }
+  };
+
+  const deleteEntry = async id => {
+    try {
+      await axios.delete(`${API}/budget-entries/${id}`, { headers: authHeader() });
+      setConfirmEntId(null);
+      showToast("Entry deleted.");
+      load();
+    } catch { showToast("Error deleting entry."); }
+  };
+
+  const editYear = yr => {
+    setYrEdit(yr.id);
+    setYrForm({ year: yr.year, opening_balance: yr.opening_balance, notes: yr.notes || "" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const editEntry = e => {
+    setEntEdit(e.id);
+    setEntForm({ type: e.type, description: e.description, amount: e.amount, date: e.date?.split("T")[0] || "", category: e.category || "" });
+  };
+
+  const fmt = n => "₹ " + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+  const activeYear = years.find(y => y.id === activeYr);
+
+  return (
+    <div className="admin-section">
+      <h2>📊 Village Balance Sheet</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* Add / Edit Year */}
+      <div className="admin-form">
+        <h3>{yrEdit ? "✏️ Edit Year" : "➕ Add Year"}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Year *</label>
+            <input type="number" placeholder="e.g. 2025" value={yrForm.year}
+              onChange={e => setYrForm(f => ({ ...f, year: e.target.value }))} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Opening Balance (₹)</label>
+            <input type="number" placeholder="0" value={yrForm.opening_balance}
+              onChange={e => setYrForm(f => ({ ...f, opening_balance: e.target.value }))} />
+          </div>
+        </div>
+        <input placeholder="Notes (optional)" value={yrForm.notes}
+          onChange={e => setYrForm(f => ({ ...f, notes: e.target.value }))} />
+        <div className="form-btns">
+          <button className="btn-save" onClick={saveYear}>{yrEdit ? "Update Year" : "Add Year"}</button>
+          {yrEdit && <button className="btn-cancel" onClick={() => { setYrEdit(null); setYrForm({ year:"",opening_balance:"",notes:"" }); }}>Cancel</button>}
+        </div>
+      </div>
+
+      {/* Year selector */}
+      {years.length > 0 && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "1rem" }}>
+          {years.map(y => (
+            <div key={y.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button
+                onClick={() => setActiveYr(y.id)}
+                style={{ background: activeYr===y.id?"#e65100":"#f5f5f5", color: activeYr===y.id?"#fff":"#555", border: `2px solid ${activeYr===y.id?"#e65100":"#e0e0e0"}`, borderRadius: 8, padding: "6px 14px", fontWeight: 700, cursor: "pointer" }}>
+                {y.year}
+              </button>
+              <button className="btn-edit" style={{ padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => editYear(y)}>✏️</button>
+              {confirmId === y.id
+                ? <span className="inline-confirm">Delete?&nbsp;<button className="btn-del" onClick={() => deleteYear(y.id)}>Yes</button>&nbsp;<button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button></span>
+                : <button className="btn-del" style={{ padding: "4px 8px", fontSize: "0.75rem" }} onClick={() => setConfirmId(y.id)}>🗑️</button>
+              }
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Summary */}
+      {activeYear && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 10, marginBottom: "1.25rem" }}>
+            {[
+              { label: "Opening Balance", val: fmt(activeYear.opening_balance), color: "#1565c0", bg: "#e3f2fd" },
+              { label: "Total Income",    val: fmt(activeYear.income),           color: "#2e7d32", bg: "#e8f5e9" },
+              { label: "Total Expenses",  val: fmt(activeYear.expense),          color: "#c62828", bg: "#fdecea" },
+              { label: "Closing Balance", val: fmt(activeYear.closing_balance),  color: "#e65100", bg: "#fff3e0" },
+            ].map(c => (
+              <div key={c.label} style={{ background: c.bg, borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: c.color }}>{c.val}</div>
+                <div style={{ fontSize: "0.68rem", color: c.color, marginTop: 2 }}>{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Add / Edit Entry */}
+          <div className="admin-form" style={{ marginBottom: "1rem" }}>
+            <h3>{entEdit ? "✏️ Edit Entry" : "➕ Add Entry"}</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Type *</label>
+                <select value={entForm.type} onChange={e => setEntForm(f => ({ ...f, type: e.target.value }))}>
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>Category</label>
+                <select value={entForm.category} onChange={e => setEntForm(f => ({ ...f, category: e.target.value }))}>
+                  <option value="">— None —</option>
+                  {ENTRY_CATS.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+            <input placeholder="Description *" value={entForm.description}
+              onChange={e => setEntForm(f => ({ ...f, description: e.target.value }))} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <input type="number" placeholder="Amount (₹) *" value={entForm.amount}
+                onChange={e => setEntForm(f => ({ ...f, amount: e.target.value }))} />
+              <input type="date" value={entForm.date}
+                onChange={e => setEntForm(f => ({ ...f, date: e.target.value }))} />
+            </div>
+            <div className="form-btns">
+              <button className="btn-save" onClick={saveEntry}>{entEdit ? "Update Entry" : "Add Entry"}</button>
+              {entEdit && <button className="btn-cancel" onClick={() => { setEntEdit(null); setEntForm({ type:"income",description:"",amount:"",date:"",category:"" }); }}>Cancel</button>}
+            </div>
+          </div>
+
+          {/* Entries list */}
+          {["income", "expense"].map(type => {
+            const entries = (activeYear.entries || []).filter(e => e.type === type);
+            if (!entries.length) return null;
+            const color = type === "income" ? "#2e7d32" : "#c62828";
+            const total = entries.reduce((s, e) => s + parseFloat(e.amount), 0);
+            return (
+              <div key={type} style={{ marginBottom: "1rem" }}>
+                <div style={{ fontWeight: 800, fontSize: "0.88rem", color, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {type === "income" ? "📈 Income" : "📉 Expenses"}
+                </div>
+                <div className="admin-list">
+                  {entries.map(e => (
+                    <div className="admin-item" key={e.id} style={{ alignItems: "center", gap: 10 }}>
+                      <div style={{ flex: 1 }}>
+                        <strong style={{ fontSize: "0.9rem" }}>{e.description}</strong>
+                        <div className="item-meta">
+                          {e.category && `${e.category} · `}
+                          {e.date ? new Date(e.date).toLocaleDateString("en-IN") : "No date"}
+                        </div>
+                      </div>
+                      <span style={{ fontWeight: 800, color, flexShrink: 0 }}>
+                        {type === "income" ? "+" : "-"} ₹{Number(e.amount).toLocaleString("en-IN")}
+                      </span>
+                      <div className="item-btns" style={{ flexShrink: 0 }}>
+                        <button className="btn-edit" style={{ fontSize: "0.78rem", padding: "4px 8px" }} onClick={() => editEntry(e)}>✏️</button>
+                        {confirmEntId === e.id
+                          ? <span className="inline-confirm">Sure?&nbsp;<button className="btn-del" onClick={() => deleteEntry(e.id)}>Yes</button>&nbsp;<button className="btn-cancel" onClick={() => setConfirmEntId(null)}>No</button></span>
+                          : <button className="btn-del" style={{ fontSize: "0.78rem", padding: "4px 8px" }} onClick={() => setConfirmEntId(e.id)}>🗑️</button>
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ textAlign: "right", fontWeight: 800, color, padding: "6px 10px 0", fontSize: "0.88rem" }}>
+                  Total: ₹{total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {years.length === 0 && (
+        <p style={{ color: "#aaa", textAlign: "center", padding: "20px 0" }}>No years yet. Add a year above to get started.</p>
+      )}
+    </div>
+  );
+}
+
+/* ── FAMILY PEOPLE (Village Family Tree) ─────────────────── */
+const RELATION_TYPES = ["father","mother","spouse","son","daughter"];
+const EMPTY_PERSON = { first_name:"",middle_name:"",last_name:"",nickname:"",mobile:"",dob:"",gender:"" };
+
+function AdminFamilyPeople() {
+  const [people,  setPeople]  = useState([]);
+  const [form,    setForm]    = useState({ ...EMPTY_PERSON });
+  const [editing, setEditing] = useState(null);
+  const [toast,   setToast]   = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [search,  setSearch]  = useState("");
+  const [relForm, setRelForm] = useState({ person_id:"",related_person_id:"",relation_type:"father" });
+  const [relToast, setRelToast] = useState("");
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/api/members/family-people`, { headers: authHeader() })
+      .then(r => setPeople(r.data))
+      .catch(() => showToast("Failed to load."));
+  useEffect(() => { load(); }, []);
+
+  const f = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const save = async () => {
+    if (!form.first_name.trim() || !form.last_name.trim()) return showToast("First and last name are required.");
+    try {
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      if (editing) {
+        await axios.put(`${API}/api/members/admin/family-people/${editing}`, fd, { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } });
+        setEditing(null); showToast("Person updated.");
+      } else {
+        await axios.post(`${API}/api/members/admin/family-people`, fd, { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } });
+        showToast("Person added.");
+      }
+      setForm({ ...EMPTY_PERSON }); load();
+    } catch (e) { showToast(e.response?.data?.error || "Error saving."); }
+  };
+
+  const del = async id => {
+    try {
+      await axios.delete(`${API}/api/members/admin/family-people/${id}`, { headers: authHeader() });
+      setConfirmId(null); showToast("Person deleted."); load();
+    } catch { showToast("Error deleting."); }
+  };
+
+  const startEdit = p => {
+    setEditing(p.id);
+    setForm({ first_name: p.first_name, middle_name: p.middle_name||"", last_name: p.last_name, nickname: p.nickname||"", mobile: p.mobile||"", dob: p.dob?.split("T")[0]||"", gender: p.gender||"" });
+    window.scrollTo({ top:0, behavior:"smooth" });
+  };
+
+  const addRelation = async () => {
+    if (!relForm.person_id || !relForm.related_person_id) { setRelToast("Select both persons."); return; }
+    if (relForm.person_id === relForm.related_person_id) { setRelToast("Cannot relate a person to themselves."); return; }
+    try {
+      await axios.post(`${API}/api/members/admin/family-relations`, relForm, { headers: authHeader() });
+      setRelForm({ person_id:"",related_person_id:"",relation_type:"father" });
+      setRelToast("Relation added."); setTimeout(() => setRelToast(""), 3000);
+      load();
+    } catch (e) { setRelToast(e.response?.data?.error || "Error adding relation."); }
+  };
+
+  const filtered = people.filter(p =>
+    !search ||
+    [p.first_name, p.middle_name, p.last_name, p.nickname].some(n => n?.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const PersonSelect = ({ value, onChange }) => (
+    <select value={value} onChange={e => onChange(e.target.value)} style={{ flex: 1 }}>
+      <option value="">— Select Person —</option>
+      {people.map(p => (
+        <option key={p.id} value={p.id}>
+          #{p.id} {[p.first_name, p.middle_name, p.last_name].filter(Boolean).join(" ")}
+          {p.nickname ? ` (${p.nickname})` : ""}
+        </option>
+      ))}
+    </select>
+  );
+
+  return (
+    <div className="admin-section">
+      <h2>🌳 Family Tree Manager</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* Person form */}
+      <div className="admin-form">
+        <h3>{editing ? "✏️ Edit Person" : "➕ Add Person"}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          {[
+            { key:"first_name",  ph:"First Name *"  },
+            { key:"middle_name", ph:"Middle Name"    },
+            { key:"last_name",   ph:"Last Name *"    },
+          ].map(({ key, ph }) => (
+            <input key={key} placeholder={ph} value={form[key]} onChange={e => f(key, e.target.value)} />
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input placeholder="Nickname" value={form.nickname} onChange={e => f("nickname", e.target.value)} />
+          <input placeholder="Mobile" value={form.mobile} onChange={e => f("mobile", e.target.value)} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input type="date" placeholder="DOB" value={form.dob} onChange={e => f("dob", e.target.value)} />
+          <select value={form.gender} onChange={e => f("gender", e.target.value)}>
+            <option value="">— Gender —</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div className="form-btns">
+          <button className="btn-save" onClick={save}>{editing ? "Update" : "Add Person"}</button>
+          {editing && <button className="btn-cancel" onClick={() => { setEditing(null); setForm({...EMPTY_PERSON}); }}>Cancel</button>}
+        </div>
+      </div>
+
+      {/* Add Relation */}
+      <div className="admin-form">
+        <h3>🔗 Add Family Relation</h3>
+        {relToast && <div className="admin-toast" style={{ marginBottom: 8 }}>{relToast}</div>}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <PersonSelect value={relForm.person_id} onChange={v => setRelForm(f => ({ ...f, person_id: v }))} />
+          <span style={{ fontWeight: 700, color: "#555" }}>IS</span>
+          <select value={relForm.relation_type} onChange={e => setRelForm(f => ({ ...f, relation_type: e.target.value }))}>
+            {RELATION_TYPES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+          </select>
+          <span style={{ fontWeight: 700, color: "#555" }}>OF</span>
+          <PersonSelect value={relForm.related_person_id} onChange={v => setRelForm(f => ({ ...f, related_person_id: v }))} />
+          <button className="btn-save" onClick={addRelation} style={{ flexShrink: 0 }}>Add</button>
+        </div>
+      </div>
+
+      {/* People list */}
+      <div style={{ marginBottom: 10 }}>
+        <input placeholder="Search people..." value={search} onChange={e => setSearch(e.target.value)}
+          style={{ width:"100%", padding:"8px 12px", border:"1.5px solid #e0e0e0", borderRadius:8, fontSize:"0.88rem" }} />
+      </div>
+
+      <div className="admin-list">
+        {filtered.length === 0 && <p style={{ color:"#aaa", textAlign:"center", padding:"20px 0" }}>No people found.</p>}
+        {filtered.map(p => (
+          <div className="admin-item" key={p.id} style={{ alignItems:"center", gap:12 }}>
+            {p.photo_url
+              ? <img src={p.photo_url} alt="" style={{ width:44,height:44,borderRadius:"50%",objectFit:"cover",flexShrink:0 }} />
+              : <div style={{ width:44,height:44,borderRadius:"50%",background:"linear-gradient(135deg,#1b5e20,#66bb6a)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:"1rem",flexShrink:0 }}>
+                  {p.first_name?.charAt(0)}
+                </div>
+            }
+            <div style={{ flex:1, minWidth:0 }}>
+              <strong style={{ fontSize:"0.9rem" }}>
+                #{p.id} {[p.first_name,p.middle_name,p.last_name].filter(Boolean).join(" ")}
+                {p.nickname && <span style={{ fontWeight:400,color:"#888",fontSize:"0.8rem" }}> ({p.nickname})</span>}
+              </strong>
+              <div className="item-meta">
+                {p.gender && <span style={{ textTransform:"capitalize" }}>{p.gender}</span>}
+                {p.dob && <span> · {new Date(p.dob).getFullYear()}</span>}
+                {p.mobile && <span> · 📞 {p.mobile}</span>}
+              </div>
+            </div>
+            <div className="item-btns" style={{ flexShrink:0 }}>
+              <button className="btn-edit" onClick={() => startEdit(p)}>✏️</button>
+              {confirmId===p.id
+                ? <span className="inline-confirm">Sure?&nbsp;<button className="btn-del" onClick={() => del(p.id)}>Yes</button>&nbsp;<button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button></span>
+                : <button className="btn-del" onClick={() => setConfirmId(p.id)}>🗑️</button>
+              }
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── FAMILY REQUESTS (Member Approvals Family) ───────────── */
+const FR_STATUS = {
+  pending:  { bg:"#fff8e1",color:"#f57f17",border:"#ffe082",label:"⏳ Pending"  },
+  approved: { bg:"#e8f5e9",color:"#2e7d32",border:"#a5d6a7",label:"✅ Approved" },
+  rejected: { bg:"#fdecea",color:"#c62828",border:"#ffcdd2",label:"❌ Rejected" },
+};
+
+function AdminFamilyRequests() {
+  const [requests, setRequests] = useState([]);
+  const [filter,   setFilter]   = useState("pending");
+  const [toast,    setToast]    = useState("");
+  const [notes,    setNotes]    = useState({});
+  const [expanded, setExpanded] = useState(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/api/members/admin/family-requests?status=${filter}`, { headers: authHeader() })
+      .then(r => setRequests(r.data))
+      .catch(() => showToast("Failed to load requests."));
+
+  useEffect(() => { load(); }, [filter]);
+
+  const approve = async id => {
+    try {
+      await axios.put(`${API}/api/members/admin/family-requests/${id}/approve`, { notes: notes[id] || null }, { headers: authHeader() });
+      showToast("✅ Request approved and person added to family tree.");
+      load();
+    } catch (e) { showToast(e.response?.data?.error || "Error approving."); }
+  };
+
+  const reject = async id => {
+    try {
+      await axios.put(`${API}/api/members/admin/family-requests/${id}/reject`, { notes: notes[id] || null }, { headers: authHeader() });
+      showToast("Request rejected.");
+      load();
+    } catch { showToast("Error rejecting."); }
+  };
+
+  const tabs = [
+    { id:"pending",  label:"⏳ Pending" },
+    { id:"approved", label:"✅ Approved" },
+    { id:"rejected", label:"❌ Rejected" },
+    { id:"",         label:"👥 All" },
+  ];
+
+  return (
+    <div className="admin-section">
+      <h2>📋 Member Family Approvals</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:"1rem" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            style={{ background:filter===t.id?"#1b5e20":"#f5f5f5", color:filter===t.id?"#fff":"#555", border:`2px solid ${filter===t.id?"#1b5e20":"#e0e0e0"}`, borderRadius:8, padding:"7px 14px", fontWeight:700, cursor:"pointer", fontSize:"0.82rem" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {requests.length === 0 && (
+        <p style={{ color:"#aaa", textAlign:"center", padding:"2rem 0" }}>No {filter || ""} family requests.</p>
+      )}
+
+      <div className="admin-list">
+        {requests.map(req => {
+          const st = FR_STATUS[req.status] || FR_STATUS.pending;
+          const data = req.request_data;
+          const person = data.person || data;
+          const isOpen = expanded === req.id;
+          return (
+            <div className="admin-item" key={req.id} style={{ flexDirection:"column", alignItems:"stretch", gap:10 }}>
+              <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                    <strong style={{ fontSize:"0.92rem" }}>
+                      {[person.first_name, person.middle_name, person.last_name].filter(Boolean).join(" ")}
+                      {person.nickname && ` (${person.nickname})`}
+                    </strong>
+                    <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, borderRadius:20, padding:"1px 10px", fontSize:"0.68rem", fontWeight:700 }}>
+                      {st.label}
+                    </span>
+                  </div>
+                  <div className="item-meta">
+                    Submitted by: <strong>{req.member_name}</strong> · {req.member_mobile}
+                  </div>
+                  <div style={{ fontSize:"0.73rem", color:"#aaa" }}>
+                    {new Date(req.created_at).toLocaleDateString("en-IN")}
+                    {req.admin_notes && <span> · Note: {req.admin_notes}</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setExpanded(isOpen ? null : req.id)}
+                  style={{ background:"#f5f5f5", border:"none", borderRadius:8, padding:"5px 10px", cursor:"pointer", fontSize:"0.78rem", fontWeight:700, flexShrink:0 }}>
+                  {isOpen ? "Hide" : "Details"}
+                </button>
+              </div>
+
+              {isOpen && (
+                <div style={{ background:"#fafafa", border:"1px solid #f0f0f0", borderRadius:10, padding:"0.75rem", fontSize:"0.82rem" }}>
+                  <div style={{ marginBottom:8 }}>
+                    <strong>Person Details:</strong>
+                    <div>Gender: {person.gender || "—"} · DOB: {person.dob ? new Date(person.dob).toLocaleDateString("en-IN") : "—"}</div>
+                    <div>Mobile: {person.mobile || "—"}</div>
+                  </div>
+                  {data.relations?.length > 0 && (
+                    <div style={{ marginBottom:8 }}>
+                      <strong>Relations Requested:</strong>
+                      {data.relations.map((r, i) => (
+                        <div key={i} style={{ marginLeft:8, color:"#555" }}>
+                          {r.relation_type?.toUpperCase()}: {[r.first_name,r.middle_name,r.last_name].filter(Boolean).join(" ")}
+                          {r.nickname ? ` (${r.nickname})` : ""}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {req.status === "pending" && (
+                    <div>
+                      <input
+                        placeholder="Admin notes (optional)"
+                        value={notes[req.id] || ""}
+                        onChange={e => setNotes(n => ({ ...n, [req.id]: e.target.value }))}
+                        style={{ width:"100%", padding:"6px 10px", border:"1.5px solid #e0e0e0", borderRadius:8, fontSize:"0.82rem", marginBottom:8, boxSizing:"border-box" }}
+                      />
+                      <div style={{ display:"flex", gap:8 }}>
+                        <button className="btn-save" style={{ fontSize:"0.82rem", padding:"7px 14px" }} onClick={() => approve(req.id)}>
+                          ✅ Approve & Add to Tree
+                        </button>
+                        <button className="btn-del" style={{ fontSize:"0.82rem", padding:"7px 14px" }} onClick={() => reject(req.id)}>
+                          ❌ Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
