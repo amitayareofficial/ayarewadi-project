@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const API = "https://ayarewadi-project.onrender.com";
 
-const capWords = v => v.replace(/(?:^|\s)\S/g, c => c.toUpperCase());
+const capWords = v => v.replace(/\b\w/g, c => c.toUpperCase());
 
 const RELATIONS = [
   { value: "father",  label: "Father / वडील" },
@@ -208,13 +208,13 @@ export default function MyFamilyInfo({ member, onBack }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>First Name *</label>
                 <input style={inp} placeholder="e.g. Ramchandra" value={person.first_name}
-                  autoCapitalize="words"
+                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
                   onChange={e => setField("first_name", capWords(e.target.value))} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Middle Name / Father's Name *</label>
                 <input style={inp} placeholder="e.g. Balu" value={person.middle_name}
-                  autoCapitalize="words"
+                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
                   onChange={e => setField("middle_name", capWords(e.target.value))} />
               </div>
             </div>
@@ -222,13 +222,13 @@ export default function MyFamilyInfo({ member, onBack }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Last Name *</label>
                 <input style={inp} placeholder="e.g. Ayare" value={person.last_name}
-                  autoCapitalize="words"
+                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
                   onChange={e => setField("last_name", capWords(e.target.value))} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={lbl}>Nickname</label>
                 <input style={inp} placeholder="e.g. Ramya" value={person.nickname}
-                  autoCapitalize="words"
+                  autoCapitalize="words" autoCorrect="off" spellCheck={false}
                   onChange={e => setField("nickname", capWords(e.target.value))} />
               </div>
             </div>
@@ -279,18 +279,18 @@ export default function MyFamilyInfo({ member, onBack }) {
                   </div>
                   <div style={g2}>
                     <input style={inp} placeholder="First Name *" value={rel.first_name}
-                      autoCapitalize="words"
+                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
                       onChange={e => updateRelation(idx, "first_name", capWords(e.target.value))} />
                     <input style={inp} placeholder="Middle Name" value={rel.middle_name}
-                      autoCapitalize="words"
+                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
                       onChange={e => updateRelation(idx, "middle_name", capWords(e.target.value))} />
                   </div>
                   <div style={g2}>
                     <input style={inp} placeholder="Last Name *" value={rel.last_name}
-                      autoCapitalize="words"
+                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
                       onChange={e => updateRelation(idx, "last_name", capWords(e.target.value))} />
                     <input style={inp} placeholder="Nickname" value={rel.nickname}
-                      autoCapitalize="words"
+                      autoCapitalize="words" autoCorrect="off" spellCheck={false}
                       onChange={e => updateRelation(idx, "nickname", capWords(e.target.value))} />
                   </div>
                   <div style={g2}>
