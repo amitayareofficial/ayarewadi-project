@@ -337,5 +337,5 @@ const s = {
 };
 
 const lbl = { fontSize: "0.73rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 4 };
-const inp = { width: "100%", height: 38, border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "0 10px", fontSize: "0.85rem", outline: "none", background: "#fafafa", boxSizing: "border-box" };
+const inp = { width: "100%", height: 38, border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "0 10px", fontSize: "0.85rem", outline: "none", background: "#fafafa", boxSizing: "border-box", textTransform: "capitalize" };
 const g2  = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 };
