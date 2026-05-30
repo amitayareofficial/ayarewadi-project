@@ -723,6 +723,14 @@ function Events_Preview({ events, nav, lang }) {
 /* ── TEAM MEMBERS ── */
 function Team_Members({ lang }) {
   const t = LANG[lang].team;
+  const [marqueeMembers, setMarqueeMembers] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${API}/api/members/marquee`)
+      .then(r => setMarqueeMembers(r.data))
+      .catch(() => {});
+  }, []);
+
   const team = [
     {
       name: "Bhalchandra Ayare",
@@ -758,17 +766,8 @@ function Team_Members({ lang }) {
     },
   ];
 
-  const allMembers = [
-    ...team,
-    { name: "Raju Ayare",     roleMr: "सभासद", roleEn: "Member" },
-    { name: "Ganesh Ayare",   roleMr: "सभासद", roleEn: "Member" },
-    { name: "Mahendra Ayare", roleMr: "सभासद", roleEn: "Member" },
-    { name: "Avinash Ayare",  roleMr: "सभासद", roleEn: "Member" },
-    { name: "Akshay Ayare",   roleMr: "सभासद", roleEn: "Member" },
-    { name: "Sandeep Ayare",  roleMr: "सभासद", roleEn: "Member" },
-    { name: "Sidhesh Ayare",  roleMr: "सभासद", roleEn: "Member" },
-  ];
-  const marqueeItems = [...allMembers, ...allMembers];
+  /* Double the list for seamless infinite loop */
+  const marqueeItems = [...marqueeMembers, ...marqueeMembers];
 
   return (
     <section className="team-section">
@@ -776,10 +775,8 @@ function Team_Members({ lang }) {
         <div className="team-marquee-inner">
           {marqueeItems.map((m, i) => (
             <span key={i} className="team-marquee-item">
-              <span className="team-marquee-name">{m.name}</span>
-              <span className="team-marquee-badge">
-                {lang === "mr" ? m.roleMr : m.roleEn}
-              </span>
+              <span className="team-marquee-name">{m.full_name}</span>
+              <span className="team-marquee-badge">{m.marquee_role || 'सदस्य'}</span>
               <span className="team-marquee-sep">✦</span>
             </span>
           ))}

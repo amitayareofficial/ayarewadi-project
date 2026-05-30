@@ -189,4 +189,90 @@ router.delete("/admin/:id", authAdmin, async (req, res) => {
   }
 });
 
+// ── MARQUEE: DB MIGRATION (idempotent, runs on server start) ─
+;(async () => {
+  const stmts = [
+    `ALTER TABLE members ADD COLUMN IF NOT EXISTS show_in_marquee BOOLEAN DEFAULT true`,
+    `ALTER TABLE members ADD COLUMN IF NOT EXISTS marquee_role    VARCHAR(50) DEFAULT 'सदस्य'`,
+    `ALTER TABLE members ADD COLUMN IF NOT EXISTS marquee_order   INTEGER    DEFAULT 0`,
+  ];
+  for (const sql of stmts) {
+    try { await pool.query(sql); } catch (e) { console.error("marquee migration:", e.message); }
+  }
+})();
+
+// ── PUBLIC: approved members visible in marquee ───────────
+router.get("/marquee", async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT id, full_name, photo_url, marquee_role, marquee_order
+      FROM   members
+      WHERE  status = 'approved' AND show_in_marquee = true
+      ORDER  BY marquee_order ASC, full_name ASC
+    `);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── ADMIN: all approved members with marquee settings ─────
+router.get("/admin/marquee", authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT id, full_name, photo_url, marquee_role, marquee_order, show_in_marquee
+      FROM   members
+      WHERE  status = 'approved'
+      ORDER  BY marquee_order ASC, full_name ASC
+    `);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── ADMIN: bulk reorder ───────────────────────────────────
+router.post("/admin/marquee/reorder", authAdmin, async (req, res) => {
+  try {
+    const { order } = req.body;
+    if (!Array.isArray(order)) return res.status(400).json({ error: "order must be an array" });
+    await Promise.all(
+      order.map(({ id, marquee_order }) =>
+        pool.query("UPDATE members SET marquee_order = $1 WHERE id = $2", [marquee_order, id])
+      )
+    );
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── ADMIN: update one member's marquee settings + optional photo ──
+router.put("/admin/marquee/:id", authAdmin, upload.single("photo"), async (req, res) => {
+  try {
+    const sets = [], params = [];
+    const p = (val) => { params.push(val); return `$${params.length}`; };
+
+    if (req.file) {
+      const up = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "ayarewadi/members", transformation: [{ quality: "auto", width: 400, height: 400, crop: "fill", gravity: "face" }] },
+          (err, result) => (err ? reject(err) : resolve(result))
+        );
+        stream.end(req.file.buffer);
+      });
+      sets.push(`photo_url = ${p(up.secure_url)}`);
+    }
+
+    const { show_in_marquee, marquee_role, marquee_order } = req.body;
+    if (show_in_marquee !== undefined) sets.push(`show_in_marquee = ${p(show_in_marquee === "true" || show_in_marquee === true)}`);
+    if (marquee_role    !== undefined) sets.push(`marquee_role    = ${p(marquee_role)}`);
+    if (marquee_order   !== undefined) sets.push(`marquee_order   = ${p(parseInt(marquee_order, 10))}`);
+
+    if (!sets.length) return res.status(400).json({ error: "Nothing to update" });
+    params.push(req.params.id);
+    const r = await pool.query(
+      `UPDATE members SET ${sets.join(", ")} WHERE id = $${params.length}
+       RETURNING id, full_name, photo_url, marquee_role, marquee_order, show_in_marquee`,
+      params
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Member not found" });
+    res.json({ success: true, member: r.rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

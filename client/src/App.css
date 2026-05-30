@@ -930,11 +930,11 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .balance-display strong { font-size: 1.8rem; color: var(--accent); }
 
 /* ── ADMIN PANEL ───────────────────────────────────────── */
-.admin-wrap { display: flex; min-height: 100vh; contain: layout style; }
+.admin-wrap { display: flex; min-height: 100vh; contain: layout style; padding-top: 52px; }
 .admin-sidebar {
   width: 220px; background: var(--primary); padding: 20px 12px;
   display: flex; flex-direction: column; gap: 6px;
-  position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0;
+  position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; flex-shrink: 0;
 }
 .admin-brand { color: #fff; font-size: 1rem; font-weight: 700; padding: 12px 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; }
 .admin-tab { background: none; border: none; color: rgba(255,255,255,0.75); text-align: left; padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
@@ -1033,6 +1033,33 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   padding: 3px 11px; font-size: 0.7rem; font-weight: 600; white-space: nowrap;
 }
 .team-marquee-sep { color: rgba(255,255,255,0.18); font-size: 0.55rem; padding: 0 10px; }
+
+/* Member photo avatar inside marquee */
+.team-marquee-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  border: 1.5px solid rgba(59,140,75,0.45);
+  display: inline-block; vertical-align: middle;
+}
+.team-marquee-avatar-fallback {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #2e7d32 0%, #81c784 100%);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 0.85rem;
+  border: 1.5px solid rgba(59,140,75,0.45);
+}
+
+/* Admin marquee preview strip */
+.admin-marquee-preview {
+  overflow: hidden; border-radius: 10px;
+  background: linear-gradient(145deg, #061410 0%, #0b2b1a 100%);
+  padding: 10px 0;
+}
+.admin-marquee-preview-inner {
+  display: flex; white-space: nowrap;
+  animation: marquee-scroll 22s linear infinite;
+  will-change: transform;
+}
 
 /* Header */
 .team-header {
@@ -1285,8 +1312,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .footer-credit         { text-align: left; }
 
   /* ── Admin ── */
-  .admin-wrap            { flex-direction: column; }
-  .admin-sidebar         { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .admin-wrap            { flex-direction: column; padding-top: 48px; }
+  .admin-sidebar         { width: 100%; height: auto; position: relative; top: auto; flex-direction: row; flex-wrap: wrap; padding: 12px; }
   .admin-brand           { width: 100%; }
   .admin-content         { padding: 20px 16px; }
 
@@ -1387,6 +1414,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .vd-stat-card strong   { font-size: 1.1rem; }
   .rt-heading-main       { font-size: 1.4rem; }
   .join-section h2       { font-size: 1.3rem; }
+  .admin-wrap            { padding-top: 56px; }
 }
 
 /* ─ Landscape mobile ─────────────────────────────────── */

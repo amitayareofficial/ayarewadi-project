@@ -14,7 +14,7 @@ const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
 
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
-  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog | members
+  const [tab, setTab] = useState("events"); // events | gallery | budget | emergency | announcements | blog | members | marquee
 
   const logout = () => { localStorage.removeItem("admin_token"); setLoggedIn(false); };
 
@@ -33,6 +33,7 @@ export default function Admin() {
           { id: "emergency",     icon: "🚨", label: "Emergency" },
           { id: "blog",          icon: "📝", label: "Blog" },
           { id: "members",       icon: "👥", label: "Members" },
+          { id: "marquee",       icon: "🎞️", label: "Marquee" },
         ].map(t => (
           <button key={t.id} className={`admin-tab ${tab === t.id ? "active" : ""}`}
             onClick={() => setTab(t.id)}>
@@ -51,6 +52,7 @@ export default function Admin() {
         {tab === "emergency"     && <AdminEmergency />}
         {tab === "blog"          && <AdminBlog />}
         {tab === "members"       && <AdminMembers />}
+        {tab === "marquee"       && <AdminMarquee />}
       </main>
     </div>
   );
@@ -313,7 +315,7 @@ function AdminGallery() {
       <div className="filter-row" style={{ marginTop: 6 }}>
         <span>Category:</span>
         <button className={!filterCat ? "active" : ""} onClick={() => setFilterCat("")}>All</button>
-        {CATS.map(c => (
+        {GALLERY_CATS.map(c => (
           <button key={c} className={filterCat === c ? "active" : ""} onClick={() => setFilterCat(c)}>{c}</button>
         ))}
       </div>
@@ -800,6 +802,220 @@ function AdminBlog() {
                   </span>
                 : <button className="btn-del" onClick={() => setConfirmId(post.id)}>🗑️ Delete</button>
               }
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── MARQUEE MANAGEMENT ───────────────────────────────── */
+function AdminMarquee() {
+  const [members,  setMembers]  = useState([]);
+  const [toast,    setToast]    = useState("");
+  const [saving,   setSaving]   = useState(null);
+  const [uploading,setUploading]= useState(null);
+  const [editId,   setEditId]   = useState(null);
+  const [editRole, setEditRole] = useState("");
+  const [editOrder,setEditOrder]= useState("");
+  const [preview,  setPreview]  = useState(false);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/api/members/admin/marquee`, { headers: authHeader() })
+      .then(r => setMembers(r.data))
+      .catch(() => showToast("Failed to load members."));
+  useEffect(() => { load(); }, []);
+
+  const toggleVisible = async (id, cur) => {
+    setSaving(id);
+    try {
+      await axios.put(
+        `${API}/api/members/admin/marquee/${id}`,
+        { show_in_marquee: !cur },
+        { headers: authHeader() }
+      );
+      setMembers(prev => prev.map(m => m.id === id ? { ...m, show_in_marquee: !cur } : m));
+      showToast(cur ? "Hidden from marquee." : "Now visible in marquee.");
+    } catch { showToast("Update failed."); }
+    finally { setSaving(null); }
+  };
+
+  const saveEdit = async id => {
+    setSaving(id);
+    try {
+      const r = await axios.put(
+        `${API}/api/members/admin/marquee/${id}`,
+        { marquee_role: editRole.trim() || 'सदस्य', marquee_order: editOrder },
+        { headers: authHeader() }
+      );
+      setMembers(prev => prev.map(m => m.id === id ? { ...m, ...r.data.member } : m));
+      setEditId(null);
+      showToast("Saved.");
+    } catch { showToast("Save failed."); }
+    finally { setSaving(null); }
+  };
+
+  const uploadPhoto = async (id, file) => {
+    setUploading(id);
+    const fd = new FormData();
+    fd.append("photo", file);
+    try {
+      const r = await axios.put(
+        `${API}/api/members/admin/marquee/${id}`,
+        fd,
+        { headers: { ...authHeader(), "Content-Type": "multipart/form-data" } }
+      );
+      setMembers(prev => prev.map(m => m.id === id ? { ...m, photo_url: r.data.member.photo_url } : m));
+      showToast("Photo updated.");
+    } catch { showToast("Photo upload failed."); }
+    finally { setUploading(null); }
+  };
+
+  const move = async (idx, dir) => {
+    const next = [...members];
+    const swap = idx + dir;
+    if (swap < 0 || swap >= next.length) return;
+    [next[idx], next[swap]] = [next[swap], next[idx]];
+    const order = next.map((m, i) => ({ id: m.id, marquee_order: i }));
+    setMembers(next.map((m, i) => ({ ...m, marquee_order: i })));
+    try {
+      await axios.post(`${API}/api/members/admin/marquee/reorder`, { order }, { headers: authHeader() });
+    } catch { showToast("Reorder failed."); load(); }
+  };
+
+  const visible = members.filter(m => m.show_in_marquee);
+
+  return (
+    <div className="admin-section">
+      <h2>🎞️ Marquee Management</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* PREVIEW */}
+      <div className="admin-form" style={{ padding: "16px 20px", marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ margin: 0 }}>
+            📺 Live Preview
+            <span style={{ fontSize: "0.72rem", color: "#888", fontWeight: 400, marginLeft: 8 }}>
+              {visible.length} member{visible.length !== 1 ? "s" : ""} visible
+            </span>
+          </h3>
+          <button
+            onClick={() => setPreview(p => !p)}
+            style={{ padding: "5px 16px", fontSize: "0.8rem", borderRadius: 8, border: "none", cursor: "pointer",
+              background: preview ? "#c62828" : "#2e7d32", color: "#fff", fontWeight: 600 }}
+          >
+            {preview ? "Close" : "Show Preview"}
+          </button>
+        </div>
+        {preview && (
+          <div className="admin-marquee-preview" style={{ marginTop: 14 }}>
+            {visible.length === 0
+              ? <p style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", padding: "10px 0", margin: 0, fontSize: "0.82rem" }}>
+                  No visible members — enable some below.
+                </p>
+              : (
+                <div className="admin-marquee-preview-inner">
+                  {[...visible, ...visible].map((m, i) => (
+                    <span key={i} className="team-marquee-item">
+                      {m.photo_url
+                        ? <img src={m.photo_url} alt={m.full_name} className="team-marquee-avatar" />
+                        : <span className="team-marquee-avatar team-marquee-avatar-fallback">{m.full_name.charAt(0)}</span>
+                      }
+                      <span className="team-marquee-name">{m.full_name}</span>
+                      <span className="team-marquee-badge">{m.marquee_role || 'सदस्य'}</span>
+                      <span className="team-marquee-sep">✦</span>
+                    </span>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+        )}
+      </div>
+
+      {/* MEMBER LIST */}
+      {members.length === 0 && (
+        <p style={{ color: "#aaa", textAlign: "center", padding: "32px 0" }}>
+          No approved members yet. Approve members in the Members tab first.
+        </p>
+      )}
+
+      <div className="admin-list">
+        {members.map((m, idx) => (
+          <div className="admin-item" key={m.id} style={{ alignItems: "flex-start", gap: 14 }}>
+
+            {/* Photo + upload */}
+            <div style={{ flexShrink: 0, position: "relative" }}>
+              {m.photo_url
+                ? <img src={m.photo_url} alt={m.full_name} style={{ width: 54, height: 54, borderRadius: "50%", objectFit: "cover", border: "2px solid #e0e0e0" }} />
+                : <div style={{ width: 54, height: 54, borderRadius: "50%", background: "linear-gradient(135deg,#2e7d32,#81c784)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "1.2rem" }}>
+                    {m.full_name.charAt(0)}
+                  </div>
+              }
+              <label title="Change photo" style={{ position: "absolute", bottom: -3, right: -3, background: "#2e7d32", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: "2px solid #fff" }}>
+                <input type="file" accept="image/*" style={{ display: "none" }} disabled={uploading === m.id}
+                  onChange={e => e.target.files[0] && uploadPhoto(m.id, e.target.files[0])} />
+                <span style={{ fontSize: "0.65rem" }}>{uploading === m.id ? "…" : "📷"}</span>
+              </label>
+            </div>
+
+            {/* Info + inline edit */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong style={{ fontSize: "0.95rem" }}>{m.full_name}</strong>
+              {editId === m.id ? (
+                <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  <input
+                    value={editRole} onChange={e => setEditRole(e.target.value)}
+                    placeholder="Role (e.g. अध्यक्ष)"
+                    style={{ flex: 1, minWidth: 110, padding: "5px 10px", border: "1px solid #ccc", borderRadius: 7, fontSize: "0.85rem" }}
+                  />
+                  <input
+                    type="number" min={0} value={editOrder} onChange={e => setEditOrder(e.target.value)}
+                    placeholder="Order"
+                    style={{ width: 72, padding: "5px 8px", border: "1px solid #ccc", borderRadius: 7, fontSize: "0.85rem" }}
+                  />
+                  <button className="btn-save" onClick={() => saveEdit(m.id)} disabled={saving === m.id}
+                    style={{ fontSize: "0.8rem", padding: "5px 14px" }}>
+                    {saving === m.id ? "…" : "Save"}
+                  </button>
+                  <button className="btn-cancel" onClick={() => setEditId(null)} style={{ fontSize: "0.8rem", padding: "5px 10px" }}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="item-meta" style={{ marginTop: 3 }}>
+                  Role: <strong>{m.marquee_role || 'सदस्य'}</strong>
+                  &nbsp;·&nbsp;Order: <strong>{m.marquee_order ?? 0}</strong>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0, alignItems: "flex-end" }}>
+              <button
+                onClick={() => toggleVisible(m.id, m.show_in_marquee)} disabled={saving === m.id}
+                style={{ padding: "5px 12px", fontSize: "0.76rem", borderRadius: 20, cursor: "pointer", border: "1.5px solid",
+                  background:  m.show_in_marquee ? "#e8f5e9" : "#fff3e0",
+                  color:       m.show_in_marquee ? "#2e7d32"  : "#e65100",
+                  borderColor: m.show_in_marquee ? "#a5d6a7"  : "#ffcc80",
+                  fontWeight: 700 }}
+              >
+                {m.show_in_marquee ? "👁 Visible" : "🚫 Hidden"}
+              </button>
+              <button className="btn-edit"
+                onClick={() => { setEditId(m.id); setEditRole(m.marquee_role || 'सदस्य'); setEditOrder(String(m.marquee_order ?? 0)); }}
+                style={{ fontSize: "0.76rem", padding: "4px 12px" }}>
+                ✏️ Edit
+              </button>
+              <div style={{ display: "flex", gap: 4 }}>
+                <button onClick={() => move(idx, -1)} disabled={idx === 0} title="Move up"
+                  style={{ padding: "3px 9px", fontSize: "0.75rem", border: "1px solid #ddd", borderRadius: 6, background: "#f9f9f9", cursor: "pointer", opacity: idx === 0 ? 0.4 : 1 }}>↑</button>
+                <button onClick={() => move(idx, 1)} disabled={idx === members.length - 1} title="Move down"
+                  style={{ padding: "3px 9px", fontSize: "0.75rem", border: "1px solid #ddd", borderRadius: 6, background: "#f9f9f9", cursor: "pointer", opacity: idx === members.length - 1 ? 0.4 : 1 }}>↓</button>
+              </div>
             </div>
           </div>
         ))}
