@@ -288,9 +288,12 @@ app.delete("/budget/:id", authAdmin, async (req, res) => {
 });
 
 // ── BLOG ──────────────────────────────────────────────────
+// Migration: add is_featured column if it doesn't exist yet
+pool.query("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false").catch(() => {});
+
 app.get("/blog", async (req, res) => {
   try {
-    const r = await pool.query("SELECT * FROM blog_posts WHERE published=true ORDER BY created_at DESC");
+    const r = await pool.query("SELECT * FROM blog_posts WHERE published=true ORDER BY is_featured DESC, created_at DESC");
     res.json(r.rows);
   } catch {
     res.status(500).json({ error: "Failed to fetch posts" });
@@ -306,6 +309,24 @@ app.get("/blog/all", authAdmin, async (req, res) => {
   }
 });
 
+// Upload cover image to Cloudinary — must be declared before /blog/:id routes
+app.post("/blog/upload-image", authAdmin, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file provided" });
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "ayarewadi/blog", resource_type: "image",
+          transformation: [{ width: 1200, crop: "limit" }, { quality: "auto:good" }] },
+        (err, result) => { if (err) reject(err); else resolve(result); }
+      );
+      stream.end(req.file.buffer);
+    });
+    res.json({ url: result.secure_url });
+  } catch {
+    res.status(500).json({ error: "Image upload failed" });
+  }
+});
+
 app.post("/blog", authAdmin, async (req, res) => {
   try {
     const { title, content, category, cover_image, published } = req.body;
@@ -317,6 +338,25 @@ app.post("/blog", authAdmin, async (req, res) => {
     res.status(201).json(r.rows[0]);
   } catch {
     res.status(500).json({ error: "Failed to create post" });
+  }
+});
+
+// Feature / unfeature — must be before /blog/:id to avoid route swallowing
+app.put("/blog/:id/feature", authAdmin, async (req, res) => {
+  try {
+    const { is_featured } = req.body;
+    // Only one post can be featured at a time
+    if (is_featured) {
+      await pool.query("UPDATE blog_posts SET is_featured=false WHERE is_featured=true");
+    }
+    const r = await pool.query(
+      "UPDATE blog_posts SET is_featured=$1 WHERE id=$2 RETURNING *",
+      [!!is_featured, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Post not found" });
+    res.json(r.rows[0]);
+  } catch {
+    res.status(500).json({ error: "Failed to update featured status" });
   }
 });
 

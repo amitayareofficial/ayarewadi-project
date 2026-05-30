@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
@@ -665,136 +665,295 @@ function AdminMembers() {
 }
 
 /* ── BLOG MANAGER ────────────────────────────────────── */
-const BLOG_CATS = ["Village News", "Announcement", "Development", "Culture", "Health", "Education"];
-const EMPTY_POST = { title: "", category: "Village News", content: "", cover_image: "", published: false };
+const BLOG_CATS  = ["Village News", "Announcement", "Development", "Culture", "Health", "Education"];
+const EMPTY_BLOG = { title: "", category: "Village News", content: "", cover_image: "", published: false };
+
+function calcReadTime(content = "") {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+function stripMd(text = "") {
+  return text
+    .replace(/!\[.*?\]\(.*?\)/g, "").replace(/\[.*?\]\(.*?\)/g, "")
+    .replace(/#{1,6}\s/g, "").replace(/[*_`>~]/g, "")
+    .replace(/\n+/g, " ").trim();
+}
 
 function AdminBlog() {
-  const [posts, setPosts]     = useState([]);
-  const [form, setForm]       = useState(EMPTY_POST);
-  const [editing, setEditing] = useState(null);
-  const [preview, setPreview] = useState(false);
-  const [saving, setSaving]   = useState(false);
-  const [toast, setToast]     = useState("");
-  const [confirmId, setConfirmId] = useState(null);
+  const [posts, setPosts]           = useState([]);
+  const [form, setForm]             = useState(EMPTY_BLOG);
+  const [editing, setEditing]       = useState(null);
+  const [mdPreview, setMdPreview]   = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [uploading, setUploading]   = useState(false);
+  const [toast, setToast]           = useState("");
+  const [confirmId, setConfirmId]   = useState(null);
+  const [search, setSearch]         = useState("");
+  const [imgFile, setImgFile]       = useState(null);
+  const [imgPreview, setImgPreview] = useState("");
+  const imgInputRef = useRef(null);
 
-  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  const readTime = useMemo(() => calcReadTime(form.content), [form.content]);
 
-  const load = () => axios.get(`${API}/blog/all`, { headers: authHeader() }).then(r => setPosts(r.data)).catch(() => {});
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3500); };
+
+  const load = () =>
+    axios.get(`${API}/blog/all`, { headers: authHeader() })
+      .then(r => setPosts(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
 
+  /* ── image handlers ── */
+  const handleImgSelect = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImgFile(file);
+    setImgPreview(URL.createObjectURL(file));
+  };
+  const handleImgRemove = e => {
+    e.stopPropagation();
+    setImgFile(null);
+    setImgPreview("");
+    setForm(f => ({ ...f, cover_image: "" }));
+    if (imgInputRef.current) imgInputRef.current.value = "";
+  };
+
+  /* ── auto excerpt preview ── */
+  const genExcerpt = () => {
+    const plain = stripMd(form.content).slice(0, 150);
+    if (!plain) return showToast("Write some content first.");
+    showToast(`Excerpt: "${plain}"`);
+  };
+
+  /* ── save / update ── */
   const save = async () => {
-    if (!form.title.trim() || !form.content.trim()) return showToast("Title and content are required.");
+    if (!form.title.trim() || !form.content.trim())
+      return showToast("Title and content are required.");
     setSaving(true);
     try {
+      let coverUrl = form.cover_image;
+      if (imgFile) {
+        setUploading(true);
+        const fd = new FormData();
+        fd.append("image", imgFile);
+        const r = await axios.post(`${API}/blog/upload-image`, fd, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" },
+        });
+        coverUrl = r.data.url;
+        setUploading(false);
+      }
+      const payload = { ...form, cover_image: coverUrl };
       if (editing) {
-        await axios.put(`${API}/blog/${editing}`, form, { headers: authHeader() });
+        await axios.put(`${API}/blog/${editing}`, payload, { headers: authHeader() });
         setEditing(null);
         showToast("Post updated.");
       } else {
-        await axios.post(`${API}/blog`, form, { headers: authHeader() });
+        await axios.post(`${API}/blog`, payload, { headers: authHeader() });
         showToast("Post saved.");
       }
-      setForm(EMPTY_POST);
+      setForm(EMPTY_BLOG);
+      setImgFile(null); setImgPreview("");
       load();
     } catch { showToast("Error saving post. Please try again."); }
-    finally { setSaving(false); }
+    finally { setSaving(false); setUploading(false); }
   };
 
   const del = async id => {
     try {
       await axios.delete(`${API}/blog/${id}`, { headers: authHeader() });
-      setConfirmId(null);
-      showToast("Post deleted.");
-      load();
+      setConfirmId(null); showToast("Post deleted."); load();
     } catch { showToast("Error deleting post."); }
   };
 
   const edit = post => {
     setEditing(post.id);
     setForm({ title: post.title, category: post.category, content: post.content, cover_image: post.cover_image || "", published: post.published });
+    setImgFile(null);
+    setImgPreview(post.cover_image || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const cancelEdit = () => {
+    setEditing(null); setForm(EMPTY_BLOG);
+    setImgFile(null); setImgPreview("");
+  };
+
+  const toggleFeatured = async (id, cur) => {
+    try {
+      await axios.put(`${API}/blog/${id}/feature`, { is_featured: !cur }, { headers: authHeader() });
+      showToast(cur ? "Removed from featured." : "⭐ Marked as featured.");
+      load();
+    } catch { showToast("Failed to update featured."); }
+  };
+
+  const filtered = posts.filter(p =>
+    p.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const imgDisplaySrc = imgPreview || form.cover_image;
 
   return (
     <div className="admin-section">
       <h2>📝 Manage Blog</h2>
       {toast && <div className="admin-toast">{toast}</div>}
 
+      {/* ── FORM ─────────────────────────────────────── */}
       <div className="admin-form">
         <h3>{editing ? "✏️ Edit Post" : "➕ New Post"}</h3>
+
         <input
-          placeholder="Post title"
+          placeholder="Post title *"
           value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
+          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
         />
-        <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+
+        <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
           {BLOG_CATS.map(c => <option key={c}>{c}</option>)}
         </select>
-        <input
-          placeholder="Cover image URL (optional)"
-          value={form.cover_image}
-          onChange={e => setForm({ ...form, cover_image: e.target.value })}
-        />
 
-        <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
-          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#555" }}>Content (Markdown)</span>
-          <button
-            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: preview ? "#DB4035" : "#f4f3f1", color: preview ? "#fff" : "#333" }}
-            onClick={() => setPreview(!preview)}
-            type="button"
-          >
-            {preview ? "Edit" : "Preview"}
-          </button>
+        {/* Cover image upload */}
+        <div
+          className={`blog-img-upload-box${imgDisplaySrc ? " has-image" : ""}`}
+          onClick={() => !imgDisplaySrc && imgInputRef.current?.click()}
+        >
+          {imgDisplaySrc ? (
+            <>
+              <img src={imgDisplaySrc} alt="Cover" className="blog-img-upload-preview" />
+              <div className="blog-img-upload-overlay">
+                <button className="blog-img-change" type="button" onClick={e => { e.stopPropagation(); imgInputRef.current?.click(); }}>
+                  🔄 Change
+                </button>
+                <button className="blog-img-remove" type="button" onClick={handleImgRemove}>
+                  ✕ Remove
+                </button>
+              </div>
+              {uploading && <div className="blog-img-uploading">Uploading to Cloudinary…</div>}
+            </>
+          ) : (
+            <div className="blog-img-placeholder">
+              <span className="blog-img-icon">🖼️</span>
+              <span className="blog-img-label">Click to upload cover image</span>
+              <span className="blog-img-hint">JPG, PNG, WebP · recommended 1200 × 630</span>
+            </div>
+          )}
+          <input ref={imgInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImgSelect} />
         </div>
 
-        {preview ? (
+        {/* Markdown editor */}
+        <div className="blog-editor-header">
+          <span className="blog-editor-label">
+            Content (Markdown)&nbsp;
+            <span className="blog-readtime-badge">~{readTime} min read</span>
+          </span>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="blog-btn-sm" type="button" onClick={genExcerpt}>✂️ Excerpt</button>
+            <button className={`blog-btn-sm${mdPreview ? " active" : ""}`} type="button" onClick={() => setMdPreview(p => !p)}>
+              {mdPreview ? "✏️ Edit" : "👁 Preview"}
+            </button>
+          </div>
+        </div>
+
+        {mdPreview ? (
           <div className="blog-preview-box">
             <ReactMarkdown>{form.content || "_Nothing to preview yet_"}</ReactMarkdown>
           </div>
         ) : (
           <textarea
             className="blog-md-editor"
-            placeholder={`Write your post in Markdown...\n\n## Heading\n\nParagraph text here.\n\n- List item 1\n- List item 2\n\n**Bold** and _italic_ supported.`}
+            placeholder={`Write in Markdown…\n\n## Heading\n\nParagraph text.\n\n- List item\n\n**Bold** and _italic_ supported.`}
             value={form.content}
-            onChange={e => setForm({ ...form, content: e.target.value })}
+            onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
           />
         )}
 
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={form.published}
-            onChange={e => setForm({ ...form, published: e.target.checked })}
-          />
-          Publish immediately (visible on the website)
-        </label>
+        {/* Footer: toggle + save */}
+        <div className="blog-form-footer">
+          <label className="blog-toggle-label">
+            <span className="blog-toggle-wrap">
+              <input
+                type="checkbox"
+                className="blog-toggle-input"
+                checked={form.published}
+                onChange={e => setForm(f => ({ ...f, published: e.target.checked }))}
+              />
+              <span className="blog-toggle-track"><span className="blog-toggle-thumb" /></span>
+            </span>
+            <span className={`blog-toggle-text${form.published ? " published" : ""}`}>
+              {form.published ? "Published" : "Draft"}
+            </span>
+          </label>
 
-        <div className="form-btns">
-          <button className="btn-save" onClick={save} disabled={saving}>{saving ? "Saving…" : editing ? "Update Post" : "Save Post"}</button>
-          {editing && (
-            <button className="btn-cancel" onClick={() => { setEditing(null); setForm(EMPTY_POST); }}>
-              Cancel
+          <div className="form-btns" style={{ margin: 0 }}>
+            <button className="btn-save" onClick={save} disabled={saving || uploading}>
+              {uploading ? "Uploading image…" : saving ? "Saving…" : editing ? "Update Post" : "Save Post"}
             </button>
-          )}
+            {editing && <button className="btn-cancel" onClick={cancelEdit}>Cancel</button>}
+          </div>
         </div>
       </div>
 
-      <div className="admin-list">
-        {posts.length === 0 && <p style={{ color: "#888", padding: "16px 0" }}>No blog posts yet.</p>}
-        {posts.map(post => (
-          <div className="admin-item" key={post.id}>
-            <div>
-              <strong>{post.title}</strong>
-              <span className="item-meta">
-                {post.category} · {new Date(post.created_at).toLocaleDateString("en-IN")}
-              </span>
-              <span className={`tag ${post.published ? "income" : "expense"}`}>
-                {post.published ? "✅ Published" : "📄 Draft"}
-              </span>
-              <p style={{ fontSize: "0.82rem", color: "#777", marginTop: "4px" }}>
-                {post.content.replace(/[#*_`[\]()]/g, "").slice(0, 100)}…
-              </p>
+      {/* ── SEARCH ─────────────────────────────────────── */}
+      <div className="blog-search-row">
+        <div className="blog-search-wrap">
+          <span className="blog-search-icon">🔍</span>
+          <input
+            className="blog-search-input"
+            placeholder="Search posts by title…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button className="blog-search-clear" onClick={() => setSearch("")}>✕</button>
+          )}
+        </div>
+        <span className="blog-post-count">{filtered.length} post{filtered.length !== 1 ? "s" : ""}</span>
+      </div>
+
+      {/* ── POST LIST ──────────────────────────────────── */}
+      <div className="blog-post-list">
+        {filtered.length === 0 && (
+          <p style={{ color: "#aaa", textAlign: "center", padding: "24px 0" }}>
+            {search ? `No posts matching "${search}"` : "No blog posts yet."}
+          </p>
+        )}
+        {filtered.map(post => (
+          <div className="blog-post-row" key={post.id}>
+
+            {/* Thumbnail */}
+            <div className="blog-post-thumb-wrap">
+              {post.cover_image
+                ? <img src={post.cover_image} alt={post.title} className="blog-post-thumb" />
+                : <div className="blog-post-thumb-empty">📝</div>
+              }
             </div>
-            <div className="item-btns">
+
+            {/* Info */}
+            <div className="blog-post-row-info">
+              <strong className="blog-post-row-title">{post.title}</strong>
+              <div className="blog-post-row-badges">
+                <span className="bl-badge-cat">{post.category}</span>
+                <span className={`bl-badge-status ${post.published ? "pub" : "draft"}`}>
+                  {post.published ? "● Published" : "○ Draft"}
+                </span>
+                <span className="bl-badge-readtime">{calcReadTime(post.content)} min read</span>
+                {post.is_featured && <span className="bl-badge-featured">⭐ Featured</span>}
+              </div>
+              <p className="blog-post-row-excerpt">
+                {stripMd(post.content).slice(0, 110)}…
+              </p>
+              <span className="blog-post-row-date">
+                {new Date(post.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="blog-post-row-actions">
+              <button
+                className={`blog-btn-feature${post.is_featured ? " active" : ""}`}
+                onClick={() => toggleFeatured(post.id, post.is_featured)}
+                title={post.is_featured ? "Remove featured" : "Mark as featured"}
+              >
+                {post.is_featured ? "⭐" : "☆"}
+              </button>
               <button className="btn-edit" onClick={() => edit(post)}>✏️ Edit</button>
               {confirmId === post.id
                 ? <span className="inline-confirm">
@@ -802,7 +961,7 @@ function AdminBlog() {
                     <button className="btn-del" onClick={() => del(post.id)}>Yes</button>&nbsp;
                     <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
                   </span>
-                : <button className="btn-del" onClick={() => setConfirmId(post.id)}>🗑️ Delete</button>
+                : <button className="btn-del" onClick={() => setConfirmId(post.id)}>🗑️</button>
               }
             </div>
           </div>
