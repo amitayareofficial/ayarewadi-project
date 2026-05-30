@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+
+const capWords = v => v.replace(/(?:^|\s)\S/g, c => c.toUpperCase());
 import { Eye, EyeOff, Phone, Camera } from "lucide-react";
 import { memberApi } from "@/services/memberApi";
 import {
@@ -290,7 +292,13 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                       <Label>{label} {req && <span className="text-red-500">*</span>}</Label>
                     </BoxReveal>
                     <BoxReveal width="100%" boxColor="var(--skeleton)" duration={0.3}>
-                      <Input type="text" placeholder={ph} value={form[key]} onChange={set(key)} />
+                      <Input
+                        type="text"
+                        placeholder={ph}
+                        value={form[key]}
+                        autoCapitalize="words"
+                        onChange={e => setForm(f => ({ ...f, [key]: capWords(e.target.value) }))}
+                      />
                     </BoxReveal>
                   </div>
                 ))}
@@ -306,7 +314,8 @@ export default function Register({ onGoLogin, lang = "mr" }) {
                     type="text"
                     placeholder={lang === "mr" ? "उदा. अमित्या, बाळ्या..." : "e.g. Amitya, Balya..."}
                     value={form.nickname}
-                    onChange={set("nickname")}
+                    autoCapitalize="words"
+                    onChange={e => setForm(f => ({ ...f, nickname: capWords(e.target.value) }))}
                   />
                 </BoxReveal>
               </div>
