@@ -1028,7 +1028,13 @@ function AdminMarquee() {
 
 /* ── MEMBERS PAGE ADMIN ───────────────────────────────── */
 const GRAM_ROLES = ["सदस्य", "अध्यक्ष", "उपाध्यक्ष", "सचिव", "खजिनदार", "सल्लागार", "युवा सदस्य"];
-const EMPTY_GM   = { name: "", role: "सदस्य", address: "", bio: "", mobile: "", display_order: "0" };
+const GRAM_EDU   = ["NA", "10वी पास", "12वी पास", "ITI", "Diploma", "B.A./B.Com/B.Sc.", "B.E./B.Tech", "MBBS", "LLB", "Post-Graduate", "PhD", "इतर"];
+const EMPTY_GM   = {
+  first_name: "", middle_name: "", last_name: "",
+  father_name: "", role: "सदस्य",
+  address: "", mumbai_location: "", education: "NA",
+  bio: "", mobile: "", display_order: "0"
+};
 
 function AdminGramMembers() {
   const [members,   setMembers]   = useState([]);
@@ -1055,8 +1061,12 @@ function AdminGramMembers() {
     setPreview(URL.createObjectURL(f));
   };
 
+  const f = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
   const save = async () => {
-    if (!form.name.trim()) return showToast("Name is required.");
+    if (!form.first_name.trim()) return showToast("पहिले नाव आवश्यक आहे.");
+    if (!form.last_name.trim())  return showToast("आडनाव आवश्यक आहे.");
+    if (!form.father_name.trim()) return showToast("वडिलांचे नाव आवश्यक आहे.");
     setSaving(true);
     try {
       const fd = new FormData();
@@ -1092,9 +1102,17 @@ function AdminGramMembers() {
   const startEdit = m => {
     setEditing(m.id);
     setForm({
-      name: m.name, role: m.role || "सदस्य",
-      address: m.address || "", bio: m.bio || "",
-      mobile: m.mobile || "", display_order: String(m.display_order ?? 0)
+      first_name:      m.first_name      || "",
+      middle_name:     m.middle_name     || "",
+      last_name:       m.last_name       || "",
+      father_name:     m.father_name     || "",
+      role:            m.role            || "सदस्य",
+      address:         m.address         || "",
+      mumbai_location: m.mumbai_location || "",
+      education:       m.education       || "NA",
+      bio:             m.bio             || "",
+      mobile:          m.mobile          || "",
+      display_order:   String(m.display_order ?? 0),
     });
     setFile(null);
     setPreview(m.photo_url || null);
@@ -1104,6 +1122,8 @@ function AdminGramMembers() {
   const cancelEdit = () => {
     setEditing(null); setForm(EMPTY_GM); setFile(null); setPreview(null);
   };
+
+  const previewInitial = (form.first_name.charAt(0) || "?").toUpperCase();
 
   return (
     <div className="admin-section">
@@ -1120,7 +1140,7 @@ function AdminGramMembers() {
             <div style={{ width: 90, height: 90, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg,#2e7d32,#81c784)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "2rem", fontWeight: 800, border: "3px solid #e0e0e0", marginBottom: 8 }}>
               {preview
                 ? <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : (form.name.charAt(0).toUpperCase() || "?")
+                : previewInitial
               }
             </div>
             <label style={{ fontSize: "0.78rem", color: "#2e7d32", cursor: "pointer", fontWeight: 600 }}>
@@ -1132,21 +1152,78 @@ function AdminGramMembers() {
 
           {/* Fields */}
           <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: 10 }}>
-            <input placeholder="Full name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
-              {GRAM_ROLES.map(r => <option key={r}>{r}</option>)}
-            </select>
-            <input placeholder="Address / Village area (optional)" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
-            <textarea
-              placeholder="Short bio — achievements, role description (optional)"
-              value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })}
-              style={{ minHeight: 72, resize: "vertical" }}
-            />
+
+            {/* Name row */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>पहिले नाव *</label>
+                <input placeholder="पहिले नाव" value={form.first_name} onChange={e => f("first_name", e.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>मधले नाव</label>
+                <input placeholder="मधले नाव" value={form.middle_name} onChange={e => f("middle_name", e.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>आडनाव *</label>
+                <input placeholder="आडनाव" value={form.last_name} onChange={e => f("last_name", e.target.value)} />
+              </div>
+            </div>
+
+            {/* Father name */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>वडिलांचे नाव *</label>
+              <input placeholder="वडिलांचे नाव" value={form.father_name} onChange={e => f("father_name", e.target.value)} />
+            </div>
+
+            {/* Role */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>पद</label>
+              <select value={form.role} onChange={e => f("role", e.target.value)}>
+                {GRAM_ROLES.map(r => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+
+            {/* Education */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>शिक्षण</label>
+              <select value={form.education} onChange={e => f("education", e.target.value)}>
+                {GRAM_EDU.map(e => <option key={e}>{e}</option>)}
+              </select>
+            </div>
+
+            {/* Address */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>गावातील पत्ता</label>
+              <input placeholder="गावातील पत्ता (optional)" value={form.address} onChange={e => f("address", e.target.value)} />
+            </div>
+
+            {/* Mumbai location */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>मुंबई पत्ता</label>
+              <input placeholder="मुंबई पत्ता (optional)" value={form.mumbai_location} onChange={e => f("mumbai_location", e.target.value)} />
+            </div>
+
+            {/* Bio */}
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>थोडक्यात परिचय</label>
+              <textarea
+                placeholder="उपलब्धी, भूमिका वर्णन (optional)"
+                value={form.bio} onChange={e => f("bio", e.target.value)}
+                style={{ minHeight: 72, resize: "vertical" }}
+              />
+            </div>
+
+            {/* Mobile + order */}
             <div style={{ display: "flex", gap: 10 }}>
-              <input placeholder="Mobile (optional)" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} style={{ flex: 1 }} />
-              <input type="number" placeholder="Order (0=first)" value={form.display_order} min={0}
-                onChange={e => setForm({ ...form, display_order: e.target.value })}
-                style={{ width: 120 }} />
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>मोबाइल</label>
+                <input placeholder="मोबाइल (optional)" value={form.mobile} onChange={e => f("mobile", e.target.value)} />
+              </div>
+              <div style={{ width: 120 }}>
+                <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>क्रम (0=प्रथम)</label>
+                <input type="number" min={0} value={form.display_order}
+                  onChange={e => f("display_order", e.target.value)} />
+              </div>
             </div>
           </div>
         </div>
@@ -1193,14 +1270,20 @@ function AdminGramMembers() {
                 <span style={{ background: "#e8f5e9", color: "#2e7d32", border: "1px solid #c8e6c9", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
                   {m.role || "सदस्य"}
                 </span>
+                {m.education && m.education !== "NA" && (
+                  <span style={{ background: "#e3f2fd", color: "#1565c0", border: "1px solid #90caf9", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
+                    🎓 {m.education}
+                  </span>
+                )}
                 {!m.is_active && (
                   <span style={{ background: "#fff3e0", color: "#e65100", border: "1px solid #ffcc80", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
                     Hidden
                   </span>
                 )}
               </div>
+              {m.father_name && <div className="item-meta" style={{ marginTop: 2 }}>वडील: {m.father_name}</div>}
               {m.address && <div className="item-meta" style={{ marginTop: 2 }}>📍 {m.address}</div>}
-              {m.bio && <p style={{ fontSize: "0.78rem", color: "#888", marginTop: 2 }}>{m.bio.slice(0, 90)}{m.bio.length > 90 ? "…" : ""}</p>}
+              {m.mumbai_location && <div className="item-meta" style={{ marginTop: 2 }}>🏙️ मुंबई: {m.mumbai_location}</div>}
             </div>
 
             {/* Actions */}

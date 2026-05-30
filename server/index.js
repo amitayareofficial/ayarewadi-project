@@ -361,11 +361,28 @@ pool.query(`
   )
 `).catch(e => console.error("gram_members table:", e.message));
 
+/* Idempotent migration — add extended profile columns */
+;(async () => {
+  const stmts = [
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS first_name      VARCHAR(80)  NOT NULL DEFAULT ''`,
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS middle_name     VARCHAR(80)           DEFAULT ''`,
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS last_name       VARCHAR(80)  NOT NULL DEFAULT ''`,
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS father_name     VARCHAR(150)          DEFAULT ''`,
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS mumbai_location VARCHAR(200)`,
+    `ALTER TABLE gram_members ADD COLUMN IF NOT EXISTS education       VARCHAR(100)          DEFAULT 'NA'`,
+  ];
+  for (const sql of stmts) {
+    try { await pool.query(sql); } catch (e) { console.error("gram_members migration:", e.message); }
+  }
+})();
+
 /* Public — active members */
 app.get("/gram-members", async (req, res) => {
   try {
     const r = await pool.query(
-      "SELECT id,name,role,photo_url,address,bio,display_order FROM gram_members WHERE is_active=true ORDER BY display_order ASC, name ASC"
+      `SELECT id,name,first_name,middle_name,last_name,father_name,role,
+              photo_url,address,mumbai_location,education,bio,display_order
+       FROM gram_members WHERE is_active=true ORDER BY display_order ASC, name ASC`
     );
     res.json(r.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -395,11 +412,15 @@ app.post("/gram-members", authAdmin, upload.single("photo"), async (req, res) =>
       });
       photo_url = up.secure_url;
     }
-    const { name, role, address, bio, mobile, display_order } = req.body;
+    const { first_name, middle_name, last_name, father_name, role, address, mumbai_location, education, bio, mobile, display_order } = req.body;
+    const fullName = [first_name, middle_name, last_name].filter(Boolean).join(" ").trim();
     const r = await pool.query(
-      `INSERT INTO gram_members (name,role,photo_url,address,bio,mobile,display_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name, role || 'सदस्य', photo_url, address || null, bio || null, mobile || null, parseInt(display_order) || 0]
+      `INSERT INTO gram_members
+         (name,first_name,middle_name,last_name,father_name,role,photo_url,address,mumbai_location,education,bio,mobile,display_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [fullName, first_name || '', middle_name || '', last_name || '', father_name || '',
+       role || 'सदस्य', photo_url, address || null, mumbai_location || null,
+       education || 'NA', bio || null, mobile || null, parseInt(display_order) || 0]
     );
     res.status(201).json(r.rows[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -422,14 +443,28 @@ app.put("/gram-members/:id", authAdmin, upload.single("photo"), async (req, res)
       sets.push(`photo_url = ${p(up.secure_url)}`);
     }
 
-    const { name, role, address, bio, mobile, display_order, is_active } = req.body;
-    if (name          !== undefined) sets.push(`name          = ${p(name)}`);
-    if (role          !== undefined) sets.push(`role          = ${p(role)}`);
-    if (address       !== undefined) sets.push(`address       = ${p(address || null)}`);
-    if (bio           !== undefined) sets.push(`bio           = ${p(bio || null)}`);
-    if (mobile        !== undefined) sets.push(`mobile        = ${p(mobile || null)}`);
-    if (display_order !== undefined) sets.push(`display_order = ${p(parseInt(display_order) || 0)}`);
-    if (is_active     !== undefined) sets.push(`is_active     = ${p(is_active === "true" || is_active === true)}`);
+    const { first_name, middle_name, last_name, father_name, role, address, mumbai_location, education, bio, mobile, display_order, is_active } = req.body;
+    if (first_name      !== undefined) sets.push(`first_name      = ${p(first_name || '')}`);
+    if (middle_name     !== undefined) sets.push(`middle_name     = ${p(middle_name || '')}`);
+    if (last_name       !== undefined) sets.push(`last_name       = ${p(last_name || '')}`);
+    if (father_name     !== undefined) sets.push(`father_name     = ${p(father_name || '')}`);
+    if (first_name !== undefined || middle_name !== undefined || last_name !== undefined) {
+      const cur = await pool.query("SELECT first_name,middle_name,last_name FROM gram_members WHERE id=$1", [req.params.id]);
+      if (cur.rows.length) {
+        const fn = first_name  !== undefined ? first_name  : cur.rows[0].first_name;
+        const mn = middle_name !== undefined ? middle_name : cur.rows[0].middle_name;
+        const ln = last_name   !== undefined ? last_name   : cur.rows[0].last_name;
+        sets.push(`name = ${p([fn, mn, ln].filter(Boolean).join(" ").trim() || fn || ln)}`);
+      }
+    }
+    if (role            !== undefined) sets.push(`role            = ${p(role)}`);
+    if (address         !== undefined) sets.push(`address         = ${p(address || null)}`);
+    if (mumbai_location !== undefined) sets.push(`mumbai_location = ${p(mumbai_location || null)}`);
+    if (education       !== undefined) sets.push(`education       = ${p(education || 'NA')}`);
+    if (bio             !== undefined) sets.push(`bio             = ${p(bio || null)}`);
+    if (mobile          !== undefined) sets.push(`mobile          = ${p(mobile || null)}`);
+    if (display_order   !== undefined) sets.push(`display_order   = ${p(parseInt(display_order) || 0)}`);
+    if (is_active       !== undefined) sets.push(`is_active       = ${p(is_active === "true" || is_active === true)}`);
 
     if (!sets.length) return res.status(400).json({ error: "Nothing to update" });
     params.push(req.params.id);

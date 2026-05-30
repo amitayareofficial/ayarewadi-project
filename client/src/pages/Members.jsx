@@ -28,7 +28,7 @@ export default function Members_Page({ lang }) {
         <div className="mem-hero-bg" aria-hidden="true" />
         <div className="mem-hero-inner">
           <span className="mem-eyebrow">{isMr ? "आमचे लोक" : "Our People"}</span>
-          <h1 className="mem-title">{isMr ? "ग्रामसदस्य" : "Village Members"}</h1>
+          <h1 className="mem-title">आयरेवाडी ग्रामविकास मंडळ</h1>
           <p className="mem-subtitle">
             {isMr
               ? "आयरेवाडी गावाचे अभिमानी रहिवासी आणि ग्रामसमिती सदस्य."
@@ -124,13 +124,29 @@ function MemberCard({ member: m, index }) {
 
       <div className="mem-card-body">
         <h3 className="mem-name">{m.name}</h3>
-        <span className="mem-role-badge">{m.role || "सदस्य"}</span>
+        <div className="mem-badges">
+          <span className="mem-role-badge">{m.role || "सदस्य"}</span>
+          {m.education && m.education !== "NA" && (
+            <span className="mem-edu-badge">🎓 {m.education}</span>
+          )}
+        </div>
+        {m.father_name && (
+          <p className="mem-father">वडील: {m.father_name}</p>
+        )}
         {m.address && (
           <p className="mem-address">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
             </svg>
             {m.address}
+          </p>
+        )}
+        {m.mumbai_location && (
+          <p className="mem-address" style={{ color: "#1565c0" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            मुंबई: {m.mumbai_location}
           </p>
         )}
         {m.bio && <p className="mem-bio">{m.bio}</p>}
