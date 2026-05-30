@@ -7,9 +7,25 @@ const RELATION_LABELS = {
   father:   { label: "Father / वडील",      color: "#1565c0", bg: "#e3f2fd" },
   mother:   { label: "Mother / आई",         color: "#6a1b9a", bg: "#f3e5f5" },
   spouse:   { label: "Spouse / पती/पत्नी",  color: "#c62828", bg: "#fce4ec" },
+  brother:  { label: "Brother / भाऊ",       color: "#e65100", bg: "#fff3e0" },
   son:      { label: "Son / मुलगा",         color: "#2e7d32", bg: "#e8f5e9" },
   daughter: { label: "Daughter / मुलगी",    color: "#00695c", bg: "#e0f2f1" },
 };
+
+const TREE_STYLE = `
+@keyframes nodeIn {
+  from { opacity: 0; transform: scale(0.75) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+@keyframes lineV {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes lineH {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+`;
 
 function personName(p) {
   if (!p) return "Unknown";
@@ -111,7 +127,7 @@ export default function FamilyTree({ onBack }) {
         <div style={{ textAlign: "center", padding: "2rem", color: "#aaa" }}>Loading...</div>
       )}
 
-      {/* Person detail */}
+      {/* Person detail tree */}
       {person && !loading && (
         <PersonDetail person={person} onClose={() => setPerson(null)} onOpenPerson={openPerson} />
       )}
@@ -152,17 +168,188 @@ export default function FamilyTree({ onBack }) {
   );
 }
 
-function PersonDetail({ person, onClose, onOpenPerson }) {
-  const parents   = (person.relations || []).filter(r => r.relation_type === "father" || r.relation_type === "mother");
-  const spouse    = (person.relations || []).filter(r => r.relation_type === "spouse");
-  const children  = (person.relations || []).filter(r => r.relation_type === "son" || r.relation_type === "daughter");
-  const others    = (person.relations || []).filter(r => !["father","mother","spouse","son","daughter"].includes(r.relation_type));
+/* ── Tree node (person bubble) ── */
+function TreeNode({ rel, isCenter, delay = 0, onClick }) {
+  const meta = !isCenter
+    ? (RELATION_LABELS[rel.relation_type] || { label: rel.relation_type, color: "#555", bg: "#f5f5f5" })
+    : null;
+  const name  = isCenter
+    ? personName(rel)
+    : [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
+  const photo   = rel.photo_url;
+  const initial = (rel.first_name || "?").charAt(0).toUpperCase();
+  const sz      = isCenter ? 52 : 42;
 
   return (
-    <div style={pd.wrap}>
-      {/* Person card */}
+    <button
+      onClick={isCenter ? undefined : onClick}
+      style={{
+        animation: `nodeIn 0.4s cubic-bezier(.34,1.56,.64,1) ${delay}s both`,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+        padding: "10px 10px 8px",
+        borderRadius: 16,
+        border: isCenter
+          ? "2.5px solid #4caf50"
+          : `1.5px solid ${meta ? meta.color + "55" : "#e0e0e0"}`,
+        background: isCenter ? "#e8f5e9" : (meta ? meta.bg : "#fff"),
+        cursor: isCenter ? "default" : "pointer",
+        minWidth: 80, maxWidth: 104,
+        boxSizing: "border-box",
+        boxShadow: isCenter
+          ? "0 6px 20px rgba(76,175,80,0.22)"
+          : "0 2px 8px rgba(0,0,0,0.08)",
+        flexShrink: 0,
+      }}>
+      {photo
+        ? <img src={photo} alt=""
+            style={{ width: sz, height: sz, borderRadius: "50%", objectFit: "cover",
+                     border: isCenter ? "2.5px solid #4caf50" : "none" }} />
+        : <div style={{
+            width: sz, height: sz, borderRadius: "50%",
+            background: isCenter ? "#c8e6c9" : (meta?.bg || "#f0f0f0"),
+            color: isCenter ? "#2e7d32" : (meta?.color || "#888"),
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontWeight: 800, fontSize: isCenter ? "1.4rem" : "1.1rem",
+            border: isCenter ? "2.5px solid #4caf50" : "none",
+          }}>{initial}</div>
+      }
+      <div style={{
+        fontSize: "0.7rem", fontWeight: 700, textAlign: "center",
+        lineHeight: 1.25, color: isCenter ? "#1b5e20" : "#222",
+        maxWidth: 88, wordBreak: "break-word",
+      }}>
+        {name || "Unknown"}
+      </div>
+      {!isCenter && meta && (
+        <span style={{
+          fontSize: "0.58rem", background: meta.bg, color: meta.color,
+          borderRadius: 20, padding: "2px 7px", fontWeight: 700, whiteSpace: "nowrap",
+        }}>
+          {meta.label.split(" / ")[0]}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ── Person detail as animated family tree ── */
+function PersonDetail({ person, onClose, onOpenPerson }) {
+  const parents  = (person.relations || []).filter(r => ["father","mother"].includes(r.relation_type));
+  const spouse   = (person.relations || []).filter(r => r.relation_type === "spouse");
+  const siblings = (person.relations || []).filter(r => r.relation_type === "brother");
+  const children = (person.relations || []).filter(r => ["son","daughter"].includes(r.relation_type));
+  const others   = (person.relations || []).filter(r =>
+    !["father","mother","spouse","brother","son","daughter"].includes(r.relation_type));
+  const hasTree  = parents.length > 0 || spouse.length > 0 || siblings.length > 0 || children.length > 0;
+
+  const VLine = ({ delay }) => (
+    <div style={{
+      width: 2, height: 30, background: "linear-gradient(#4caf50,#81c784)",
+      animation: `lineV 0.3s ease ${delay}s both`, transformOrigin: "top",
+      flexShrink: 0,
+    }} />
+  );
+
+  const HLine = ({ width, delay }) => (
+    <div style={{
+      height: 2, width, background: "#4caf50",
+      animation: `lineH 0.3s ease ${delay}s both`, transformOrigin: "center",
+      flexShrink: 0,
+    }} />
+  );
+
+  /* width of horizontal bar spanning N children */
+  const childBarW = Math.min(children.length, 5) * 96;
+
+  return (
+    <>
+      <style>{TREE_STYLE}</style>
+
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontWeight: 800, fontSize: "0.8rem", color: "#1b5e20", letterSpacing: "0.05em" }}>
+          🌳 FAMILY TREE · कुटुंब वृक्ष
+        </div>
+        <button style={pd.closeBtn} onClick={onClose}>✕ Close</button>
+      </div>
+
+      {/* ── Tree canvas ── */}
+      <div style={{
+        background: "linear-gradient(135deg,#f9fef9,#f0faf0)",
+        border: "1.5px solid #c8e6c9",
+        borderRadius: 18,
+        padding: "1.5rem 1rem 1.75rem",
+        boxShadow: "0 4px 24px rgba(76,175,80,0.08)",
+        overflowX: "auto",
+      }}>
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          minWidth: "fit-content", margin: "0 auto",
+        }}>
+
+          {/* ── Row 1: Parents ── */}
+          {parents.length > 0 && (
+            <>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                {parents.map((r, i) => (
+                  <TreeNode key={i} rel={r} delay={0.05 * i}
+                    onClick={() => onOpenPerson(r.related_person_id)} />
+                ))}
+              </div>
+              <VLine delay={0.18} />
+            </>
+          )}
+
+          {/* ── Row 2: Self + Spouse + Siblings ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+            {siblings.length > 0 && (
+              <>
+                {siblings.map((r, i) => (
+                  <TreeNode key={i} rel={r} delay={0.22 + i * 0.06}
+                    onClick={() => onOpenPerson(r.related_person_id)} />
+                ))}
+                <HLine width={24} delay={0.3} />
+              </>
+            )}
+            <TreeNode rel={person} isCenter delay={parents.length ? 0.24 : 0.05} />
+            {spouse.length > 0 && (
+              <>
+                <HLine width={28} delay={0.32} />
+                {spouse.map((r, i) => (
+                  <TreeNode key={i} rel={r} delay={0.38 + i * 0.06}
+                    onClick={() => onOpenPerson(r.related_person_id)} />
+                ))}
+              </>
+            )}
+          </div>
+
+          {/* ── Row 3: Children ── */}
+          {children.length > 0 && (
+            <>
+              <VLine delay={0.44} />
+              {/* horizontal bar only when more than 1 child */}
+              {children.length > 1 && <HLine width={childBarW} delay={0.5} />}
+              <div style={{ display: "flex", gap: 8, flexWrap: "nowrap" }}>
+                {children.map((r, i) => (
+                  <TreeNode key={i} rel={r} delay={0.55 + i * 0.07}
+                    onClick={() => onOpenPerson(r.related_person_id)} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* empty state */}
+          {!hasTree && (
+            <div style={{ fontSize: "0.78rem", color: "#bbb", marginTop: 8, textAlign: "center" }}>
+              No family relations recorded yet.<br />माहिती उपलब्ध नाही.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Person detail card (below tree) ── */}
       <div style={pd.personCard}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
           {person.photo_url
             ? <img src={person.photo_url} alt="" style={pd.avatar} />
             : <div style={pd.avatarFallback}>{person.first_name?.charAt(0)}</div>
@@ -173,73 +360,39 @@ function PersonDetail({ person, onClose, onOpenPerson }) {
               <span style={pd.id}> #{person.id}</span>
             </h3>
             {person.nickname && <div style={pd.nickname}>"{person.nickname}"</div>}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 5 }}>
               {person.gender && <InfoChip text={person.gender === "male" ? "👨 Male" : "👩 Female"} />}
               {person.dob && <InfoChip text={`📅 ${new Date(person.dob).toLocaleDateString("en-IN")}`} />}
               {person.mobile && <InfoChip text={`📞 ${person.mobile}`} />}
             </div>
           </div>
-          <button style={pd.closeBtn} onClick={onClose}>✕</button>
         </div>
       </div>
 
-      {/* No relations */}
-      {(person.relations || []).length === 0 && (
-        <div style={{ textAlign: "center", padding: "1.5rem 0", color: "#aaa", fontSize: "0.82rem" }}>
-          No family relations recorded yet.
-        </div>
-      )}
-
-      {/* Parents */}
-      {parents.length > 0 && (
-        <RelationSection title="Parents · पालक" relations={parents} onOpen={onOpenPerson} />
-      )}
-
-      {/* Spouse */}
-      {spouse.length > 0 && (
-        <RelationSection title="Spouse · पती/पत्नी" relations={spouse} onOpen={onOpenPerson} />
-      )}
-
-      {/* Children */}
-      {children.length > 0 && (
-        <RelationSection title="Children · मुले" relations={children} onOpen={onOpenPerson} />
-      )}
-
-      {/* Others */}
+      {/* ── Other / unlabelled relations ── */}
       {others.length > 0 && (
-        <RelationSection title="Other Relations" relations={others} onOpen={onOpenPerson} />
-      )}
-    </div>
-  );
-}
-
-function RelationSection({ title, relations, onOpen }) {
-  return (
-    <div style={pd.section}>
-      <div style={pd.sectionTitle}>{title}</div>
-      {relations.map((rel, i) => {
-        const meta = RELATION_LABELS[rel.relation_type] || { label: rel.relation_type, color: "#555", bg: "#f5f5f5" };
-        const name = [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
-        return (
-          <button key={i} style={pd.relRow} onClick={() => onOpen(rel.related_person_id)}>
-            {rel.photo_url
-              ? <img src={rel.photo_url} alt="" style={pd.relAvatar} />
-              : <div style={{ ...pd.relAvatarFallback, background: meta.bg, color: meta.color }}>
+        <div style={pd.section}>
+          <div style={pd.sectionTitle}>Other Relations</div>
+          {others.map((rel, i) => {
+            const meta = RELATION_LABELS[rel.relation_type] || { label: rel.relation_type, color: "#555", bg: "#f5f5f5" };
+            const name = [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
+            return (
+              <button key={i} style={pd.relRow} onClick={() => onOpenPerson(rel.related_person_id)}>
+                <div style={{ ...pd.relAvatarFallback, background: meta.bg, color: meta.color }}>
                   {rel.first_name?.charAt(0)}
                 </div>
-            }
-            <div style={{ flex: 1, textAlign: "left" }}>
-              <div style={{ fontWeight: 700, fontSize: "0.85rem" }}>{name}</div>
-              {rel.nickname && <div style={{ fontSize: "0.7rem", color: "#888" }}>"{rel.nickname}"</div>}
-            </div>
-            <span style={{ ...pd.relBadge, background: meta.bg, color: meta.color }}>
-              {meta.label}
-            </span>
-            <span style={{ color: "#ccc", fontSize: "0.9rem" }}>→</span>
-          </button>
-        );
-      })}
-    </div>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.85rem" }}>{name}</div>
+                  {rel.nickname && <div style={{ fontSize: "0.7rem", color: "#888" }}>"{rel.nickname}"</div>}
+                </div>
+                <span style={{ ...pd.relBadge, background: meta.bg, color: meta.color }}>{meta.label}</span>
+                <span style={{ color: "#ccc", fontSize: "0.9rem" }}>→</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -263,7 +416,7 @@ const s = {
   searchInput: { flex: 1, border: "none", outline: "none", padding: "11px 0", fontSize: "0.9rem", background: "transparent" },
   clearBtn: { background: "none", border: "none", color: "#bbb", cursor: "pointer", fontSize: "1rem", padding: 4 },
   dropdown: { background: "#fff", border: "1.5px solid #e0e0e0", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" },
-  dropdownItem: { width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", border: "none", background: "none", cursor: "pointer", borderBottom: "1px solid #f5f5f5", transition: "background 0.15s" },
+  dropdownItem: { width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", border: "none", background: "none", cursor: "pointer", borderBottom: "1px solid #f5f5f5" },
   miniAvatar: { width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 },
   miniAvatarFallback: { width: 36, height: 36, borderRadius: "50%", background: "#e8f5e9", color: "#2e7d32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1rem", flexShrink: 0 },
   sectionLabel: { fontSize: "0.7rem", fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 },
@@ -278,11 +431,10 @@ const s = {
 };
 
 const pd = {
-  wrap: { display: "flex", flexDirection: "column", gap: "0.75rem" },
   personCard: { background: "#fff", border: "2px solid #e8f5e9", borderRadius: 16, padding: "1.1rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
-  avatar: { width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: "2.5px solid #4caf50", flexShrink: 0 },
-  avatarFallback: { width: 64, height: 64, borderRadius: "50%", background: "#e8f5e9", color: "#2e7d32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1.6rem", border: "2.5px solid #4caf50", flexShrink: 0 },
-  name: { fontSize: "1.1rem", fontWeight: 800, color: "#1b5e20", margin: "0 0 2px" },
+  avatar: { width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2.5px solid #4caf50", flexShrink: 0 },
+  avatarFallback: { width: 60, height: 60, borderRadius: "50%", background: "#e8f5e9", color: "#2e7d32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1.5rem", border: "2.5px solid #4caf50", flexShrink: 0 },
+  name: { fontSize: "1.05rem", fontWeight: 800, color: "#1b5e20", margin: "0 0 2px" },
   id:   { fontSize: "0.65rem", fontWeight: 400, color: "#bbb" },
   nickname: { fontSize: "0.78rem", color: "#888", fontStyle: "italic", marginBottom: 2 },
   closeBtn: { background: "none", border: "none", color: "#bbb", cursor: "pointer", fontSize: "1.2rem", padding: 4, alignSelf: "flex-start" },

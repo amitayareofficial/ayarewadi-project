@@ -8,6 +8,7 @@ const RELATIONS = [
   { value: "father",  label: "Father / वडील" },
   { value: "mother",  label: "Mother / आई" },
   { value: "spouse",  label: "Husband/Wife / पती/पत्नी" },
+  { value: "brother", label: "Brother / भाऊ" },
   { value: "son",     label: "Son / मुलगा" },
   { value: "daughter",label: "Daughter / मुलगी" },
 ];
