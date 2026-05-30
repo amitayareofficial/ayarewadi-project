@@ -1587,6 +1587,199 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .blog-post-content { font-size: 0.95rem; }
 }
 
+/* ══════════════════════════════════════════════════════
+   MEMBERS PAGE
+   ══════════════════════════════════════════════════════ */
+
+.mem-page {
+  background: #F4F3F1;
+  min-height: 100vh;
+  padding-top: 52px;
+}
+
+/* Hero */
+.mem-hero {
+  position: relative;
+  background: linear-gradient(145deg, #071a0a 0%, #0e3d24 45%, #1b5e20 100%);
+  padding: 72px 24px 64px;
+  text-align: center;
+  overflow: hidden;
+}
+.mem-hero-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% -10%, rgba(59,140,75,0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 50% at 10%  80%, rgba(59,140,75,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 90%  80%, rgba(219,64,53,0.06) 0%, transparent 60%);
+}
+.mem-hero-inner { position: relative; z-index: 1; }
+
+.mem-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: #7dde96; margin-bottom: 14px;
+}
+.mem-eyebrow::before {
+  content: ''; width: 28px; height: 2px; background: #7dde96; border-radius: 2px;
+}
+
+.mem-title {
+  font-size: 3.2rem; font-weight: 900; color: #fff;
+  margin: 0 0 14px; letter-spacing: -1px; line-height: 1.1;
+}
+.mem-subtitle {
+  color: rgba(255,255,255,0.55); font-size: 1rem;
+  max-width: 480px; margin: 0 auto 18px; line-height: 1.7;
+}
+.mem-hero-count {
+  display: inline-block;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7); border-radius: 30px;
+  padding: 5px 18px; font-size: 0.82rem; font-weight: 600;
+}
+
+/* Filters */
+.mem-filter-bar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 52px; z-index: 10;
+}
+.mem-filters {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+  padding: 14px 24px;
+  max-width: 1200px; margin: 0 auto;
+}
+.mem-filter-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 18px; border-radius: 30px;
+  border: 2px solid #d0e8d4; background: #fff;
+  color: #555; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+}
+.mem-filter-btn:hover { border-color: #2e7d32; color: #2e7d32; }
+.mem-filter-btn.active {
+  background: #2e7d32; color: #fff; border-color: #2e7d32;
+}
+.mem-filter-count {
+  background: rgba(0,0,0,0.08); border-radius: 20px;
+  padding: 1px 7px; font-size: 0.72rem; font-weight: 700;
+}
+.mem-filter-btn.active .mem-filter-count { background: rgba(255,255,255,0.22); }
+
+/* Grid wrapper */
+.mem-grid-wrap {
+  max-width: 1200px; margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+/* Card */
+.mem-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 18px rgba(0,0,0,0.055);
+  padding: 32px 20px 28px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.mem-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 16px 40px rgba(46,125,50,0.13);
+}
+
+/* Photo ring */
+.mem-photo-ring {
+  width: 104px; height: 104px; border-radius: 50%;
+  padding: 3px;
+  background: var(--grad, linear-gradient(135deg,#2e7d32,#81c784));
+  margin-bottom: 18px; flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(46,125,50,0.2);
+}
+.mem-photo {
+  width: 100%; height: 100%; border-radius: 50%;
+  object-fit: cover; border: 3px solid #fff; display: block;
+}
+.mem-avatar {
+  width: 100%; height: 100%; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 2rem; font-weight: 900;
+  border: 3px solid #fff;
+}
+
+/* Card body */
+.mem-card-body { width: 100%; }
+
+.mem-name {
+  font-size: 1rem; font-weight: 700; color: var(--primary);
+  margin: 0 0 9px; line-height: 1.3;
+}
+.mem-role-badge {
+  display: inline-block;
+  background: #e8f5e9; color: #2e7d32;
+  border: 1px solid #c8e6c9; border-radius: 20px;
+  padding: 3px 14px; font-size: 0.73rem; font-weight: 700;
+}
+.mem-address {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 0.76rem; color: #999; margin: 10px 0 0;
+}
+.mem-bio {
+  font-size: 0.78rem; color: #777; margin: 8px 0 0;
+  line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Skeleton */
+.mem-skeleton {
+  height: 270px; border-radius: 20px;
+  background: linear-gradient(90deg, #efefef 25%, #e4e4e4 50%, #efefef 75%);
+  background-size: 200% 100%;
+  animation: mem-shimmer 1.3s infinite;
+}
+@keyframes mem-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Empty */
+.mem-empty {
+  text-align: center; padding: 80px 0;
+  color: #bbb;
+}
+.mem-empty-icon { display: block; font-size: 3rem; margin-bottom: 12px; }
+.mem-empty p    { font-size: 1rem; }
+
+/* Responsive */
+@media (max-width: 1100px) { .mem-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  {
+  .mem-grid           { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .mem-title          { font-size: 2.2rem; }
+  .mem-hero           { padding: 52px 20px 44px; }
+  .mem-page           { padding-top: 48px; }
+  .mem-filter-bar     { top: 48px; }
+  .mem-grid-wrap      { padding: 28px 16px 60px; }
+}
+@media (max-width: 480px)  {
+  .mem-grid           { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .mem-card           { padding: 22px 14px 20px; }
+  .mem-photo-ring     { width: 80px; height: 80px; }
+  .mem-avatar         { font-size: 1.5rem; }
+  .mem-title          { font-size: 1.8rem; }
+}
+@media (max-width: 360px)  {
+  .mem-grid           { grid-template-columns: 1fr; }
+  .mem-page           { padding-top: 56px; }
+  .mem-filter-bar     { top: 56px; }
+}
+
 /* ── SKIP LINK ──────────────────────────────────────────── */
 .skip-link {
   position: absolute; top: -100px; left: 16px; z-index: 9999;

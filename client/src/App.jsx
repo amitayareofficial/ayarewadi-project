@@ -11,6 +11,7 @@ const ForgotPassword  = lazy(() => import("./pages/portal/ForgotPassword.jsx"));
 const Admin           = lazy(() => import("./pages/Admin.jsx"));
 const Blog_Page       = lazy(() => import("./pages/Blog.jsx"));
 const Gallery_Page    = lazy(() => import("./pages/Gallery.jsx"));
+const Members_Page    = lazy(() => import("./pages/Members.jsx"));
 import logoImg        from "./assets/images/ayarewadi-logo.png";
 import { VillageFooter } from "./components/ui/village-footer";
 import { TimelineContent } from "./components/ui/timeline-animation.jsx";
@@ -49,7 +50,7 @@ const LANG = {
   en: {
     nav: {
       home: "Home", emergency: "Emergency", portal: "Portal",
-      gallery: "Gallery", events: "Events", blog: "Blog", admin: "⚙️ Admin",
+      gallery: "Gallery", events: "Events", blog: "Blog", members: "Members", admin: "⚙️ Admin",
     },
     hero: {
       eyebrow: "Sindhudurg · Vaibhavwadi · Konkan · Maharashtra",
@@ -174,7 +175,7 @@ const LANG = {
   mr: {
     nav: {
       home: "मुख्यपान", emergency: "आपत्कालीन", portal: "पोर्टल",
-      gallery: "गॅलरी", events: "कार्यक्रम", blog: "ब्लॉग", admin: "⚙️ व्यवस्थापन",
+      gallery: "गॅलरी", events: "कार्यक्रम", blog: "ब्लॉग", members: "सदस्य", admin: "⚙️ व्यवस्थापन",
     },
     hero: {
       eyebrow: "सिंधुदुर्ग · वैभववाडी · कोकण · महाराष्ट्र",
@@ -336,6 +337,7 @@ export default function App() {
           {section === "gallery"   && <Gallery_Page lang={lang} />}
           {section === "events"    && <Events_Page events={events} lang={lang} />}
           {section === "blog"      && <Blog_Page />}
+          {section === "members"   && <Members_Page lang={lang} />}
           {section === "admin"     && <Admin />}
         </Suspense>
       </main>
@@ -363,6 +365,7 @@ function Navigation_Bar({ section, nav, menuOpen, setMenuOpen, lang, setLang }) 
     { id: "gallery",   label: t.gallery   },
     { id: "events",    label: t.events    },
     { id: "blog",      label: t.blog      },
+    { id: "members",   label: t.members   },
     { id: "admin",     label: t.admin     },
   ];
 

@@ -34,6 +34,7 @@ export default function Admin() {
           { id: "blog",          icon: "📝", label: "Blog" },
           { id: "members",       icon: "👥", label: "Members" },
           { id: "marquee",       icon: "🎞️", label: "Marquee" },
+          { id: "gram_members",  icon: "🏘️", label: "Members Page" },
         ].map(t => (
           <button key={t.id} className={`admin-tab ${tab === t.id ? "active" : ""}`}
             onClick={() => setTab(t.id)}>
@@ -53,6 +54,7 @@ export default function Admin() {
         {tab === "blog"          && <AdminBlog />}
         {tab === "members"       && <AdminMembers />}
         {tab === "marquee"       && <AdminMarquee />}
+        {tab === "gram_members"  && <AdminGramMembers />}
       </main>
     </div>
   );
@@ -1016,6 +1018,202 @@ function AdminMarquee() {
                 <button onClick={() => move(idx, 1)} disabled={idx === members.length - 1} title="Move down"
                   style={{ padding: "3px 9px", fontSize: "0.75rem", border: "1px solid #ddd", borderRadius: 6, background: "#f9f9f9", cursor: "pointer", opacity: idx === members.length - 1 ? 0.4 : 1 }}>↓</button>
               </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── MEMBERS PAGE ADMIN ───────────────────────────────── */
+const GRAM_ROLES = ["सदस्य", "अध्यक्ष", "उपाध्यक्ष", "सचिव", "खजिनदार", "सल्लागार", "युवा सदस्य"];
+const EMPTY_GM   = { name: "", role: "सदस्य", address: "", bio: "", mobile: "", display_order: "0" };
+
+function AdminGramMembers() {
+  const [members,   setMembers]   = useState([]);
+  const [form,      setForm]      = useState(EMPTY_GM);
+  const [file,      setFile]      = useState(null);
+  const [preview,   setPreview]   = useState(null);
+  const [editing,   setEditing]   = useState(null);
+  const [saving,    setSaving]    = useState(false);
+  const [toast,     setToast]     = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const load = () =>
+    axios.get(`${API}/gram-members/all`, { headers: authHeader() })
+      .then(r => setMembers(r.data))
+      .catch(() => showToast("Failed to load members."));
+  useEffect(() => { load(); }, []);
+
+  const handleFile = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  };
+
+  const save = async () => {
+    if (!form.name.trim()) return showToast("Name is required.");
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      if (file) fd.append("photo", file);
+
+      if (editing) {
+        await axios.put(`${API}/gram-members/${editing}`, fd, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" }
+        });
+        showToast("Member updated.");
+      } else {
+        await axios.post(`${API}/gram-members`, fd, {
+          headers: { ...authHeader(), "Content-Type": "multipart/form-data" }
+        });
+        showToast("Member added.");
+      }
+      setForm(EMPTY_GM); setFile(null); setPreview(null); setEditing(null);
+      load();
+    } catch { showToast("Error saving. Try again."); }
+    finally { setSaving(false); }
+  };
+
+  const del = async id => {
+    try {
+      await axios.delete(`${API}/gram-members/${id}`, { headers: authHeader() });
+      setConfirmId(null);
+      showToast("Member deleted.");
+      load();
+    } catch { showToast("Delete failed."); }
+  };
+
+  const startEdit = m => {
+    setEditing(m.id);
+    setForm({
+      name: m.name, role: m.role || "सदस्य",
+      address: m.address || "", bio: m.bio || "",
+      mobile: m.mobile || "", display_order: String(m.display_order ?? 0)
+    });
+    setFile(null);
+    setPreview(m.photo_url || null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelEdit = () => {
+    setEditing(null); setForm(EMPTY_GM); setFile(null); setPreview(null);
+  };
+
+  return (
+    <div className="admin-section">
+      <h2>🏘️ Members Page</h2>
+      {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* ── FORM ── */}
+      <div className="admin-form">
+        <h3>{editing ? "✏️ Edit Member" : "➕ Add Member"}</h3>
+
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+          {/* Photo preview */}
+          <div style={{ textAlign: "center", flexShrink: 0 }}>
+            <div style={{ width: 90, height: 90, borderRadius: "50%", overflow: "hidden", background: "linear-gradient(135deg,#2e7d32,#81c784)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "2rem", fontWeight: 800, border: "3px solid #e0e0e0", marginBottom: 8 }}>
+              {preview
+                ? <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : (form.name.charAt(0).toUpperCase() || "?")
+              }
+            </div>
+            <label style={{ fontSize: "0.78rem", color: "#2e7d32", cursor: "pointer", fontWeight: 600 }}>
+              📷 Choose Photo
+              <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+            </label>
+            {file && <p style={{ fontSize: "0.7rem", color: "#888", marginTop: 4 }}>{file.name}</p>}
+          </div>
+
+          {/* Fields */}
+          <div style={{ flex: 1, minWidth: 220, display: "flex", flexDirection: "column", gap: 10 }}>
+            <input placeholder="Full name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+              {GRAM_ROLES.map(r => <option key={r}>{r}</option>)}
+            </select>
+            <input placeholder="Address / Village area (optional)" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
+            <textarea
+              placeholder="Short bio — achievements, role description (optional)"
+              value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })}
+              style={{ minHeight: 72, resize: "vertical" }}
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <input placeholder="Mobile (optional)" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} style={{ flex: 1 }} />
+              <input type="number" placeholder="Order (0=first)" value={form.display_order} min={0}
+                onChange={e => setForm({ ...form, display_order: e.target.value })}
+                style={{ width: 120 }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-btns" style={{ marginTop: 16 }}>
+          <button className="btn-save" onClick={save} disabled={saving}>
+            {saving ? "Saving…" : editing ? "Update Member" : "Add Member"}
+          </button>
+          {editing && (
+            <button className="btn-cancel" onClick={cancelEdit}>Cancel</button>
+          )}
+        </div>
+      </div>
+
+      {/* ── MEMBER LIST ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <h3 style={{ margin: 0, fontSize: "0.95rem", color: "#555" }}>
+          {members.length} member{members.length !== 1 ? "s" : ""} total
+        </h3>
+      </div>
+
+      <div className="admin-list">
+        {members.length === 0 && (
+          <p style={{ color: "#aaa", textAlign: "center", padding: "32px 0" }}>
+            No members yet. Add one above.
+          </p>
+        )}
+        {members.map(m => (
+          <div className="admin-item" key={m.id} style={{ alignItems: "center" }}>
+            {/* Photo */}
+            <div style={{ flexShrink: 0 }}>
+              {m.photo_url
+                ? <img src={m.photo_url} alt={m.name} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid #e0e0e0" }} />
+                : <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#2e7d32,#81c784)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "1.15rem" }}>
+                    {m.name.charAt(0)}
+                  </div>
+              }
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <strong style={{ fontSize: "0.95rem" }}>{m.name}</strong>
+                <span style={{ background: "#e8f5e9", color: "#2e7d32", border: "1px solid #c8e6c9", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
+                  {m.role || "सदस्य"}
+                </span>
+                {!m.is_active && (
+                  <span style={{ background: "#fff3e0", color: "#e65100", border: "1px solid #ffcc80", borderRadius: 20, padding: "1px 10px", fontSize: "0.7rem", fontWeight: 700 }}>
+                    Hidden
+                  </span>
+                )}
+              </div>
+              {m.address && <div className="item-meta" style={{ marginTop: 2 }}>📍 {m.address}</div>}
+              {m.bio && <p style={{ fontSize: "0.78rem", color: "#888", marginTop: 2 }}>{m.bio.slice(0, 90)}{m.bio.length > 90 ? "…" : ""}</p>}
+            </div>
+
+            {/* Actions */}
+            <div className="item-btns">
+              <button className="btn-edit" onClick={() => startEdit(m)}>✏️ Edit</button>
+              {confirmId === m.id
+                ? <span className="inline-confirm">
+                    Sure?&nbsp;
+                    <button className="btn-del" onClick={() => del(m.id)}>Yes</button>&nbsp;
+                    <button className="btn-cancel" onClick={() => setConfirmId(null)}>No</button>
+                  </span>
+                : <button className="btn-del" onClick={() => setConfirmId(m.id)}>🗑️ Delete</button>
+              }
             </div>
           </div>
         ))}

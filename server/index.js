@@ -343,6 +343,113 @@ app.delete("/blog/:id", authAdmin, async (req, res) => {
   }
 });
 
+// ── GRAM MEMBERS (Public Members Page) ────────────────────
+
+/* Auto-create table on server start */
+pool.query(`
+  CREATE TABLE IF NOT EXISTS gram_members (
+    id            SERIAL PRIMARY KEY,
+    name          VARCHAR(150) NOT NULL,
+    role          VARCHAR(100) DEFAULT 'सदस्य',
+    photo_url     TEXT,
+    address       VARCHAR(200),
+    bio           TEXT,
+    mobile        VARCHAR(15),
+    display_order INTEGER DEFAULT 0,
+    is_active     BOOLEAN DEFAULT true,
+    created_at    TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(e => console.error("gram_members table:", e.message));
+
+/* Public — active members */
+app.get("/gram-members", async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT id,name,role,photo_url,address,bio,display_order FROM gram_members WHERE is_active=true ORDER BY display_order ASC, name ASC"
+    );
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* Admin — all members (including hidden) */
+app.get("/gram-members/all", authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(
+      "SELECT * FROM gram_members ORDER BY display_order ASC, name ASC"
+    );
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* Admin — add member */
+app.post("/gram-members", authAdmin, upload.single("photo"), async (req, res) => {
+  try {
+    let photo_url = null;
+    if (req.file) {
+      const up = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "ayarewadi/members", transformation: [{ quality: "auto", width: 600, height: 600, crop: "fill", gravity: "face" }] },
+          (err, result) => err ? reject(err) : resolve(result)
+        );
+        stream.end(req.file.buffer);
+      });
+      photo_url = up.secure_url;
+    }
+    const { name, role, address, bio, mobile, display_order } = req.body;
+    const r = await pool.query(
+      `INSERT INTO gram_members (name,role,photo_url,address,bio,mobile,display_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [name, role || 'सदस्य', photo_url, address || null, bio || null, mobile || null, parseInt(display_order) || 0]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* Admin — update member */
+app.put("/gram-members/:id", authAdmin, upload.single("photo"), async (req, res) => {
+  try {
+    const sets = [], params = [];
+    const p = v => { params.push(v); return `$${params.length}`; };
+
+    if (req.file) {
+      const up = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "ayarewadi/members", transformation: [{ quality: "auto", width: 600, height: 600, crop: "fill", gravity: "face" }] },
+          (err, result) => err ? reject(err) : resolve(result)
+        );
+        stream.end(req.file.buffer);
+      });
+      sets.push(`photo_url = ${p(up.secure_url)}`);
+    }
+
+    const { name, role, address, bio, mobile, display_order, is_active } = req.body;
+    if (name          !== undefined) sets.push(`name          = ${p(name)}`);
+    if (role          !== undefined) sets.push(`role          = ${p(role)}`);
+    if (address       !== undefined) sets.push(`address       = ${p(address || null)}`);
+    if (bio           !== undefined) sets.push(`bio           = ${p(bio || null)}`);
+    if (mobile        !== undefined) sets.push(`mobile        = ${p(mobile || null)}`);
+    if (display_order !== undefined) sets.push(`display_order = ${p(parseInt(display_order) || 0)}`);
+    if (is_active     !== undefined) sets.push(`is_active     = ${p(is_active === "true" || is_active === true)}`);
+
+    if (!sets.length) return res.status(400).json({ error: "Nothing to update" });
+    params.push(req.params.id);
+    const r = await pool.query(
+      `UPDATE gram_members SET ${sets.join(", ")} WHERE id = $${params.length} RETURNING *`,
+      params
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Member not found" });
+    res.json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* Admin — delete member */
+app.delete("/gram-members/:id", authAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM gram_members WHERE id=$1", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── MEMBER PORTAL ─────────────────────────────────────────
 const memberRoutes = require("./routes/members");
 app.use("/api/members", memberRoutes);
