@@ -91,20 +91,7 @@ export default function MyFamilyInfo({ member, onBack }) {
     }
   };
 
-  const PersonField = ({ label, field, type = "text", placeholder, opts }) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <label style={lbl}>{label}</label>
-      {opts ? (
-        <select style={inp} value={person[field]} onChange={e => setPerson(p => ({ ...p, [field]: e.target.value }))}>
-          <option value="">— Select —</option>
-          {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      ) : (
-        <input style={inp} type={type} placeholder={placeholder} value={person[field]}
-          onChange={e => setPerson(p => ({ ...p, [field]: e.target.value }))} />
-      )}
-    </div>
-  );
+  const setField = (field, val) => setPerson(p => ({ ...p, [field]: val }));
 
   return (
     <div style={s.wrap}>
@@ -216,18 +203,48 @@ export default function MyFamilyInfo({ member, onBack }) {
             <div style={s.cardHeader}>👥 Person to Add · जोडायचे कुटुंब सदस्य</div>
 
             <div style={g2}>
-              <PersonField label="First Name *" field="first_name" placeholder="e.g. Ramchandra" />
-              <PersonField label="Middle Name / Father's Name *" field="middle_name" placeholder="e.g. Balu" />
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>First Name *</label>
+                <input style={inp} placeholder="e.g. Ramchandra" value={person.first_name}
+                  onChange={e => setField("first_name", e.target.value)} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>Middle Name / Father's Name *</label>
+                <input style={inp} placeholder="e.g. Balu" value={person.middle_name}
+                  onChange={e => setField("middle_name", e.target.value)} />
+              </div>
             </div>
             <div style={g2}>
-              <PersonField label="Last Name *" field="last_name" placeholder="e.g. Ayare" />
-              <PersonField label="Nickname" field="nickname" placeholder="e.g. Ramya" />
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>Last Name *</label>
+                <input style={inp} placeholder="e.g. Ayare" value={person.last_name}
+                  onChange={e => setField("last_name", e.target.value)} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>Nickname</label>
+                <input style={inp} placeholder="e.g. Ramya" value={person.nickname}
+                  onChange={e => setField("nickname", e.target.value)} />
+              </div>
             </div>
             <div style={g2}>
-              <PersonField label="Mobile" field="mobile" type="tel" placeholder="10-digit mobile" />
-              <PersonField label="Date of Birth" field="dob" type="date" />
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>Mobile</label>
+                <input style={inp} type="tel" placeholder="10-digit mobile" value={person.mobile}
+                  onChange={e => setField("mobile", e.target.value)} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={lbl}>Date of Birth</label>
+                <input style={inp} type="date" value={person.dob}
+                  onChange={e => setField("dob", e.target.value)} />
+              </div>
             </div>
-            <PersonField label="Gender" field="gender" opts={GENDERS} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={lbl}>Gender</label>
+              <select style={inp} value={person.gender} onChange={e => setField("gender", e.target.value)}>
+                <option value="">— Select —</option>
+                {GENDERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
           </div>
 
           {/* Relations */}
