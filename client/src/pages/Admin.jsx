@@ -1112,6 +1112,7 @@ const MUMBAI_LOCATIONS = [
   "Govandi, Mumbai",
   "Mankhurd, Mumbai",
   "Wadala, Mumbai",
+  "Sewri, Mumbai",
   "Antop Hill, Mumbai",
   "Powai, Mumbai",
   "Chandivali, Mumbai",
@@ -1144,6 +1145,10 @@ const MUMBAI_LOCATIONS = [
   "Kamothe, Navi Mumbai",
   "Kalamboli, Navi Mumbai",
   "Kopar Khairane, Navi Mumbai",
+  // ── Pune ──
+  "Pune",
+  // ── Gujarat ──
+  "Vapi, Gujarat",
 ];
 
 const EMPTY_GM   = {
