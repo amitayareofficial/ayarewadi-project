@@ -414,6 +414,34 @@ router.get("/family-search", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Member — get all family people created by this member
+router.get("/family-people/mine", authMember, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT fp.*,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'id', fr.id, 'relation_type', fr.relation_type,
+                    'related_person_id', fr.related_person_id,
+                    'first_name', fp2.first_name, 'middle_name', fp2.middle_name,
+                    'last_name', fp2.last_name, 'nickname', fp2.nickname
+                  ) ORDER BY fr.id
+                ) FILTER (WHERE fr.id IS NOT NULL),
+                '[]'::json
+              ) AS relations
+       FROM family_people fp
+       LEFT JOIN family_relations fr ON fr.person_id = fp.id
+       LEFT JOIN family_people fp2   ON fp2.id = fr.related_person_id
+       WHERE fp.created_by_member_id = $1
+       GROUP BY fp.id
+       ORDER BY fp.created_at DESC`,
+      [req.member.id]
+    );
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Public — get one person with their relations
 router.get("/family-people/:id", async (req, res) => {
   try {
@@ -588,15 +616,93 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
     const familyReq = reqRow.rows[0];
     const data = familyReq.request_data;
 
-    // Auto-process: if add_person, insert into family_people
     if (familyReq.request_type === "add_person") {
-      const { first_name, middle_name, last_name, nickname, mobile, dob, gender } = data.person || data;
-      await pool.query(
+      const personData = data.person || data;
+      const { first_name, middle_name, last_name, nickname, mobile, dob, gender } = personData;
+
+      // Insert main person → capture their new ID
+      const personResult = await pool.query(
         `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, created_by_member_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-         ON CONFLICT DO NOTHING`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
         [first_name, middle_name||null, last_name, nickname||null, mobile||null, dob||null, gender||null, familyReq.member_id]
       );
+      const personId = personResult.rows[0].id;
+
+      const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
+
+      const insertRelation = async (pid, rid, type) => {
+        await pool.query(
+          `INSERT INTO family_relations (person_id, related_person_id, relation_type)
+           SELECT $1,$2,$3 WHERE NOT EXISTS (
+             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3
+           )`,
+          [pid, rid, type]
+        );
+        const inv = INVERSE[type];
+        if (inv) await pool.query(
+          `INSERT INTO family_relations (person_id, related_person_id, relation_type)
+           SELECT $1,$2,$3 WHERE NOT EXISTS (
+             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3
+           )`,
+          [rid, pid, inv]
+        );
+      };
+
+      const insertPerson = async (d) => {
+        const r = await pool.query(
+          `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, created_by_member_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+          [d.first_name, d.middle_name||null, d.last_name, d.nickname||null, d.mobile||null, d.dob||null, d.gender||null, familyReq.member_id]
+        );
+        return r.rows[0].id;
+      };
+
+      // Insert each related person + create relation rows
+      for (const rel of (data.relations || [])) {
+        if (!rel.first_name?.trim() || !rel.last_name?.trim()) continue;
+        const relId = await insertPerson(rel);
+        await insertRelation(personId, relId, rel.relation_type);
+      }
+
+    } else if (familyReq.request_type === "add_relation") {
+      const { person_id, relation } = data;
+      if (!relation?.first_name?.trim() || !relation?.last_name?.trim()) {
+        return res.status(400).json({ error: "Relation person data incomplete" });
+      }
+      const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
+      const relResult = await pool.query(
+        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, created_by_member_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+        [relation.first_name, relation.middle_name||null, relation.last_name, relation.nickname||null, relation.mobile||null, relation.dob||null, relation.gender||null, familyReq.member_id]
+      );
+      const relId = relResult.rows[0].id;
+      await pool.query(
+        `INSERT INTO family_relations (person_id, related_person_id, relation_type)
+         SELECT $1,$2,$3 WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3)`,
+        [person_id, relId, relation.relation_type]
+      );
+      const inv = INVERSE[relation.relation_type];
+      if (inv) await pool.query(
+        `INSERT INTO family_relations (person_id, related_person_id, relation_type)
+         SELECT $1,$2,$3 WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3)`,
+        [relId, person_id, inv]
+      );
+
+    } else if (familyReq.request_type === "edit_person") {
+      const { person_id, changes } = data;
+      const sets = [], params = [];
+      const p = v => { params.push(v); return `$${params.length}`; };
+      if (changes.first_name  !== undefined) sets.push(`first_name  = ${p(changes.first_name)}`);
+      if (changes.middle_name !== undefined) sets.push(`middle_name = ${p(changes.middle_name||null)}`);
+      if (changes.last_name   !== undefined) sets.push(`last_name   = ${p(changes.last_name)}`);
+      if (changes.nickname    !== undefined) sets.push(`nickname    = ${p(changes.nickname||null)}`);
+      if (changes.mobile      !== undefined) sets.push(`mobile      = ${p(changes.mobile||null)}`);
+      if (changes.dob         !== undefined) sets.push(`dob         = ${p(changes.dob||null)}`);
+      if (changes.gender      !== undefined) sets.push(`gender      = ${p(changes.gender||null)}`);
+      if (sets.length) {
+        params.push(person_id);
+        await pool.query(`UPDATE family_people SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
+      }
     }
 
     await pool.query(
