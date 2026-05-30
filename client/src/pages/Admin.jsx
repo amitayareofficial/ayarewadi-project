@@ -1274,22 +1274,22 @@ function AdminGramMembers() {
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>पहिले नाव *</label>
-                <input placeholder="पहिले नाव" value={form.first_name} onChange={e => f("first_name", e.target.value)} />
+                <input placeholder="पहिले नाव" value={form.first_name} onChange={e => f("first_name", e.target.value.toUpperCase())} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>मधले नाव</label>
-                <input placeholder="मधले नाव" value={form.middle_name} onChange={e => f("middle_name", e.target.value)} />
+                <input placeholder="मधले नाव" value={form.middle_name} onChange={e => f("middle_name", e.target.value.toUpperCase())} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>आडनाव *</label>
-                <input placeholder="आडनाव" value={form.last_name} onChange={e => f("last_name", e.target.value)} />
+                <input placeholder="आडनाव" value={form.last_name} onChange={e => f("last_name", e.target.value.toUpperCase())} />
               </div>
             </div>
 
             {/* Father name */}
             <div>
               <label style={{ fontSize: "0.75rem", color: "#555", fontWeight: 600, display: "block", marginBottom: 3 }}>वडिलांचे नाव *</label>
-              <input placeholder="वडिलांचे नाव" value={form.father_name} onChange={e => f("father_name", e.target.value)} />
+              <input placeholder="वडिलांचे नाव" value={form.father_name} onChange={e => f("father_name", e.target.value.toUpperCase())} />
             </div>
 
             {/* Role */}
