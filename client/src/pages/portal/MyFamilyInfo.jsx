@@ -43,10 +43,11 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [myPeople,     setMyPeople]     = useState([]);
   const [myLoading,    setMyLoading]    = useState(true);
 
-  // view: list | addPerson | addRel | editInfo | editPersonDetail
+  // view: list | claimSearch | addPerson | addRel | editInfo | editPersonDetail
   const [view,         setView]         = useState("list");
-  const [targetPerson, setTargetPerson] = useState(null); // person whose relations we're viewing/editing
-  const [editTarget,   setEditTarget]   = useState(null); // specific person being edited (own or relation)
+  const [targetPerson, setTargetPerson] = useState(null);
+  const [editTarget,   setEditTarget]   = useState(null);
+  const [claimMode,    setClaimMode]    = useState(false); // editPersonDetail opened via claim flow
 
   const [submitting,   setSubmitting]   = useState(false);
   const [error,        setError]        = useState("");
@@ -67,6 +68,12 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [relFormSearch,  setRelFormSearch]  = useState("");
   const [relFormMatches, setRelFormMatches] = useState([]);
   const relFormTimer = useRef(null);
+
+  // claimSearch view
+  const [claimQuery,    setClaimQuery]    = useState("");
+  const [claimResults,  setClaimResults]  = useState([]);
+  const [claimLoading,  setClaimLoading]  = useState(false);
+  const claimTimer = useRef(null);
 
   // addRel form
   const [relForm,     setRelForm]     = useState({ ...emptyRel });
@@ -127,7 +134,11 @@ export default function MyFamilyInfo({ member, onBack }) {
     return r.data.url;
   };
 
-  const goBack = () => { setView("list"); setError(""); setSuccess(""); setRelFormSearch(""); setRelFormMatches([]); };
+  const goBack = () => {
+    setView("list"); setError(""); setSuccess("");
+    setRelFormSearch(""); setRelFormMatches([]);
+    setClaimMode(false); setClaimQuery(""); setClaimResults([]);
+  };
 
   // ── addPerson relation row helpers ──
   const addRelRow = () => {
@@ -243,7 +254,7 @@ export default function MyFamilyInfo({ member, onBack }) {
     } finally { setSubmitting(false); }
   };
 
-  // ── Submit: edit_person ──
+  // ── Submit: edit_person (also handles claim) ──
   const submitEditPerson = async e => {
     e.preventDefault();
     if (!editData.first_name.trim() || !editData.last_name.trim()) { setError("First name and last name are required."); return; }
@@ -254,12 +265,17 @@ export default function MyFamilyInfo({ member, onBack }) {
       await axios.post(`${API}/api/members/family-requests`,
         {
           request_type: "edit_person",
-          request_data: { person_id: editTarget.id, person_name: pName(editTarget), changes },
+          request_data: { person_id: editTarget.id, person_name: pName(editTarget), changes, ...(claimMode ? { claim: true } : {}) },
         },
         { headers: authHeader() }
       );
-      setSuccess(`Edit request for "${pName(editTarget)}" submitted! Admin will review it.`);
-      setView("editInfo"); loadRequests();
+      const msg = claimMode
+        ? `Claim request for "${pName(editTarget)}" submitted! Admin will link and update your profile.`
+        : `Edit request for "${pName(editTarget)}" submitted! Admin will review it.`;
+      setSuccess(msg);
+      setClaimMode(false);
+      if (claimMode) { setView("list"); loadRequests(); loadMyPeople(); }
+      else           { setView("editInfo"); loadRequests(); }
     } catch (e) {
       setError(e.response?.data?.error || "Submission failed.");
     } finally { setSubmitting(false); }
@@ -273,7 +289,7 @@ export default function MyFamilyInfo({ member, onBack }) {
     setTargetPerson(p); setRelForm({ ...emptyRel }); setRelPhoto(null); setError(""); setSuccess(""); setView("addRel");
   };
 
-  const openEditPersonDetail = (personRow) => {
+  const openEditPersonDetail = (personRow, claim = false) => {
     setEditTarget(personRow);
     setEditData({
       first_name:  personRow.first_name  || "",
@@ -286,7 +302,32 @@ export default function MyFamilyInfo({ member, onBack }) {
       is_deceased: personRow.is_deceased || false,
       notes:       personRow.notes       || "",
     });
+    setClaimMode(claim);
     setEditPhoto(null); setError(""); setSuccess(""); setView("editPersonDetail");
+  };
+
+  // ── Claim search helpers ──
+  const searchClaim = q => {
+    setClaimQuery(q);
+    if (claimTimer.current) clearTimeout(claimTimer.current);
+    if (!q.trim()) { setClaimResults([]); return; }
+    claimTimer.current = setTimeout(async () => {
+      setClaimLoading(true);
+      try {
+        const r = await axios.get(`${API}/api/members/family-search?q=${encodeURIComponent(q)}`);
+        setClaimResults(r.data);
+      } catch { /* silent */ }
+      finally { setClaimLoading(false); }
+    }, 350);
+  };
+
+  const claimPerson = async person => {
+    setClaimLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/members/family-people/${person.id}`);
+      openEditPersonDetail(r.data, true);
+    } catch { setError("Could not load person details."); }
+    finally { setClaimLoading(false); }
   };
 
   // ════════════════════════════════════════════════
@@ -300,13 +341,26 @@ export default function MyFamilyInfo({ member, onBack }) {
         <div style={s.titleSub}>माझी कुटुंब माहिती</div>
       </div>
 
+      {/* Claim banner — shown when member has no people yet */}
+      {!myLoading && myPeople.length === 0 && (
+        <button style={s.claimBtn} onClick={() => { setView("claimSearch"); setClaimQuery(""); setClaimResults([]); setError(""); setSuccess(""); }}>
+          <span style={{ fontSize: "1.3rem" }}>🔍</span>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>I'm already in the village tree</div>
+            <div style={{ fontWeight: 700, fontSize: "0.78rem", opacity: 0.85 }}>मी आधीच कुटुंब वृक्षात आहे — माझे नाव शोधा</div>
+            <div style={{ fontSize: "0.7rem", opacity: 0.7, marginTop: 2 }}>Search, find your name, review & submit for approval</div>
+          </div>
+          <span style={{ fontSize: "1.1rem", opacity: 0.6 }}>→</span>
+        </button>
+      )}
+
       <div style={s.infoBanner}>
         <span style={{ fontSize: "1.2rem" }}>ℹ️</span>
         <div>
           <div style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: 2 }}>How it works / कसे काम करते</div>
           <div style={{ fontSize: "0.75rem", color: "#555", lineHeight: 1.5 }}>
-            Submit family details for admin approval. After approval you can edit any person's info or add new relations —
-            every change requires admin review before going live.
+            If your name is already in the village tree (added by a family member), use <strong>🔍 above</strong> to find and link your profile instead of creating a duplicate.
+            Otherwise use "➕ Add New" below.
           </div>
         </div>
       </div>
@@ -340,9 +394,14 @@ export default function MyFamilyInfo({ member, onBack }) {
         </div>
       )}
 
-      <button style={s.addBtn} onClick={() => { setView("addPerson"); setError(""); setSuccess(""); }}>
-        ➕ Add Family Member · कुटुंब सदस्य जोडा
-      </button>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button style={{ ...s.addBtn, flex: 1 }} onClick={() => { setView("addPerson"); setError(""); setSuccess(""); }}>
+          ➕ Add New Member
+        </button>
+        <button style={s.findBtn} onClick={() => { setView("claimSearch"); setClaimQuery(""); setClaimResults([]); setError(""); setSuccess(""); }}>
+          🔍 Find My Profile
+        </button>
+      </div>
 
       <div style={s.sectionLabel}>My Requests · माझ्या विनंत्या</div>
       {loading ? (
@@ -367,7 +426,7 @@ export default function MyFamilyInfo({ member, onBack }) {
               sub   = `Add ${rl2}: ${pName(data.relation || {})}`;
             } else if (type === "edit_person") {
               title = data.person_name || "Family Member";
-              sub   = "Info edit request";
+              sub   = data.claim ? "🔗 Claim & link profile" : "Info edit request";
             }
             return (
               <div key={req.id} style={{ ...s.requestCard, borderColor: st.border }}>
@@ -684,21 +743,107 @@ export default function MyFamilyInfo({ member, onBack }) {
   );
 
   // ════════════════════════════════════════════════
+  //  CLAIM SEARCH VIEW
+  // ════════════════════════════════════════════════
+  if (view === "claimSearch") return (
+    <div style={s.wrap}>
+      <div style={s.header}>
+        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <h2 style={s.title}>🔍 Find My Profile</h2>
+        <div style={s.titleSub}>माझे नाव शोधा · village family tree</div>
+      </div>
+      <button type="button" style={s.backLink} onClick={goBack}>← Back to list</button>
+
+      <div style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 12, padding: "0.9rem 1rem", fontSize: "0.78rem", color: "#1b5e20", lineHeight: 1.6 }}>
+        <strong>How this works:</strong> Search your name below. If you were already added to the village tree by a family member, tap <strong>"This is Me"</strong> on your card. Review your details, make corrections, and submit — admin will link your account to that profile. No duplicate will be created.
+      </div>
+
+      {error && <div style={s.errorMsg}>⚠️ {error}</div>}
+
+      {/* Search box */}
+      <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", background: "#fff", border: "2px solid #c8e6c9", borderRadius: 12, padding: "0 12px", gap: 8 }}>
+          <span style={{ fontSize: "1.1rem", color: "#bbb" }}>🔍</span>
+          <input
+            autoFocus
+            style={{ flex: 1, border: "none", outline: "none", padding: "12px 0", fontSize: "0.92rem", background: "transparent" }}
+            placeholder="Type your name or nickname..."
+            value={claimQuery}
+            onChange={e => searchClaim(e.target.value)}
+          />
+          {claimQuery && (
+            <button style={{ background: "none", border: "none", color: "#bbb", cursor: "pointer", fontSize: "1rem" }}
+              onClick={() => { setClaimQuery(""); setClaimResults([]); }}>✕</button>
+          )}
+        </div>
+      </div>
+
+      {claimLoading && <div style={{ textAlign: "center", color: "#aaa", padding: "1rem" }}>Searching...</div>}
+
+      {!claimLoading && claimQuery && claimResults.length === 0 && (
+        <div style={s.emptyMsg}>
+          <div>No matching name found in the village tree.</div>
+          <div style={{ fontSize: "0.78rem", color: "#aaa", marginTop: 6 }}>Use "➕ Add New Member" if you've never been added.</div>
+        </div>
+      )}
+
+      {claimResults.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={s.sectionLabel}>Results · परिणाम ({claimResults.length})</div>
+          {claimResults.map(p => (
+            <div key={p.id} style={s.claimCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+                {p.photo_url
+                  ? <img src={p.photo_url} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid #e0e0e0" }} />
+                  : <div style={{ ...s.personInitial, width: 52, height: 52, fontSize: "1.3rem", flexShrink: 0 }}>{p.first_name?.charAt(0)}</div>
+                }
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#1b5e20" }}>{pName(p)}</div>
+                  {p.nickname && <div style={{ fontSize: "0.75rem", color: "#888", fontStyle: "italic" }}>"{p.nickname}"</div>}
+                  <div style={{ fontSize: "0.7rem", color: "#aaa", marginTop: 2 }}>
+                    {p.gender && <span style={{ textTransform: "capitalize" }}>{p.gender}</span>}
+                    {p.dob && <span> · Born {new Date(p.dob).getFullYear()}</span>}
+                    {p.mobile && <span> · {p.mobile}</span>}
+                    <span> · #{p.id}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                style={s.thisIsMeBtn}
+                onClick={() => claimPerson(p)}
+                disabled={claimLoading}
+              >
+                ✓ This is Me
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ════════════════════════════════════════════════
   //  EDIT PERSON DETAIL VIEW  (single person edit form)
   // ════════════════════════════════════════════════
   if (view === "editPersonDetail") return (
     <div style={s.wrap}>
       <div style={s.header}>
         <button style={s.backBtn} onClick={onBack}>← Back</button>
-        <h2 style={s.title}>✏️ Edit Details</h2>
-        <div style={s.titleSub}>माहिती बदला · Requires approval</div>
+        <h2 style={s.title}>{claimMode ? "🔗 Link & Update My Profile" : "✏️ Edit Details"}</h2>
+        <div style={s.titleSub}>{claimMode ? "माझा प्रोफाइल जोडा · Requires approval" : "माहिती बदला · Requires approval"}</div>
       </div>
       <form onSubmit={submitEditPerson} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <button type="button" style={s.backLink} onClick={() => setView("editInfo")}>← Back to edit list</button>
+        <button type="button" style={s.backLink} onClick={claimMode ? () => setView("claimSearch") : () => setView("editInfo")}>← Back</button>
 
-        <div style={{ background: "#fff3e0", border: "1px solid #ffcc80", borderRadius: 10, padding: "10px 14px", fontSize: "0.78rem", color: "#e65100", fontWeight: 600 }}>
-          ✏️ Editing: <strong>{pName(editTarget)}</strong> — changes go live only after admin approval.
-        </div>
+        {claimMode ? (
+          <div style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 10, padding: "10px 14px", fontSize: "0.78rem", color: "#1b5e20", fontWeight: 600 }}>
+            🔗 Claiming: <strong>{pName(editTarget)}</strong> — review your details, make any corrections, then submit. Admin will link this profile to your account.
+          </div>
+        ) : (
+          <div style={{ background: "#fff3e0", border: "1px solid #ffcc80", borderRadius: 10, padding: "10px 14px", fontSize: "0.78rem", color: "#e65100", fontWeight: 600 }}>
+            ✏️ Editing: <strong>{pName(editTarget)}</strong> — changes go live only after admin approval.
+          </div>
+        )}
 
         <div style={s.card}>
           <div style={s.cardHeader}>📷 Photo · फोटो</div>
@@ -843,6 +988,10 @@ const s = {
   changePick:      { background: "none", border: "1px solid #bdbdbd", color: "#757575", borderRadius: 6, padding: "4px 8px", fontSize: "0.72rem", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" },
   relMatchDrop:    { position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1.5px solid #c8e6c9", borderRadius: 10, zIndex: 100, boxShadow: "0 4px 20px rgba(0,0,0,0.12)", overflow: "hidden", marginTop: 2 },
   relMatchItem:    { width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", border: "none", background: "none", cursor: "pointer", borderBottom: "1px solid #f5f5f5", textAlign: "left" },
+  claimBtn:        { display: "flex", alignItems: "center", gap: 12, background: "linear-gradient(135deg,#1565c0,#42a5f5)", color: "#fff", border: "none", borderRadius: 14, padding: "1rem 1.1rem", cursor: "pointer", textAlign: "left", boxShadow: "0 3px 12px rgba(21,101,192,0.25)" },
+  findBtn:         { background: "#e3f2fd", color: "#1565c0", border: "none", borderRadius: 10, padding: "12px 14px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", whiteSpace: "nowrap" },
+  claimCard:       { background: "#fff", border: "1.5px solid #e0e0e0", borderRadius: 14, padding: "1rem", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.05)" },
+  thisIsMeBtn:     { background: "linear-gradient(135deg,#1b5e20,#4caf50)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 800, fontSize: "0.8rem", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(76,175,80,0.3)" },
 };
 
 const lbl = { fontSize: "0.73rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 4 };

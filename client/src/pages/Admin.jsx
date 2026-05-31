@@ -2720,14 +2720,22 @@ function AdminFamilyRequests() {
                 <div style={{ flex:1 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
                     <strong style={{ fontSize:"0.92rem" }}>
-                      {[person.first_name, person.middle_name, person.last_name].filter(Boolean).join(" ")}
+                      {req.request_type === "edit_person"
+                        ? (data.claim ? `🔗 ${data.person_name || "—"}` : (data.person_name || "—"))
+                        : [person.first_name, person.middle_name, person.last_name].filter(Boolean).join(" ")}
                       {person.nickname && ` (${person.nickname})`}
                     </strong>
+                    {data.claim && (
+                      <span style={{ background:"#e8f5e9", color:"#1b5e20", border:"1px solid #a5d6a7", borderRadius:20, padding:"1px 10px", fontSize:"0.68rem", fontWeight:700 }}>
+                        🔗 Profile Claim
+                      </span>
+                    )}
                     <span style={{ background:st.bg, color:st.color, border:`1px solid ${st.border}`, borderRadius:20, padding:"1px 10px", fontSize:"0.68rem", fontWeight:700 }}>
                       {st.label}
                     </span>
                   </div>
                   <div className="item-meta">
+                    {req.request_type === "edit_person" ? "Type: Edit / Claim" : req.request_type.replace(/_/g," ")} ·
                     Submitted by: <strong>{req.member_name}</strong> · {req.member_mobile}
                   </div>
                   <div style={{ fontSize:"0.73rem", color:"#aaa" }}>
@@ -2744,20 +2752,44 @@ function AdminFamilyRequests() {
 
               {isOpen && (
                 <div style={{ background:"#fafafa", border:"1px solid #f0f0f0", borderRadius:10, padding:"0.75rem", fontSize:"0.82rem" }}>
-                  <div style={{ marginBottom:8 }}>
-                    <strong>Person Details:</strong>
-                    <div>Gender: {person.gender || "—"} · DOB: {person.dob ? new Date(person.dob).toLocaleDateString("en-IN") : "—"}</div>
-                    <div>Mobile: {person.mobile || "—"}</div>
-                  </div>
+                  {data.claim && (
+                    <div style={{ background:"#e8f5e9", border:"1px solid #a5d6a7", borderRadius:8, padding:"8px 12px", marginBottom:10, fontSize:"0.8rem", color:"#1b5e20", fontWeight:600 }}>
+                      🔗 Profile Claim — <strong>{req.member_name}</strong> is claiming person <strong>#{data.person_id} {data.person_name}</strong>.
+                      Approving will link their account and update that person's details.
+                    </div>
+                  )}
+                  {req.request_type === "add_person" && (
+                    <div style={{ marginBottom:8 }}>
+                      <strong>Person Details:</strong>
+                      <div>Gender: {person.gender || "—"} · DOB: {person.dob ? new Date(person.dob).toLocaleDateString("en-IN") : "—"}</div>
+                      <div>Mobile: {person.mobile || "—"}</div>
+                    </div>
+                  )}
+                  {req.request_type === "edit_person" && data.changes && (
+                    <div style={{ marginBottom:8 }}>
+                      <strong>Changes:</strong>
+                      {Object.entries(data.changes).filter(([,v]) => v !== "" && v !== null && v !== undefined).map(([k, v]) => (
+                        <div key={k} style={{ marginLeft:8, color:"#555" }}>{k}: {String(v)}</div>
+                      ))}
+                    </div>
+                  )}
                   {data.relations?.length > 0 && (
                     <div style={{ marginBottom:8 }}>
                       <strong>Relations Requested:</strong>
                       {data.relations.map((r, i) => (
                         <div key={i} style={{ marginLeft:8, color:"#555" }}>
-                          {r.relation_type?.toUpperCase()}: {[r.first_name,r.middle_name,r.last_name].filter(Boolean).join(" ")}
+                          {r.relation_type?.toUpperCase()}: {r.existing_person_id ? `Existing #${r.existing_person_id}` : [r.first_name,r.middle_name,r.last_name].filter(Boolean).join(" ")}
                           {r.nickname ? ` (${r.nickname})` : ""}
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {data.relation && (
+                    <div style={{ marginBottom:8 }}>
+                      <strong>Add Relation:</strong>
+                      <div style={{ marginLeft:8, color:"#555" }}>
+                        {data.relation.relation_type?.toUpperCase()}: {data.relation.existing_person_id ? `Existing #${data.relation.existing_person_id}` : [data.relation.first_name,data.relation.middle_name,data.relation.last_name].filter(Boolean).join(" ")}
+                      </div>
                     </div>
                   )}
                   {req.status === "pending" && (
@@ -2770,7 +2802,7 @@ function AdminFamilyRequests() {
                       />
                       <div style={{ display:"flex", gap:8 }}>
                         <button className="btn-save" style={{ fontSize:"0.82rem", padding:"7px 14px" }} onClick={() => approve(req.id)}>
-                          ✅ Approve & Add to Tree
+                          {data.claim ? "🔗 Approve & Link Profile" : "✅ Approve & Add to Tree"}
                         </button>
                         <button className="btn-del" style={{ fontSize:"0.82rem", padding:"7px 14px" }} onClick={() => reject(req.id)}>
                           ❌ Reject

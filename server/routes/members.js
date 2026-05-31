@@ -743,6 +743,13 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
         params.push(person_id);
         await pool.query(`UPDATE family_people SET ${sets.join(", ")} WHERE id = $${params.length}`, params);
       }
+      // If this is a "claim" request, link the member account to this family_people record
+      if (data.claim) {
+        await pool.query(
+          "UPDATE family_people SET created_by_member_id = $1 WHERE id = $2",
+          [familyReq.member_id, person_id]
+        );
+      }
     }
 
     await pool.query(
