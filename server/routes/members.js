@@ -682,24 +682,37 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
 
       // Insert each related person + create relation rows
       for (const rel of (data.relations || [])) {
-        if (!rel.first_name?.trim() || !rel.last_name?.trim()) continue;
-        const relId = await insertPerson(rel);
-        await insertRelation(personId, relId, rel.relation_type);
+        if (rel.existing_person_id) {
+          // Link to existing tree person — no new record
+          await insertRelation(personId, parseInt(rel.existing_person_id), rel.relation_type);
+        } else {
+          if (!rel.first_name?.trim() || !rel.last_name?.trim()) continue;
+          const relId = await insertPerson(rel);
+          await insertRelation(personId, relId, rel.relation_type);
+        }
       }
 
     } else if (familyReq.request_type === "add_relation") {
       const { person_id, relation } = data;
-      if (!relation?.first_name?.trim() || !relation?.last_name?.trim()) {
-        return res.status(400).json({ error: "Relation person data incomplete" });
-      }
       const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
-      const relResult = await pool.query(
-        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, is_deceased, notes, created_by_member_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
-        [relation.first_name, relation.middle_name||null, relation.last_name, relation.nickname||null, relation.mobile||null, relation.dob||null, relation.gender||null, relation.photo_url||null,
-         relation.is_deceased||false, relation.notes||null, familyReq.member_id]
-      );
-      const relId = relResult.rows[0].id;
+
+      let relId;
+      if (relation.existing_person_id) {
+        // Link to already-existing person — no new record needed
+        relId = parseInt(relation.existing_person_id);
+      } else {
+        if (!relation?.first_name?.trim() || !relation?.last_name?.trim()) {
+          return res.status(400).json({ error: "Relation person data incomplete" });
+        }
+        const relResult = await pool.query(
+          `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, is_deceased, notes, created_by_member_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+          [relation.first_name, relation.middle_name||null, relation.last_name, relation.nickname||null, relation.mobile||null, relation.dob||null, relation.gender||null, relation.photo_url||null,
+           relation.is_deceased||false, relation.notes||null, familyReq.member_id]
+        );
+        relId = relResult.rows[0].id;
+      }
+
       await pool.query(
         `INSERT INTO family_relations (person_id, related_person_id, relation_type)
          SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
