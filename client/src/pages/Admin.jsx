@@ -2416,8 +2416,10 @@ function AdminFamilyPeople() {
   const [search,  setSearch]  = useState("");
   const [relForm, setRelForm] = useState({ person_id:"",related_person_id:"",relation_type:"father" });
   const [relToast, setRelToast] = useState("");
-  const [expandedId,   setExpandedId]   = useState(null);
-  const [expandedRels, setExpandedRels] = useState([]);
+  const [expandedId,      setExpandedId]      = useState(null);
+  const [expandedRels,    setExpandedRels]    = useState([]);
+  const [editingRelId,    setEditingRelId]    = useState(null);
+  const [editingRelType,  setEditingRelType]  = useState("");
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -2486,8 +2488,19 @@ function AdminFamilyPeople() {
     try {
       await axios.delete(`${API}/api/members/admin/family-relations/${relId}`, { headers: authHeader() });
       setRelToast("Relation removed."); setTimeout(() => setRelToast(""), 3000);
+      setEditingRelId(null);
       if (expandedId) loadRelations(expandedId);
     } catch { setRelToast("Error removing relation."); }
+  };
+
+  const saveRelationType = async relId => {
+    if (!editingRelType) return;
+    try {
+      await axios.put(`${API}/api/members/admin/family-relations/${relId}`, { relation_type: editingRelType }, { headers: authHeader() });
+      setRelToast("Relation type updated."); setTimeout(() => setRelToast(""), 3000);
+      setEditingRelId(null);
+      if (expandedId) loadRelations(expandedId);
+    } catch { setRelToast("Error updating relation."); }
   };
 
   const filtered = people.filter(p =>
@@ -2614,23 +2627,39 @@ function AdminFamilyPeople() {
                 {expandedRels.length === 0
                   ? <div style={{ fontSize:"0.78rem",color:"#aaa" }}>No relations recorded.</div>
                   : expandedRels.map(rel => {
-                      const relName = [rel.first_name,rel.middle_name,rel.last_name].filter(Boolean).join(" ");
+                      const relName  = [rel.first_name,rel.middle_name,rel.last_name].filter(Boolean).join(" ");
+                      const isEdit   = editingRelId === rel.id;
                       return (
-                        <div key={rel.id} style={{ display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid #e8f0fe" }}>
-                          {rel.photo_url
-                            ? <img src={rel.photo_url} alt="" style={{ width:32,height:32,borderRadius:"50%",objectFit:"cover",flexShrink:0 }} />
-                            : <div style={{ width:32,height:32,borderRadius:"50%",background:"#c8e6c9",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:"0.8rem",flexShrink:0 }}>{rel.first_name?.charAt(0)}</div>
-                          }
-                          <div style={{ flex:1,minWidth:0 }}>
-                            <span style={{ fontWeight:700,fontSize:"0.82rem" }}>{relName}</span>
-                            {rel.nickname && <span style={{ fontSize:"0.7rem",color:"#888" }}> ({rel.nickname})</span>}
-                            <span style={{ fontSize:"0.7rem",color:"#1565c0",marginLeft:6,background:"#e3f2fd",borderRadius:20,padding:"1px 7px" }}>{rel.relation_type}</span>
-                            <span style={{ fontSize:"0.65rem",color:"#bbb",marginLeft:4 }}>#{rel.related_person_id}</span>
+                        <div key={rel.id} style={{ borderBottom:"1px solid #e8f0fe" }}>
+                          <div style={{ display:"flex",alignItems:"center",gap:8,padding:"6px 0" }}>
+                            {rel.photo_url
+                              ? <img src={rel.photo_url} alt="" style={{ width:32,height:32,borderRadius:"50%",objectFit:"cover",flexShrink:0 }} />
+                              : <div style={{ width:32,height:32,borderRadius:"50%",background:"#c8e6c9",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:"0.8rem",flexShrink:0 }}>{rel.first_name?.charAt(0)}</div>
+                            }
+                            <div style={{ flex:1,minWidth:0 }}>
+                              <span style={{ fontWeight:700,fontSize:"0.82rem" }}>{relName}</span>
+                              {rel.nickname && <span style={{ fontSize:"0.7rem",color:"#888" }}> ({rel.nickname})</span>}
+                              <span style={{ fontSize:"0.7rem",color:"#1565c0",marginLeft:6,background:"#e3f2fd",borderRadius:20,padding:"1px 7px" }}>{rel.relation_type}</span>
+                              <span style={{ fontSize:"0.65rem",color:"#bbb",marginLeft:4 }}>#{rel.related_person_id}</span>
+                            </div>
+                            <button style={{ background:"#fff3e0",border:"none",borderRadius:6,padding:"4px 8px",cursor:"pointer",color:"#e65100",fontSize:"0.72rem",fontWeight:700,flexShrink:0 }}
+                              onClick={() => { setEditingRelId(isEdit ? null : rel.id); setEditingRelType(rel.relation_type); }}>
+                              {isEdit ? "✕" : "✏️"}
+                            </button>
+                            <button style={{ background:"#fdecea",border:"none",borderRadius:6,padding:"4px 8px",cursor:"pointer",color:"#c62828",fontSize:"0.72rem",fontWeight:700,flexShrink:0 }}
+                              onClick={() => deleteRelation(rel.id)}>
+                              🗑️
+                            </button>
                           </div>
-                          <button style={{ background:"#fdecea",border:"none",borderRadius:6,padding:"4px 8px",cursor:"pointer",color:"#c62828",fontSize:"0.75rem",fontWeight:700,flexShrink:0 }}
-                            onClick={() => deleteRelation(rel.id)}>
-                            🗑️ Remove
-                          </button>
+                          {isEdit && (
+                            <div style={{ display:"flex",gap:6,padding:"6px 0 8px 40px",alignItems:"center" }}>
+                              <select value={editingRelType} onChange={e => setEditingRelType(e.target.value)}
+                                style={{ flex:1,padding:"5px 8px",border:"1.5px solid #ffe082",borderRadius:6,fontSize:"0.82rem" }}>
+                                {RELATION_TYPES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase()+r.slice(1)}</option>)}
+                              </select>
+                              <button className="btn-save" style={{ padding:"5px 12px",fontSize:"0.78rem" }} onClick={() => saveRelationType(rel.id)}>Save</button>
+                            </div>
+                          )}
                         </div>
                       );
                     })

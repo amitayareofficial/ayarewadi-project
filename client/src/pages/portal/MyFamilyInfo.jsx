@@ -25,9 +25,21 @@ const STATUS_STYLE = {
 };
 
 const REQ_LABEL = {
-  add_person:   { text: "New Person",   color: "#1565c0", bg: "#e3f2fd" },
-  add_relation: { text: "Add Relation", color: "#6a1b9a", bg: "#f3e5f5" },
-  edit_person:  { text: "Edit Info",    color: "#e65100", bg: "#fff3e0" },
+  add_person:    { text: "New Person",      color: "#1565c0", bg: "#e3f2fd" },
+  add_relation:  { text: "Add Relation",    color: "#6a1b9a", bg: "#f3e5f5" },
+  add_relations: { text: "Add Relations",   color: "#6a1b9a", bg: "#f3e5f5" },
+  edit_person:   { text: "Edit Info",       color: "#e65100", bg: "#fff3e0" },
+  edit_relation: { text: "Change Relation", color: "#c62828", bg: "#fce4ec" },
+};
+
+// Inverse options presented to the user when changing relation
+const INVERSE_OPTIONS = {
+  father:   ["son", "daughter"],
+  mother:   ["son", "daughter"],
+  son:      ["father", "mother"],
+  daughter: ["father", "mother"],
+  spouse:   ["spouse"],
+  brother:  ["brother"],
 };
 
 const emptyPerson = { first_name: "", middle_name: "", last_name: "", nickname: "", mobile: "", dob: "", gender: "", is_deceased: false, notes: "" };
@@ -86,6 +98,11 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [profileRelSearches,  setProfileRelSearches]  = useState([]);
   const [profileRelMatches,   setProfileRelMatches]   = useState([]);
   const profileRelTimers = useRef([]);
+
+  // change-relation inline editor (inside myProfile)
+  const [changeRelIdx,  setChangeRelIdx]  = useState(null); // index in profilePerson.relations
+  const [changeRelFwd,  setChangeRelFwd]  = useState("");   // new forward type
+  const [changeRelInv,  setChangeRelInv]  = useState("");   // new inverse type
 
   // editPersonDetail form
   const [editData, setEditData] = useState({ ...emptyPerson });
@@ -342,6 +359,49 @@ export default function MyFamilyInfo({ member, onBack }) {
     finally { setClaimLoading(false); }
   };
 
+  // ── Change-relation helpers ──
+  const openChangeRel = idx => {
+    const rel = profilePerson.relations[idx];
+    setChangeRelIdx(idx);
+    setChangeRelFwd(rel.relation_type);
+    // Auto-suggest inverse based on profile person's gender
+    const g = profilePerson.gender?.toLowerCase();
+    const opts = INVERSE_OPTIONS[rel.relation_type] || [];
+    const suggested = opts.length === 1 ? opts[0]
+      : g === "male" ? (opts.includes("son") ? "son" : opts.includes("father") ? "father" : opts[0])
+      : g === "female" ? (opts.includes("daughter") ? "daughter" : opts.includes("mother") ? "mother" : opts[0])
+      : opts[0];
+    setChangeRelInv(suggested || "");
+    setError(""); setSuccess("");
+  };
+
+  const submitChangeRelation = async () => {
+    const rel = profilePerson.relations[changeRelIdx];
+    if (!changeRelFwd && !changeRelInv) { setError("Select at least one change."); return; }
+    setSubmitting(true); setError("");
+    try {
+      const changes = {};
+      if (changeRelFwd && changeRelFwd !== rel.relation_type) changes.new_relation_type = changeRelFwd;
+      if (changeRelInv) changes.new_inverse_type = changeRelInv;
+      if (!Object.keys(changes).length) { setError("No changes made."); setSubmitting(false); return; }
+      await axios.post(`${API}/api/members/family-requests`,
+        {
+          request_type: "edit_relation",
+          request_data: {
+            relation_id: rel.id,
+            person_name: `${pName(profilePerson)} ↔ ${[rel.first_name, rel.last_name].filter(Boolean).join(" ")}`,
+            ...changes,
+          },
+        },
+        { headers: authHeader() }
+      );
+      setSuccess("Relation change submitted for admin approval.");
+      setChangeRelIdx(null);
+      loadRequests();
+    } catch (e) { setError(e.response?.data?.error || "Submission failed."); }
+    finally { setSubmitting(false); }
+  };
+
   // ── myProfile helpers ──
   const openMyProfile = async p => {
     setError(""); setSuccess("");
@@ -526,6 +586,11 @@ export default function MyFamilyInfo({ member, onBack }) {
             } else if (type === "edit_person") {
               title = data.person_name || "Family Member";
               sub   = data.claim ? "🔗 Claim & link profile" : "Info edit request";
+            } else if (type === "edit_relation" || type === "add_relations") {
+              title = data.person_name || "Family Member";
+              sub   = type === "edit_relation"
+                ? `Change: ${data.new_relation_type || ""}${data.new_inverse_type ? " / inverse → " + data.new_inverse_type : ""}`
+                : `Add ${data.relations?.length || 0} relation(s)`;
             }
             return (
               <div key={req.id} style={{ ...s.requestCard, borderColor: st.border }}>
@@ -597,21 +662,61 @@ export default function MyFamilyInfo({ member, onBack }) {
           <div style={s.cardHeader}>🔗 My Relations · माझे नातेसंबंध</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {(profilePerson.relations || []).map((rel, i) => {
-              const rl = RELATIONS.find(r => r.value === rel.relation_type) || { label: rel.relation_type };
-              const nm = [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
+              const rl   = RELATIONS.find(r => r.value === rel.relation_type) || { label: rel.relation_type };
+              const nm   = [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
+              const isEditing = changeRelIdx === i;
+              const invOpts = INVERSE_OPTIONS[rel.relation_type] || [];
               return (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < profilePerson.relations.length - 1 ? "1px solid #f8f8f8" : "none" }}>
-                  {rel.photo_url
-                    ? <img src={rel.photo_url} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                    : <div style={{ ...s.personInitial, width: 38, height: 38, fontSize: "0.9rem", flexShrink: 0 }}>{rel.first_name?.charAt(0)}</div>
-                  }
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nm}</div>
-                    {rel.nickname && <div style={{ fontSize: "0.68rem", color: "#888" }}>"{rel.nickname}"</div>}
+                <div key={i} style={{ borderBottom: i < profilePerson.relations.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                  {/* Relation row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
+                    {rel.photo_url
+                      ? <img src={rel.photo_url} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                      : <div style={{ ...s.personInitial, width: 38, height: 38, fontSize: "0.9rem", flexShrink: 0 }}>{rel.first_name?.charAt(0)}</div>
+                    }
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nm}</div>
+                      {rel.nickname && <div style={{ fontSize: "0.68rem", color: "#888" }}>"{rel.nickname}"</div>}
+                    </div>
+                    <span style={{ fontSize: "0.65rem", background: "#f0f4f8", color: "#555", borderRadius: 20, padding: "2px 8px", fontWeight: 700, flexShrink: 0 }}>
+                      {rl.label.split(" / ")[0]}
+                    </span>
+                    <button type="button"
+                      style={{ background: isEditing ? "#fdecea" : "#fff3e0", color: isEditing ? "#c62828" : "#e65100", border: "none", borderRadius: 6, padding: "4px 8px", fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
+                      onClick={() => isEditing ? setChangeRelIdx(null) : openChangeRel(i)}>
+                      {isEditing ? "✕ Cancel" : "🔄 Change"}
+                    </button>
                   </div>
-                  <span style={{ fontSize: "0.65rem", background: "#f3f3f3", color: "#555", borderRadius: 20, padding: "2px 8px", fontWeight: 700, flexShrink: 0 }}>
-                    {rl.label.split(" / ")[0]}
-                  </span>
+
+                  {/* Inline change-relation form */}
+                  {isEditing && (
+                    <div style={{ background: "#fff8e1", border: "1px solid #ffe082", borderRadius: 10, padding: "10px 12px", marginBottom: 8 }}>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#e65100", marginBottom: 8 }}>
+                        Change relation type — requires admin approval
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                        <div>
+                          <label style={lbl}>Your relation to them</label>
+                          <select style={inp} value={changeRelFwd} onChange={e => setChangeRelFwd(e.target.value)}>
+                            {RELATIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={lbl}>How they see you</label>
+                          <select style={inp} value={changeRelInv} onChange={e => setChangeRelInv(e.target.value)}>
+                            {invOpts.length > 0
+                              ? invOpts.map(v => <option key={v} value={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</option>)
+                              : RELATIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)
+                            }
+                          </select>
+                        </div>
+                      </div>
+                      <button type="button" disabled={submitting} style={{ ...s.submitBtn, padding: "9px 14px", fontSize: "0.82rem" }}
+                        onClick={submitChangeRelation}>
+                        {submitting ? "Submitting..." : "📤 Submit Change for Approval"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

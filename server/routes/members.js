@@ -571,6 +571,20 @@ router.delete("/admin/family-relations/:id", authAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Admin — edit relation type directly
+router.put("/admin/family-relations/:id", authAdmin, async (req, res) => {
+  try {
+    const { relation_type } = req.body;
+    if (!relation_type) return res.status(400).json({ error: "relation_type required" });
+    const r = await pool.query(
+      "UPDATE family_relations SET relation_type=$1 WHERE id=$2 RETURNING *",
+      [relation_type, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: "Relation not found" });
+    res.json(r.rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Member — upload a family photo (returns Cloudinary URL)
 router.post("/family-photo-upload", authMember, upload.single("photo"), async (req, res) => {
   try {
@@ -628,6 +642,20 @@ router.get("/admin/family-requests", authAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Gender-aware inverse relation type
+function genderInverse(relationType, subjectGender) {
+  const g = (subjectGender || "").toLowerCase();
+  switch (relationType) {
+    case "father":
+    case "mother":   return g === "female" ? "daughter" : "son";
+    case "son":
+    case "daughter": return g === "female" ? "mother"   : "father";
+    case "spouse":   return "spouse";
+    case "brother":  return "brother";
+    default:         return null;
+  }
+}
+
 // Admin — approve family request
 router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => {
   try {
@@ -650,9 +678,8 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
       );
       const personId = personResult.rows[0].id;
 
-      const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
-
-      const insertRelation = async (pid, rid, type) => {
+      // insertRelation uses gender of the main subject (pid) for correct inverse
+      const insertRelation = async (pid, rid, type, subjectGender) => {
         await pool.query(
           `INSERT INTO family_relations (person_id, related_person_id, relation_type)
            SELECT $1, $2, $3::text WHERE NOT EXISTS (
@@ -660,7 +687,7 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
            )`,
           [pid, rid, type]
         );
-        const inv = INVERSE[type];
+        const inv = genderInverse(type, subjectGender);
         if (inv) await pool.query(
           `INSERT INTO family_relations (person_id, related_person_id, relation_type)
            SELECT $1, $2, $3::text WHERE NOT EXISTS (
@@ -680,21 +707,22 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
         return r.rows[0].id;
       };
 
-      // Insert each related person + create relation rows
+      // Insert each related person + create relation rows (pass main person's gender for correct inverse)
       for (const rel of (data.relations || [])) {
         if (rel.existing_person_id) {
-          // Link to existing tree person — no new record
-          await insertRelation(personId, parseInt(rel.existing_person_id), rel.relation_type);
+          await insertRelation(personId, parseInt(rel.existing_person_id), rel.relation_type, gender);
         } else {
           if (!rel.first_name?.trim() || !rel.last_name?.trim()) continue;
           const relId = await insertPerson(rel);
-          await insertRelation(personId, relId, rel.relation_type);
+          await insertRelation(personId, relId, rel.relation_type, gender);
         }
       }
 
     } else if (familyReq.request_type === "add_relation") {
       const { person_id, relation } = data;
-      const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
+      // Look up the subject person's gender for correct inverse
+      const subjectRow = await pool.query("SELECT gender FROM family_people WHERE id=$1", [person_id]);
+      const subjectGender = subjectRow.rows[0]?.gender || "";
 
       let relId;
       if (relation.existing_person_id) {
@@ -718,7 +746,7 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
          SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
         [person_id, relId, relation.relation_type]
       );
-      const inv = INVERSE[relation.relation_type];
+      const inv = genderInverse(relation.relation_type, subjectGender);
       if (inv) await pool.query(
         `INSERT INTO family_relations (person_id, related_person_id, relation_type)
          SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
@@ -751,9 +779,27 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
         );
       }
 
+    } else if (familyReq.request_type === "edit_relation") {
+      const { relation_id, new_relation_type, new_inverse_type } = data;
+      const relRow = await pool.query("SELECT * FROM family_relations WHERE id=$1", [relation_id]);
+      if (!relRow.rows.length) throw new Error("Relation not found");
+      const { person_id: fwdPid, related_person_id: fwdRid } = relRow.rows[0];
+
+      if (new_relation_type) {
+        await pool.query("UPDATE family_relations SET relation_type=$1 WHERE id=$2", [new_relation_type, relation_id]);
+      }
+      if (new_inverse_type) {
+        // Update the inverse row (related_person → subject)
+        await pool.query(
+          "UPDATE family_relations SET relation_type=$1 WHERE person_id=$2 AND related_person_id=$3",
+          [new_inverse_type, fwdRid, fwdPid]
+        );
+      }
+
     } else if (familyReq.request_type === "add_relations") {
       const { person_id, relations: rels } = data;
-      const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
+      const subjectRow2 = await pool.query("SELECT gender FROM family_people WHERE id=$1", [person_id]);
+      const bulkGender = subjectRow2.rows[0]?.gender || "";
 
       for (const relation of (rels || [])) {
         let relId;
@@ -775,7 +821,7 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
            SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
           [person_id, relId, relation.relation_type]
         );
-        const inv = INVERSE[relation.relation_type];
+        const inv = genderInverse(relation.relation_type, bulkGender);
         if (inv) await pool.query(
           `INSERT INTO family_relations (person_id, related_person_id, relation_type)
            SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
