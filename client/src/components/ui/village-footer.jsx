@@ -18,20 +18,10 @@ const NAV = {
       ],
     },
     {
-      name: "Emergency",
-      items: [
-        { name: "Hospitals",        section: "emergency"              },
-        { name: "108 — Ambulance",  href: "tel:108"                   },
-        { name: "100 — Police",     href: "tel:100"                   },
-        { name: "101 — Fire",       href: "tel:101"                   },
-        { name: "1091 — Women",     href: "tel:1091"                  },
-      ],
-    },
-    {
       name: "Contact",
       items: [
         { name: "contact@ayarewadi.in", href: "mailto:contact@ayarewadi.in" },
-        { name: "WhatsApp Group",        href: "https://wa.me/918149822015", external: true },
+        { name: "WhatsApp Group",        href: "https://wa.me/919594179606", external: true },
         { name: "Vaibhavwadi, Sindhudurg" },
         { name: "Maharashtra — 416810"   },
         { name: "PIN: 416810"            },
@@ -59,20 +49,10 @@ const NAV = {
       ],
     },
     {
-      name: "आपत्कालीन",
-      items: [
-        { name: "रुग्णालये",           section: "emergency"           },
-        { name: "108 — रुग्णवाहिका",   href: "tel:108"                },
-        { name: "100 — पोलीस",         href: "tel:100"                },
-        { name: "101 — अग्निशमन",      href: "tel:101"                },
-        { name: "1091 — महिला",        href: "tel:1091"               },
-      ],
-    },
-    {
       name: "संपर्क",
       items: [
         { name: "contact@ayarewadi.in", href: "mailto:contact@ayarewadi.in" },
-        { name: "WhatsApp ग्रुप",        href: "https://wa.me/918149822015", external: true },
+        { name: "WhatsApp ग्रुप",        href: "https://wa.me/919594179606", external: true },
         { name: "वैभववाडी, सिंधुदुर्ग" },
         { name: "महाराष्ट्र — ४१६८१०" },
         { name: "पिन: ४१६८१०"          },
@@ -93,7 +73,7 @@ const NAV = {
 const SOCIAL = [
   {
     label:  "WhatsApp",
-    href:   "https://wa.me/918149822015",
+    href:   "https://wa.me/919594179606",
     icon:   <MessageCircle size={18} />,
     hoverColor: "#25D366",
     external: true,
@@ -105,7 +85,7 @@ const SOCIAL = [
   },
   {
     label: "Phone",
-    href:  "tel:8149822015",
+    href:  "tel:9594179606",
     icon:  <Phone size={18} />,
   },
   {
