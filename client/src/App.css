@@ -24,6 +24,21 @@ a    { text-decoration: none; }
 ul   { list-style: none; }
 img  { max-width: 100%; display: block; }
 
+/* ── iOS ZOOM PREVENTION — all inputs/selects/textareas ──
+   Must be 16px+ to prevent iOS Safari auto-zoom on focus   */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="url"],
+select,
+textarea {
+  font-size: max(16px, 1rem);
+}
+
 /* ── KEYFRAMES ─────────────────────────────────────────── */
 @keyframes page-fade-in {
   from { opacity: 0; transform: translateY(10px); }
@@ -81,12 +96,12 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .nav-logo { height: 48px; width: auto; object-fit: contain; display: block; background: transparent; mix-blend-mode: lighten; filter: brightness(1.1); }
 .nav-brand-name { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
-.nav-links { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.nav-links { margin-left: auto; display: flex; gap: 2px; flex-wrap: nowrap; align-items: center; overflow: visible; }
 .nav-links button {
   background: none; border: none; color: #fff;
-  padding: 7px 14px; border-radius: 6px; font-size: 0.88rem;
+  padding: 7px 10px; border-radius: 6px; font-size: 0.82rem;
   cursor: pointer; font-weight: 500; transition: background 0.2s, color 0.2s;
-  min-height: 36px;
+  min-height: 36px; white-space: nowrap;
 }
 .nav-links button:hover  { background: rgba(255,255,255,0.15); }
 .nav-links button.active { background: rgba(255,255,255,0.2); }
@@ -237,6 +252,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   font-weight: 800; letter-spacing: -0.4px;
 }
 .sub-title { font-size: 1rem; color: var(--green); font-weight: 600; margin-bottom: 12px; }
+/* page-section: top padding clears 52px fixed navbar on desktop */
 .page-section { max-width: 960px; margin: 0 auto; padding: 56px 24px; }
 .center-section { display: flex; justify-content: center; }
 
@@ -879,7 +895,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .login-box label    { display: block; text-align: left; font-size: 0.83rem; color: var(--muted); margin: 12px 0 4px; }
 .login-box input {
   width: 100%; padding: 10px 14px; border: 1px solid var(--border);
-  border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.2s;
+  border-radius: 8px; font-size: max(16px, 0.9rem); outline: none; transition: border 0.2s;
 }
 .login-box input:focus { border-color: var(--accent); }
 .err  { color: #c62828; font-size: 0.8rem; margin-top: 8px; }
@@ -893,7 +909,10 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 }
 .family-row:last-child { border-bottom: none; }
 .muted { color: var(--muted); font-size: 0.82rem; }
-.budget-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Tables — horizontal scroll on mobile */
+.budget-table-wrap,
+.admin-table-wrap,
+.members-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .budget-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.88rem; min-width: 320px; }
 .budget-table th  { background: var(--primary); color: #fff; padding: 10px 14px; text-align: left; }
 .budget-table td  { padding: 10px 14px; border-bottom: 1px solid var(--border); }
@@ -917,7 +936,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .gallery-search svg   { color: var(--muted); flex-shrink: 0; }
 .gallery-search input {
   flex: 1; border: none; outline: none;
-  font-size: 0.9rem; background: transparent; color: var(--text);
+  font-size: max(16px, 0.9rem); background: transparent; color: var(--text);
 }
 .gallery-search-clear {
   background: none; border: none; color: var(--muted);
@@ -1088,7 +1107,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .balance-display strong { font-size: 1.8rem; color: var(--accent); }
 
 /* ── ADMIN PANEL ───────────────────────────────────────── */
-.admin-wrap { display: flex; min-height: 100vh; contain: layout style; padding-top: 52px; }
+.admin-wrap { display: flex; min-height: 100vh; contain: layout style; padding-top: 52px; overflow-x: hidden; }
 .admin-sidebar {
   width: 220px; background: var(--primary); padding: 20px 12px;
   display: flex; flex-direction: column; gap: 6px;
@@ -1100,14 +1119,14 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .admin-tab.active { background: var(--accent); color: #fff; font-weight: 600; }
 .admin-logout { margin-top: auto; background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; text-align: left; }
 .admin-logout:hover { background: #c62828; color: #fff; }
-.admin-content { flex: 1; padding: 32px; background: #F4F3F1; overflow-y: auto; }
+.admin-content { flex: 1; padding: 32px; background: #F4F3F1; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 .admin-section h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 24px; }
 .admin-form { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
 .admin-form h3 { font-size: 1rem; color: var(--primary); margin-bottom: 16px; }
 .admin-form input, .admin-form textarea, .admin-form select {
   width: 100%; padding: 10px 14px; margin-bottom: 10px;
   border: 1px solid var(--border); border-radius: 8px;
-  font-size: 0.9rem; outline: none; font-family: inherit; transition: border 0.2s;
+  font-size: max(16px, 0.9rem); outline: none; font-family: inherit; transition: border 0.2s;
 }
 .admin-form input:focus, .admin-form textarea:focus, .admin-form select:focus { border-color: var(--accent); }
 .admin-form textarea { min-height: 80px; resize: vertical; }
@@ -1150,7 +1169,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .admin-login-box { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
 .admin-login-box h2 { color: var(--primary); margin-bottom: 6px; }
 .admin-login-box p  { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
-.admin-login-box input { width: 100%; padding: 11px 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; }
+.admin-login-box input { width: 100%; padding: 11px 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: max(16px, 0.9rem); outline: none; }
 .admin-login-box input:focus { border-color: var(--accent); }
 .admin-login-box button { width: 100%; background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
 
@@ -1354,13 +1373,20 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* ── WHATSAPP ──────────────────────────────────────────── */
 .whatsapp-float {
-  position: fixed; bottom: 24px; right: 24px; z-index: 999;
-  background: #25d366; color: #fff; width: 54px; height: 54px;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  z-index: 999;
+  background: #25d366; color: #fff; width: 52px; height: 52px;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; box-shadow: 0 4px 16px rgba(0,0,0,0.2); text-decoration: none;
+  font-size: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.2); text-decoration: none;
   transition: transform 0.2s;
 }
 .whatsapp-float:hover { transform: scale(1.1); }
+/* Move WhatsApp button left on small screens so it doesn't hug the right edge */
+@media (max-width: 480px) {
+  .whatsapp-float { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 14px; width: 48px; height: 48px; font-size: 1.35rem; }
+}
 
 /* ══════════════════════════════════════════════════════════
    RESPONSIVE — mobile-first, comprehensive
@@ -1452,7 +1478,8 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .stat strong           { font-size: 2rem; }
 
   /* ── Section headers & padding ── */
-  .page-section          { padding: 24px 16px; }
+  /* Top padding (60px) clears 48px mobile navbar + 12px breathing room */
+  .page-section          { padding: 60px 16px 24px; }
   .sec-header h2, .section-title { font-size: 1.55rem; }
 
   /* ── Quick cards ── */
@@ -1471,9 +1498,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
   /* ── Admin ── */
   .admin-wrap            { flex-direction: column; padding-top: 48px; }
-  .admin-sidebar         { width: 100%; height: auto; position: relative; top: auto; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .admin-sidebar         { width: 100%; height: auto; position: relative; top: auto; flex-direction: row; flex-wrap: wrap; padding: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .admin-brand           { width: 100%; }
-  .admin-content         { padding: 20px 16px; }
+  .admin-content         { padding: 20px 16px; overflow-x: hidden; }
 
   /* ── Gallery ── */
   .gallery-search        { max-width: 100%; }
@@ -1525,7 +1552,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .vd-transport-row      { flex-direction: column; }
 
   /* ── Section ── */
-  .page-section          { padding: 24px 16px; }
+  .page-section          { padding: 60px 16px 24px; }
   .sec-header h2, .section-title { font-size: 1.35rem; }
   /* ── Ravalnath Temple ── */
   .rt-section            { padding: 36px 16px; }
@@ -1577,6 +1604,9 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .rt-heading-main       { font-size: 1.4rem; }
   .join-section h2       { font-size: 1.3rem; }
   .admin-wrap            { padding-top: 56px; }
+  .admin-sidebar         { width: 100%; }
+  /* Ensure .page-section top padding matches 56px navbar on tiny screens */
+  .page-section          { padding-top: 68px; }
 }
 
 /* ─ Landscape mobile ─────────────────────────────────── */
@@ -1595,17 +1625,17 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
    BLOG PAGE
 ══════════════════════════════════════════════════════ */
 
-.blog-page { min-height: 100vh; background: #f8f5f0; }
+.blog-page { min-height: 100vh; background: #f8f5f0; padding-top: 52px; }
 
 /* Hero */
-.blog-hero       { background: #1a2e1a; padding: 100px 40px 60px; text-align: center; overflow: hidden; }
+.blog-hero       { background: #1a2e1a; padding: 56px 40px 60px; text-align: center; overflow: hidden; }
 .blog-hero-title { color: #fff; font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 14px; }
 .blog-hero-sub   { color: rgba(255,255,255,0.7); font-size: 1rem; margin: 0; font-weight: 400; }
 
-/* Filter bar — sticky below 62px navbar */
+/* Filter bar — sticky below fixed navbar (52px desktop) */
 .blog-filter-bar {
   position: sticky;
-  top: 62px;
+  top: 52px;
   z-index: 50;
   background: #fff;
   padding: 12px 40px;
@@ -1663,7 +1693,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   padding: 8px 32px;
   border: 1.5px solid #e0d6c9;
   border-radius: 99px;
-  font-size: 0.82rem;
+  font-size: max(16px, 0.82rem);
   background: #faf9f7;
   color: #3e2723;
   outline: none;
@@ -1685,7 +1715,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .blog-search-clear:hover { color: #555; }
 
 /* Content */
-.blog-content { padding: 48px 40px 0; box-sizing: border-box; }
+.blog-content { padding: 48px 40px 0; box-sizing: border-box; max-width: 1180px; margin: 0 auto; width: 100%; }
 
 /* Category badge */
 .blog-cat-badge {
@@ -1775,7 +1805,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   width: 100%;
   max-width: 1100px;
   margin: 32px auto 0;
-  padding: 0 40px 60px;
+  padding: 0 0 60px;
   box-sizing: border-box;
 }
 
@@ -1847,7 +1877,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* Skeleton */
 @keyframes blog-pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
-.blog-skeleton      { animation: blog-pulse 1.6s ease infinite; padding: 0 40px; }
+.blog-skeleton      { animation: blog-pulse 1.6s ease infinite; padding: 0; max-width: 1100px; margin: 0 auto; width: 100%; }
 .blog-skel-feat     {
   display: grid; grid-template-columns: 45% 55%;
   height: 340px; border-radius: 16px; overflow: hidden;
@@ -1894,16 +1924,18 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 
 /* Responsive */
 @media (max-width: 768px) {
-  .blog-content  { padding: 32px 20px 0; }
+  .blog-content  { padding: 32px 16px 0; }
   .blog-featured { margin: 0 auto; }
   .blog-feat-body { padding: 24px 20px; }
   .blog-feat-title { font-size: 1.35rem; }
   .blog-grid { padding: 0 0 40px; }
+  .blog-filter-bar { top: 48px; }
+  .blog-page { padding-top: 48px; }
 }
 @media (max-width: 600px) {
-  .blog-hero         { padding: 80px 20px 40px; }
+  .blog-hero         { padding: 40px 16px 36px; }
   .blog-hero-title   { font-size: 1.75rem; }
-  .blog-filter-bar   { top: 56px; padding: 10px 16px; }
+  .blog-filter-bar   { top: 48px; padding: 10px 16px; }
   .blog-filter-inner { flex-wrap: wrap; gap: 8px; }
   .blog-pills-scroll { flex: 0 0 100%; width: 100%; order: 1; }
   .blog-search-wrap  { flex: 0 0 100%; width: 100%; max-width: 100%; margin-left: 0; order: 2; }
@@ -1914,7 +1946,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .blog-feat-excerpt { flex: none; -webkit-line-clamp: 3; }
   .blog-skeleton     { padding: 0; }
   .blog-skel-feat    { grid-template-columns: 1fr; grid-template-rows: 180px auto; height: auto; }
-  .blog-post-page    { padding-top: 56px; }
+  .blog-post-page    { padding-top: 48px; }
   .blog-post-title   { font-size: 1.5rem; }
   .blog-grid         { grid-template-columns: 1fr; padding: 0 0 32px; }
 }
@@ -2016,7 +2048,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .mem-search-input {
   width: 100%; padding: 9px 40px 9px 40px;
   border: 1.5px solid #d0e8d4; border-radius: 30px;
-  font-size: 0.88rem; color: #333; background: #f8fdf9;
+  font-size: max(16px, 0.88rem); color: #333; background: #f8fdf9;
   outline: none; transition: border-color 0.18s, box-shadow 0.18s;
   box-sizing: border-box;
 }
@@ -2167,9 +2199,10 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 @media (max-width: 768px) {
   .mem-grid       { grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .mem-title      { font-size: 2.2rem; }
-  .mem-hero       { padding: 52px 20px 44px; }
+  /* Hero top padding = 48px nav + extra space */
+  .mem-hero       { padding: 64px 20px 44px; }
   .mem-page       { padding-top: 48px; }
-  .mem-filter-bar { top: 48px; }
+  .mem-filter-bar { top: 48px; padding: 12px 16px; }
   .mem-grid-wrap  { padding: 28px 16px 60px; }
 }
 @media (max-width: 480px) {
@@ -2178,11 +2211,14 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .mem-photo-ring { width: 80px; height: 80px; }
   .mem-avatar     { font-size: 1.5rem; }
   .mem-title      { font-size: 1.8rem; }
+  /* Hero: ensure enough top padding to clear navbar */
+  .mem-hero       { padding: 64px 16px 36px; }
 }
 @media (max-width: 360px) {
   .mem-grid       { grid-template-columns: 1fr; }
   .mem-page       { padding-top: 56px; }
   .mem-filter-bar { top: 56px; }
+  .mem-hero       { padding: 72px 16px 32px; }
 }
 
 /* ── SKIP LINK ──────────────────────────────────────────── */
@@ -2869,7 +2905,7 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
 .blog-search-icon  { position: absolute; left: 12px; font-size: 0.9rem; pointer-events: none; }
 .blog-search-input {
   width: 100%; padding: 9px 36px 9px 36px; border: 1.5px solid var(--border);
-  border-radius: 10px; font-size: 0.88rem; background: #fff; outline: none;
+  border-radius: 10px; font-size: max(16px, 0.88rem); background: #fff; outline: none;
   transition: border-color 0.2s;
 }
 .blog-search-input:focus { border-color: var(--primary); }
@@ -2946,4 +2982,101 @@ button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   .blog-post-row-actions { flex-direction: row; width: 100%; justify-content: flex-end; }
   .blog-form-footer    { flex-direction: column; align-items: flex-start; }
   .blog-search-row     { flex-wrap: wrap; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL MOBILE SAFETY — applied last so nothing overrides
+   ══════════════════════════════════════════════════════════ */
+
+/* ── All interactive buttons: 44px minimum touch target ──── */
+.btn-accent, .btn-accent-sm, .btn-green, .btn-call, .btn-location,
+.btn-whatsapp, .btn-email, .vd-cta, .hs-tab, .emg-tab,
+.mem-filter-btn, .mem-search-reset,
+.glry-bc-btn, .glry-lb-dl, .glry-lb-close,
+.blog-pill, .blog-reset-btn, .blog-back-btn {
+  min-height: 44px;
+}
+
+/* ── Prevent content from touching screen edges on mobile ── */
+@media (max-width: 480px) {
+  /* Sections that use their own padding */
+  .rt-section,
+  .initiatives-section,
+  .svc-section,
+  .join-section,
+  .stats-strip,
+  .team-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Ensure no element bleeds to edge */
+  .rt-container,
+  .svc-inner,
+  .join-content {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  /* Gallery and photo grids: min 6px gap so images don't merge */
+  .gallery-grid          { gap: 6px; }
+  .glry-photo-grid       { gap: 6px; }
+  .glry-year-grid        { gap: 10px; }
+  .glry-cat-grid         { gap: 8px; }
+
+  /* Admin gallery grid on mobile */
+  .admin-gallery-grid    { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+  /* Budget table: ensure it scrolls, not overflows */
+  .budget-table          { min-width: 400px; }
+
+  /* Events list on very small screens: single column */
+  .events-list           { grid-template-columns: 1fr; }
+
+  /* Festival grid: single column on very small screens */
+  .festival-grid         { grid-template-columns: 1fr; }
+
+  /* Footer bottom: smaller padding */
+  .footer-bottom         { padding: 14px 16px; }
+}
+
+/* ── No horizontal scroll on any viewport ── */
+@media (max-width: 768px) {
+  /* Prevent fixed-width children from breaking layout */
+  .rt-container          { overflow-x: hidden; }
+  .svc-bento             { max-width: 100%; overflow: hidden; }
+  .team-grid             { overflow: hidden; }
+
+  /* Marquee: ensure label doesn't push content off-screen */
+  .marquee-wrap          { overflow: hidden; }
+
+  /* Admin item actions: wrap gracefully */
+  .admin-item            { flex-wrap: wrap; }
+  .item-btns             { flex-wrap: wrap; }
+
+  /* Button min-heights on touch devices */
+  .hs-tab, .emg-tab      { min-height: 44px; }
+  .lang-btn              { min-height: 32px; }
+
+  /* Hosp tabs wrap cleanly */
+  .hs-tabs               { gap: 6px; }
+  .hosp-actions          { flex-wrap: wrap; gap: 6px; }
+}
+
+/* ── Smooth scroll snapping for gallery grids on touch ────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Always show photo captions on touch (no hover) */
+  .glry-photo-caption    { opacity: 1; }
+  .glry-photo-zoom       { opacity: 1; }
+
+  /* Prevent any accidental zoom on text input focus */
+  input, select, textarea { touch-action: manipulation; }
+}
+
+/* ── Max-width safety net for all page wrappers ── */
+.blog-page,
+.mem-page,
+.admin-wrap {
+  max-width: 100vw;
+  overflow-x: hidden;
 }

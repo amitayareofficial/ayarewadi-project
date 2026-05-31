@@ -165,6 +165,12 @@ html, body, #root {
   overflow-x: hidden;
 }
 
+/* Base font size: 16px ensures 1rem = 16px everywhere */
+html { font-size: 16px; }
+
 img { max-width: 100%; display: block; }
 
-button, input { font-family: inherit; }
+button, input, select, textarea { font-family: inherit; }
+
+/* Minimum body text: 14px readable on all screens */
+body { font-size: 0.9375rem; line-height: 1.5; }
