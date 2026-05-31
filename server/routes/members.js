@@ -655,16 +655,16 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
       const insertRelation = async (pid, rid, type) => {
         await pool.query(
           `INSERT INTO family_relations (person_id, related_person_id, relation_type)
-           SELECT $1,$2,$3 WHERE NOT EXISTS (
-             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3
+           SELECT $1, $2, $3::text WHERE NOT EXISTS (
+             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text
            )`,
           [pid, rid, type]
         );
         const inv = INVERSE[type];
         if (inv) await pool.query(
           `INSERT INTO family_relations (person_id, related_person_id, relation_type)
-           SELECT $1,$2,$3 WHERE NOT EXISTS (
-             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3
+           SELECT $1, $2, $3::text WHERE NOT EXISTS (
+             SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text
            )`,
           [rid, pid, inv]
         );
@@ -702,13 +702,13 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
       const relId = relResult.rows[0].id;
       await pool.query(
         `INSERT INTO family_relations (person_id, related_person_id, relation_type)
-         SELECT $1,$2,$3 WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3)`,
+         SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
         [person_id, relId, relation.relation_type]
       );
       const inv = INVERSE[relation.relation_type];
       if (inv) await pool.query(
         `INSERT INTO family_relations (person_id, related_person_id, relation_type)
-         SELECT $1,$2,$3 WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3)`,
+         SELECT $1, $2, $3::text WHERE NOT EXISTS (SELECT 1 FROM family_relations WHERE person_id=$1 AND related_person_id=$2 AND relation_type=$3::text)`,
         [relId, person_id, inv]
       );
 
