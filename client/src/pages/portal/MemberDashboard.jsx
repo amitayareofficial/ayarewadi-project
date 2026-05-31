@@ -1,11 +1,12 @@
 import { useState, lazy, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
+import PulsatingLoader from "@/components/ui/pulsating-loader";
 
 const MyFamilyInfo = lazy(() => import("./MyFamilyInfo"));
 const BalanceSheet = lazy(() => import("./BalanceSheet"));
 const FamilyTree   = lazy(() => import("./FamilyTree"));
 
-const LOADING = <div style={{ padding: "3rem", textAlign: "center", color: "#2e7d32", fontSize: "1rem" }}>Loading...</div>;
+const LOADING = <PulsatingLoader message="Loading…" />;
 
 const CARDS = [
   {

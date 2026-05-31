@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import PulsatingLoader from "@/components/ui/pulsating-loader";
 
 const API = "https://ayarewadi-project.onrender.com";
 
@@ -564,7 +565,7 @@ export default function MyFamilyInfo({ member, onBack }) {
 
       <div style={s.sectionLabel}>My Requests · माझ्या विनंत्या</div>
       {loading ? (
-        <div style={{ textAlign: "center", padding: "2rem", color: "#aaa" }}>Loading...</div>
+        <PulsatingLoader message="Loading requests…" />
       ) : requests.length === 0 ? (
         <div style={s.emptyMsg}>No requests yet.</div>
       ) : (
@@ -713,7 +714,7 @@ export default function MyFamilyInfo({ member, onBack }) {
                       </div>
                       <button type="button" disabled={submitting} style={{ ...s.submitBtn, padding: "9px 14px", fontSize: "0.82rem" }}
                         onClick={submitChangeRelation}>
-                        {submitting ? "Submitting..." : "📤 Submit Change for Approval"}
+                        {submitting ? "⏳ Submitting…" : "📤 Submit Change for Approval"}
                       </button>
                     </div>
                   )}
@@ -757,7 +758,7 @@ export default function MyFamilyInfo({ member, onBack }) {
           <>
             {error && <div style={s.errorMsg}>⚠️ {error}</div>}
             <button type="submit" disabled={submitting} style={s.submitBtn}>
-              {submitting ? "Uploading & Submitting..." : `📤 Submit ${profileRels.length} Relation(s) for Approval`}
+              {submitting ? "⏳ Submitting…" : `📤 Submit ${profileRels.length} Relation(s) for Approval`}
             </button>
           </>
         )}
@@ -851,7 +852,7 @@ export default function MyFamilyInfo({ member, onBack }) {
 
         {error && <div style={s.errorMsg}>⚠️ {error}</div>}
         <button type="submit" disabled={submitting} style={s.submitBtn}>
-          {submitting ? "Uploading & Submitting..." : "📤 Submit · माहिती सादर करा"}
+          {submitting ? "⏳ Submitting…" : "📤 Submit · माहिती सादर करा"}
         </button>
       </form>
     </div>
@@ -933,7 +934,7 @@ export default function MyFamilyInfo({ member, onBack }) {
 
         {error && <div style={s.errorMsg}>⚠️ {error}</div>}
         <button type="submit" disabled={submitting} style={s.submitBtn}>
-          {submitting ? "Uploading & Submitting..." : "📤 Submit Relation Request"}
+          {submitting ? "⏳ Submitting…" : "📤 Submit Relation Request"}
         </button>
       </form>
     </div>
@@ -1044,7 +1045,7 @@ export default function MyFamilyInfo({ member, onBack }) {
         </div>
       </div>
 
-      {claimLoading && <div style={{ textAlign: "center", color: "#aaa", padding: "1rem" }}>Searching...</div>}
+      {claimLoading && <PulsatingLoader message="Searching village tree…" />}
 
       {!claimLoading && claimQuery && claimResults.length === 0 && (
         <div style={s.emptyMsg}>
@@ -1123,7 +1124,7 @@ export default function MyFamilyInfo({ member, onBack }) {
 
         {error && <div style={s.errorMsg}>⚠️ {error}</div>}
         <button type="submit" disabled={submitting} style={s.submitBtn}>
-          {submitting ? "Uploading & Submitting..." : "📤 Submit Edit Request · बदल सादर करा"}
+          {submitting ? "⏳ Submitting…" : "📤 Submit Edit Request · बदल सादर करा"}
         </button>
       </form>
     </div>

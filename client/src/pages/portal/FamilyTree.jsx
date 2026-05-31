@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import PulsatingLoader from "@/components/ui/pulsating-loader";
 
 const API = "https://ayarewadi-project.onrender.com";
 
@@ -156,9 +157,7 @@ export default function FamilyTree({ onBack }) {
             All Members · सर्व सदस्य — {filteredList.length} / {listPeople.length}
           </div>
 
-          {listLoading && (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#aaa" }}>Loading…</div>
-          )}
+          {listLoading && <PulsatingLoader message="Loading members list…" />}
 
           {!listLoading && filteredList.length === 0 && (
             <div style={s.emptyBox}>
@@ -258,7 +257,7 @@ export default function FamilyTree({ onBack }) {
       )}
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "2rem", color: "#aaa" }}>Loading...</div>
+        <PulsatingLoader message="Loading family tree…" />
       )}
 
       {/* Person detail tree */}

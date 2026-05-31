@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import PulsatingLoader from "@/components/ui/pulsating-loader";
 
 const API = "https://ayarewadi-project.onrender.com";
 
@@ -32,7 +33,7 @@ export default function BalanceSheet({ onBack }) {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#aaa" }}>Loading...</div>
+        <PulsatingLoader message="Loading balance sheet…" />
       ) : years.length === 0 ? (
         <div style={s.emptyBox}>
           <div style={{ fontSize: "2rem", marginBottom: 8 }}>📊</div>
