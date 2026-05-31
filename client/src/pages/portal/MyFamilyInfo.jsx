@@ -625,7 +625,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "myProfile" && profilePerson) return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={goBack}>← Back</button>
         <h2 style={s.title}>👤 My Profile</h2>
         <div style={s.titleSub}>माझा प्रोफाइल</div>
       </div>
@@ -772,7 +772,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "addPerson") return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={goBack}>← Back</button>
         <h2 style={s.title}>➕ Add Family Member</h2>
       </div>
       <form onSubmit={submitAddPerson} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -864,7 +864,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "addRel") return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={goBack}>← Back</button>
         <h2 style={s.title}>➕ Add Relation</h2>
         <div style={s.titleSub}>नवीन नातेसंबंध जोडा</div>
       </div>
@@ -946,7 +946,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "editInfo") return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={goBack}>← Back</button>
         <h2 style={s.title}>✏️ Edit Family Info</h2>
         <div style={s.titleSub}>माहिती संपादन</div>
       </div>
@@ -1015,7 +1015,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "claimSearch") return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={goBack}>← Back</button>
         <h2 style={s.title}>🔍 Find My Profile</h2>
         <div style={s.titleSub}>माझे नाव शोधा · village family tree</div>
       </div>
@@ -1095,12 +1095,11 @@ export default function MyFamilyInfo({ member, onBack }) {
   if (view === "editPersonDetail") return (
     <div style={s.wrap}>
       <div style={s.header}>
-        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <button style={s.backBtn} onClick={claimMode ? () => setView("claimSearch") : () => setView(editReturnView)}>← Back</button>
         <h2 style={s.title}>{claimMode ? "🔗 Link & Update My Profile" : "✏️ Edit Details"}</h2>
         <div style={s.titleSub}>{claimMode ? "माझा प्रोफाइल जोडा · Requires approval" : "माहिती बदला · Requires approval"}</div>
       </div>
       <form onSubmit={submitEditPerson} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <button type="button" style={s.backLink} onClick={claimMode ? () => setView("claimSearch") : () => setView(editReturnView)}>← Back</button>
 
         {claimMode ? (
           <div style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 10, padding: "10px 14px", fontSize: "0.78rem", color: "#1b5e20", fontWeight: 600 }}>

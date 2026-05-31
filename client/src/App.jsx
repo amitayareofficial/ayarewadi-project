@@ -316,9 +316,27 @@ export default function App() {
     return () => clearTimeout(t);
   }, [section]);
 
+  // Seed the initial history entry so the first browser back stays on "home"
+  useEffect(() => {
+    window.history.replaceState({ section: "home" }, "");
+  }, []);
+
+  // Browser back/forward: sync state with history
+  useEffect(() => {
+    const onPop = e => {
+      const s = e.state?.section || "home";
+      setSection(s);
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   const nav = useCallback(s => {
     setSection(s);
     setMenuOpen(false);
+    window.history.pushState({ section: s }, "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
