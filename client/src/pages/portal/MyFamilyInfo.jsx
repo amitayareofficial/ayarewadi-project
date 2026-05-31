@@ -79,6 +79,14 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [relForm,     setRelForm]     = useState({ ...emptyRel });
   const [relPhoto,    setRelPhoto]    = useState(null);
 
+  // myProfile view
+  const [profilePerson,       setProfilePerson]       = useState(null);
+  const [profileRels,         setProfileRels]         = useState([]);
+  const [profileRelPhotos,    setProfileRelPhotos]    = useState([]);
+  const [profileRelSearches,  setProfileRelSearches]  = useState([]);
+  const [profileRelMatches,   setProfileRelMatches]   = useState([]);
+  const profileRelTimers = useRef([]);
+
   // editPersonDetail form
   const [editData, setEditData] = useState({ ...emptyPerson });
   const [editPhoto,   setEditPhoto]   = useState(null);
@@ -138,6 +146,7 @@ export default function MyFamilyInfo({ member, onBack }) {
     setView("list"); setError(""); setSuccess("");
     setRelFormSearch(""); setRelFormMatches([]);
     setClaimMode(false); setClaimQuery(""); setClaimResults([]);
+    setProfileRels([]); setProfileRelPhotos([]); setProfileRelSearches([]); setProfileRelMatches([]);
   };
 
   // ── addPerson relation row helpers ──
@@ -275,7 +284,7 @@ export default function MyFamilyInfo({ member, onBack }) {
       setSuccess(msg);
       setClaimMode(false);
       if (claimMode) { setView("list"); loadRequests(); loadMyPeople(); }
-      else           { setView("editInfo"); loadRequests(); }
+      else { setView(editReturnView); loadRequests(); if (editReturnView === "myProfile" && profilePerson) { const r = await axios.get(`${API}/api/members/family-people/${profilePerson.id}`); setProfilePerson(r.data); } }
     } catch (e) {
       setError(e.response?.data?.error || "Submission failed.");
     } finally { setSubmitting(false); }
@@ -289,7 +298,10 @@ export default function MyFamilyInfo({ member, onBack }) {
     setTargetPerson(p); setRelForm({ ...emptyRel }); setRelPhoto(null); setError(""); setSuccess(""); setView("addRel");
   };
 
-  const openEditPersonDetail = (personRow, claim = false) => {
+  const [editReturnView, setEditReturnView] = useState("editInfo");
+
+  const openEditPersonDetail = (personRow, claim = false, returnTo = "editInfo") => {
+    setEditReturnView(returnTo);
     setEditTarget(personRow);
     setEditData({
       first_name:  personRow.first_name  || "",
@@ -328,6 +340,92 @@ export default function MyFamilyInfo({ member, onBack }) {
       openEditPersonDetail(r.data, true);
     } catch { setError("Could not load person details."); }
     finally { setClaimLoading(false); }
+  };
+
+  // ── myProfile helpers ──
+  const openMyProfile = async p => {
+    setError(""); setSuccess("");
+    setProfileRels([]); setProfileRelPhotos([]); setProfileRelSearches([]); setProfileRelMatches([]);
+    // Load full person with relations from server
+    try {
+      const r = await axios.get(`${API}/api/members/family-people/${p.id}`);
+      setProfilePerson(r.data);
+    } catch { setProfilePerson(p); }
+    setView("myProfile");
+  };
+
+  const addProfileRelRow = () => {
+    setProfileRels(x => [...x, { ...emptyRel }]);
+    setProfileRelPhotos(x => [...x, null]);
+    setProfileRelSearches(x => [...x, ""]);
+    setProfileRelMatches(x => [...x, []]);
+  };
+  const removeProfileRelRow = i => {
+    setProfileRels(x => x.filter((_, j) => j !== i));
+    setProfileRelPhotos(x => x.filter((_, j) => j !== i));
+    setProfileRelSearches(x => x.filter((_, j) => j !== i));
+    setProfileRelMatches(x => x.filter((_, j) => j !== i));
+    if (profileRelTimers.current[i]) clearTimeout(profileRelTimers.current[i]);
+  };
+  const updateProfileRelRow = (i, k, v) =>
+    setProfileRels(x => x.map((r, j) => j === i ? { ...r, [k]: v } : r));
+  const updateProfileRelPhoto = (i, f) =>
+    setProfileRelPhotos(x => x.map((v, j) => j === i ? f : v));
+
+  const searchProfileRel = (idx, q) => {
+    setProfileRelSearches(x => x.map((s, j) => j === idx ? q : s));
+    if (profileRelTimers.current[idx]) clearTimeout(profileRelTimers.current[idx]);
+    if (!q.trim()) { setProfileRelMatches(x => x.map((m, j) => j === idx ? [] : m)); return; }
+    profileRelTimers.current[idx] = setTimeout(async () => {
+      try {
+        const r = await axios.get(`${API}/api/members/family-search?q=${encodeURIComponent(q)}`);
+        setProfileRelMatches(x => x.map((m, j) => j === idx ? r.data.slice(0, 5) : m));
+      } catch { /* silent */ }
+    }, 400);
+  };
+  const pickProfileExisting = (idx, p) => {
+    updateProfileRelRow(idx, "existing_person_id", p.id);
+    updateProfileRelRow(idx, "existing_person_name", pName(p));
+    updateProfileRelRow(idx, "existing_person_photo", p.photo_url || null);
+    setProfileRelSearches(x => x.map((s, j) => j === idx ? "" : s));
+    setProfileRelMatches(x => x.map((m, j) => j === idx ? [] : m));
+  };
+  const clearProfileExisting = idx => {
+    updateProfileRelRow(idx, "existing_person_id", null);
+    updateProfileRelRow(idx, "existing_person_name", "");
+    updateProfileRelRow(idx, "existing_person_photo", null);
+  };
+
+  const submitProfileRelations = async e => {
+    e.preventDefault();
+    if (profileRels.length === 0) return;
+    setSubmitting(true); setError("");
+    try {
+      const relsWithPhotos = await Promise.all(
+        profileRels.map(async (rel, i) => {
+          if (rel.existing_person_id) return rel;
+          if (!rel.first_name?.trim() || !rel.last_name?.trim()) return null;
+          const photo_url = await uploadPhoto(profileRelPhotos[i]);
+          return { ...rel, photo_url };
+        })
+      );
+      const validRels = relsWithPhotos.filter(Boolean);
+      if (validRels.length === 0) { setError("Please fill in at least one complete relation."); setSubmitting(false); return; }
+      await axios.post(`${API}/api/members/family-requests`,
+        {
+          request_type: "add_relations",
+          request_data: { person_id: profilePerson.id, person_name: pName(profilePerson), relations: validRels },
+        },
+        { headers: authHeader() }
+      );
+      setSuccess(`${validRels.length} relation(s) submitted for admin approval!`);
+      setProfileRels([]); setProfileRelPhotos([]); setProfileRelSearches([]); setProfileRelMatches([]);
+      loadRequests();
+      // Refresh profile relations from server
+      const r = await axios.get(`${API}/api/members/family-people/${profilePerson.id}`);
+      setProfilePerson(r.data);
+    } catch (e) { setError(e.response?.data?.error || "Submission failed."); }
+    finally { setSubmitting(false); }
   };
 
   // ════════════════════════════════════════════════
@@ -372,23 +470,24 @@ export default function MyFamilyInfo({ member, onBack }) {
           <div style={s.sectionLabel}>My People in Family Tree · माझे सदस्य</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {myPeople.map(p => (
-              <div key={p.id} style={s.myPersonCard}>
+              <button key={p.id} style={{ ...s.myPersonCard, cursor: "pointer", textAlign: "left", width: "100%" }}
+                onClick={() => openMyProfile(p)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                   {p.photo_url
-                    ? <img src={p.photo_url} alt="" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                    : <div style={s.personInitial}>{p.first_name?.charAt(0)}</div>
+                    ? <img src={p.photo_url} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid #4caf50" }} />
+                    : <div style={{ ...s.personInitial, width: 48, height: 48 }}>{p.first_name?.charAt(0)}</div>
                   }
-                  <div style={{ minWidth: 0 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1b5e20", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pName(p)}</div>
                     {p.nickname && <div style={{ fontSize: "0.72rem", color: "#888" }}>"{p.nickname}"</div>}
                     <div style={{ fontSize: "0.7rem", color: "#aaa" }}>{(p.relations || []).length} relation(s) · #{p.id}</div>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                  <button style={s.editBtn}    onClick={() => openEditInfo(p)}>✏️ Edit</button>
-                  <button style={s.addRelBtn2} onClick={() => openAddRel(p)}>➕ Relation</button>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
+                  <span style={{ fontSize: "0.65rem", background: "#e8f5e9", color: "#2e7d32", borderRadius: 20, padding: "2px 8px", fontWeight: 700 }}>✏️ Edit · ➕ Relatives</span>
+                  <span style={{ fontSize: "1rem", color: "#ccc" }}>→</span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -455,6 +554,113 @@ export default function MyFamilyInfo({ member, onBack }) {
   );
 
   // ════════════════════════════════════════════════
+  //  MY PROFILE VIEW
+  // ════════════════════════════════════════════════
+  if (view === "myProfile" && profilePerson) return (
+    <div style={s.wrap}>
+      <div style={s.header}>
+        <button style={s.backBtn} onClick={onBack}>← Back</button>
+        <h2 style={s.title}>👤 My Profile</h2>
+        <div style={s.titleSub}>माझा प्रोफाइल</div>
+      </div>
+      <button type="button" style={s.backLink} onClick={goBack}>← Back to list</button>
+
+      {success && <div style={s.successMsg}>✅ {success}</div>}
+
+      {/* Profile card */}
+      <div style={s.card}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {profilePerson.photo_url
+            ? <img src={profilePerson.photo_url} alt="" style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover", border: "2.5px solid #4caf50", flexShrink: 0 }} />
+            : <div style={{ ...s.personInitial, width: 60, height: 60, fontSize: "1.4rem", flexShrink: 0 }}>{profilePerson.first_name?.charAt(0)}</div>
+          }
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 800, fontSize: "1rem", color: "#1b5e20" }}>{pName(profilePerson)}</div>
+            {profilePerson.nickname && <div style={{ fontSize: "0.78rem", color: "#888", fontStyle: "italic" }}>"{profilePerson.nickname}"</div>}
+            <div style={{ fontSize: "0.72rem", color: "#aaa", marginTop: 3, display: "flex", flexWrap: "wrap", gap: "0 8px" }}>
+              {profilePerson.gender && <span style={{ textTransform: "capitalize" }}>{profilePerson.gender}</span>}
+              {profilePerson.dob && <span>📅 {new Date(profilePerson.dob).toLocaleDateString("en-IN")}</span>}
+              {profilePerson.mobile && <span>📞 {profilePerson.mobile}</span>}
+              {profilePerson.is_deceased && <span style={{ color: "#9e9e9e" }}>✝ Deceased</span>}
+            </div>
+          </div>
+          <button style={s.editBtn} onClick={() => openEditPersonDetail(profilePerson, false, "myProfile")}>✏️ Edit</button>
+        </div>
+        {profilePerson.notes && (
+          <div style={{ marginTop: 8, fontSize: "0.74rem", color: "#777", fontStyle: "italic", borderTop: "1px solid #f5f5f5", paddingTop: 8 }}>{profilePerson.notes}</div>
+        )}
+      </div>
+
+      {/* Existing relations */}
+      {(profilePerson.relations || []).length > 0 && (
+        <div style={s.card}>
+          <div style={s.cardHeader}>🔗 My Relations · माझे नातेसंबंध</div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {(profilePerson.relations || []).map((rel, i) => {
+              const rl = RELATIONS.find(r => r.value === rel.relation_type) || { label: rel.relation_type };
+              const nm = [rel.first_name, rel.middle_name, rel.last_name].filter(Boolean).join(" ");
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < profilePerson.relations.length - 1 ? "1px solid #f8f8f8" : "none" }}>
+                  {rel.photo_url
+                    ? <img src={rel.photo_url} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                    : <div style={{ ...s.personInitial, width: 38, height: 38, fontSize: "0.9rem", flexShrink: 0 }}>{rel.first_name?.charAt(0)}</div>
+                  }
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nm}</div>
+                    {rel.nickname && <div style={{ fontSize: "0.68rem", color: "#888" }}>"{rel.nickname}"</div>}
+                  </div>
+                  <span style={{ fontSize: "0.65rem", background: "#f3f3f3", color: "#555", borderRadius: 20, padding: "2px 8px", fontWeight: 700, flexShrink: 0 }}>
+                    {rl.label.split(" / ")[0]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Add new relations */}
+      <form onSubmit={submitProfileRelations} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div style={s.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <div style={s.cardHeader}>➕ Add Relations · नातेसंबंध जोडा</div>
+            <button type="button" style={s.addRelBtnSm} onClick={addProfileRelRow}>+ Add</button>
+          </div>
+
+          {profileRels.length === 0 ? (
+            <div style={{ fontSize: "0.78rem", color: "#bbb", textAlign: "center", padding: "0.5rem 0" }}>
+              Tap "+ Add" to add family relations (father, mother, spouse, children…)
+            </div>
+          ) : (
+            profileRels.map((rel, idx) => (
+              <RelationRow key={idx} idx={idx} rel={rel}
+                photo={profileRelPhotos[idx]}
+                searchQuery={profileRelSearches[idx]}
+                searchResults={profileRelMatches[idx]}
+                onRelChange={(k, v) => updateProfileRelRow(idx, k, v)}
+                onPhotoChange={f => updateProfileRelPhoto(idx, f)}
+                onRemove={() => removeProfileRelRow(idx)}
+                onSearch={q => searchProfileRel(idx, q)}
+                onPickExisting={p => pickProfileExisting(idx, p)}
+                onClearExisting={() => clearProfileExisting(idx)}
+              />
+            ))
+          )}
+        </div>
+
+        {profileRels.length > 0 && (
+          <>
+            {error && <div style={s.errorMsg}>⚠️ {error}</div>}
+            <button type="submit" disabled={submitting} style={s.submitBtn}>
+              {submitting ? "Uploading & Submitting..." : `📤 Submit ${profileRels.length} Relation(s) for Approval`}
+            </button>
+          </>
+        )}
+      </form>
+    </div>
+  );
+
+  // ════════════════════════════════════════════════
   //  ADD PERSON VIEW
   // ════════════════════════════════════════════════
   if (view === "addPerson") return (
@@ -492,62 +698,17 @@ export default function MyFamilyInfo({ member, onBack }) {
             <div style={{ fontSize: "0.78rem", color: "#bbb", textAlign: "center", padding: "0.5rem 0" }}>No relations added yet.</div>
           ) : (
             relations.map((rel, idx) => (
-              <div key={idx} style={s.relCard}>
-                {/* Relation type + remove */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <select style={{ ...inp, flex: 1, marginRight: 8 }} value={rel.relation_type}
-                    onChange={e => updateRelRow(idx, "relation_type", e.target.value)}>
-                    {RELATIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                  </select>
-                  <button type="button" onClick={() => removeRelRow(idx)}
-                    style={{ background: "#fdecea", border: "none", color: "#c62828", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: "0.8rem" }}>✕</button>
-                </div>
-
-                {rel.existing_person_id ? (
-                  /* Existing person selected */
-                  <div style={s.existingPickCard}>
-                    {rel.existing_person_photo
-                      ? <img src={rel.existing_person_photo} alt="" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                      : <div style={{ ...s.personInitial, width: 40, height: 40, flexShrink: 0 }}>{rel.existing_person_name?.charAt(0)}</div>}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rel.existing_person_name}</div>
-                      <div style={{ fontSize: "0.65rem", color: "#2e7d32", fontWeight: 700 }}>✓ Existing person in village tree · #{rel.existing_person_id}</div>
-                    </div>
-                    <button type="button" style={s.changePick} onClick={() => clearExistingRel(idx)}>× Change</button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Search for existing person */}
-                    <div style={{ position: "relative", marginBottom: 6 }}>
-                      <input
-                        style={{ ...inp, textTransform: "none" }}
-                        placeholder="🔍 Search existing person in village tree..."
-                        value={relSearches[idx] || ""}
-                        onChange={e => searchRel(idx, e.target.value)}
-                      />
-                      {(relMatches[idx] || []).length > 0 && (
-                        <div style={s.relMatchDrop}>
-                          {relMatches[idx].map(m => (
-                            <button key={m.id} type="button" style={s.relMatchItem}
-                              onClick={() => pickExistingRel(idx, m)}>
-                              {m.photo_url
-                                ? <img src={m.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                                : <div style={{ ...s.personInitial, width: 32, height: 32, fontSize: "0.75rem", flexShrink: 0 }}>{m.first_name?.charAt(0)}</div>}
-                              <div style={{ textAlign: "left" }}>
-                                <div style={{ fontWeight: 700, fontSize: "0.8rem" }}>{pName(m)}</div>
-                                {m.nickname && <div style={{ fontSize: "0.65rem", color: "#888" }}>"{m.nickname}"</div>}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: "0.67rem", color: "#bbb", textAlign: "center", marginBottom: 8 }}>— or enter new person details below —</div>
-                    <PhotoPicker current={null} file={relPhotos[idx]} onChange={f => updateRelPhoto(idx, f)} />
-                    <PersonFields data={rel} setField={(k, v) => updateRelRow(idx, k, v)} />
-                  </>
-                )}
-              </div>
+              <RelationRow key={idx} idx={idx} rel={rel}
+                photo={relPhotos[idx]}
+                searchQuery={relSearches[idx]}
+                searchResults={relMatches[idx]}
+                onRelChange={(k, v) => updateRelRow(idx, k, v)}
+                onPhotoChange={f => updateRelPhoto(idx, f)}
+                onRemove={() => removeRelRow(idx)}
+                onSearch={q => searchRel(idx, q)}
+                onPickExisting={p => pickExistingRel(idx, p)}
+                onClearExisting={() => clearExistingRel(idx)}
+              />
             ))
           )}
         </div>
@@ -833,7 +994,7 @@ export default function MyFamilyInfo({ member, onBack }) {
         <div style={s.titleSub}>{claimMode ? "माझा प्रोफाइल जोडा · Requires approval" : "माहिती बदला · Requires approval"}</div>
       </div>
       <form onSubmit={submitEditPerson} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <button type="button" style={s.backLink} onClick={claimMode ? () => setView("claimSearch") : () => setView("editInfo")}>← Back</button>
+        <button type="button" style={s.backLink} onClick={claimMode ? () => setView("claimSearch") : () => setView(editReturnView)}>← Back</button>
 
         {claimMode ? (
           <div style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 10, padding: "10px 14px", fontSize: "0.78rem", color: "#1b5e20", fontWeight: 600 }}>
@@ -864,6 +1025,66 @@ export default function MyFamilyInfo({ member, onBack }) {
   );
 
   return null;
+}
+
+/* ── Reusable relation row (used in addPerson and myProfile) ── */
+function RelationRow({ idx, rel, photo, searchQuery, searchResults,
+                       onRelChange, onPhotoChange, onRemove,
+                       onSearch, onPickExisting, onClearExisting }) {
+  return (
+    <div style={s.relCard}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <select style={{ ...inp, flex: 1, marginRight: 8 }} value={rel.relation_type}
+          onChange={e => onRelChange("relation_type", e.target.value)}>
+          {RELATIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </select>
+        <button type="button" onClick={onRemove}
+          style={{ background: "#fdecea", border: "none", color: "#c62828", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: "0.8rem" }}>✕</button>
+      </div>
+
+      {rel.existing_person_id ? (
+        <div style={s.existingPickCard}>
+          {rel.existing_person_photo
+            ? <img src={rel.existing_person_photo} alt="" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+            : <div style={{ ...s.personInitial, width: 40, height: 40, flexShrink: 0 }}>{rel.existing_person_name?.charAt(0)}</div>}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rel.existing_person_name}</div>
+            <div style={{ fontSize: "0.65rem", color: "#2e7d32", fontWeight: 700 }}>✓ Existing person · #{rel.existing_person_id}</div>
+          </div>
+          <button type="button" style={s.changePick} onClick={onClearExisting}>× Change</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ position: "relative", marginBottom: 6 }}>
+            <input style={{ ...inp, textTransform: "none" }}
+              placeholder="🔍 Search existing person in village tree..."
+              value={searchQuery || ""}
+              onChange={e => onSearch(e.target.value)}
+            />
+            {(searchResults || []).length > 0 && (
+              <div style={s.relMatchDrop}>
+                {searchResults.map(m => (
+                  <button key={m.id} type="button" style={s.relMatchItem}
+                    onClick={() => onPickExisting(m)}>
+                    {m.photo_url
+                      ? <img src={m.photo_url} alt="" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                      : <div style={{ ...s.personInitial, width: 32, height: 32, fontSize: "0.75rem", flexShrink: 0 }}>{m.first_name?.charAt(0)}</div>}
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontWeight: 700, fontSize: "0.8rem" }}>{[m.first_name, m.middle_name, m.last_name].filter(Boolean).join(" ")}</div>
+                      {m.nickname && <div style={{ fontSize: "0.65rem", color: "#888" }}>"{m.nickname}"</div>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize: "0.67rem", color: "#bbb", textAlign: "center", marginBottom: 8 }}>— or enter new person details —</div>
+          <PhotoPicker current={null} file={photo} onChange={onPhotoChange} />
+          <PersonFields data={rel} setField={onRelChange} />
+        </>
+      )}
+    </div>
+  );
 }
 
 /* ── Photo picker component ── */
