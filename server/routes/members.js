@@ -400,6 +400,36 @@ router.get("/family-people", async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Public — all people with their relations (for list view)
+router.get("/family-people-full", async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT fp.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id',                fr.id,
+              'relation_type',     fr.relation_type,
+              'related_person_id', fr.related_person_id,
+              'first_name',        fp2.first_name,
+              'middle_name',       fp2.middle_name,
+              'last_name',         fp2.last_name,
+              'nickname',          fp2.nickname,
+              'gender',            fp2.gender
+            ) ORDER BY fr.id
+          ) FILTER (WHERE fr.id IS NOT NULL),
+          '[]'::json
+        ) AS relations
+      FROM family_people fp
+      LEFT JOIN family_relations fr  ON fr.person_id        = fp.id
+      LEFT JOIN family_people   fp2  ON fp2.id              = fr.related_person_id
+      GROUP BY fp.id
+      ORDER BY fp.last_name, fp.first_name
+    `);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Public — search people
 router.get("/family-search", async (req, res) => {
   try {

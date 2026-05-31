@@ -32,7 +32,25 @@ function personName(p) {
   return [p.first_name, p.middle_name, p.last_name].filter(Boolean).join(" ");
 }
 
+// Relation display order for the list view
+const LIST_REL_ORDER = ["father", "mother", "spouse", "brother", "son", "daughter"];
+
+function relSummaryLabel(relType, relPerson) {
+  const name = [relPerson.first_name, relPerson.last_name].filter(Boolean).join(" ");
+  let label;
+  if (relType === "spouse") {
+    label = relPerson.gender === "female" ? "Wife" : relPerson.gender === "male" ? "Husband" : "Spouse";
+  } else {
+    const map = { father: "Father", mother: "Mother", son: "Son", daughter: "Daughter", brother: "Brother" };
+    label = map[relType] || (relType.charAt(0).toUpperCase() + relType.slice(1));
+  }
+  return `${label}: ${name}`;
+}
+
 export default function FamilyTree({ onBack }) {
+  const [activeTab, setActiveTab] = useState("tree");
+
+  // Tree tab
   const [query,   setQuery]   = useState("");
   const [results, setResults] = useState([]);
   const [person,  setPerson]  = useState(null);
@@ -40,11 +58,45 @@ export default function FamilyTree({ onBack }) {
   const [allPeople, setAllPeople] = useState([]);
   const debounceRef = useRef(null);
 
+  // List tab
+  const [listPeople,  setListPeople]  = useState([]);
+  const [listLoading, setListLoading] = useState(false);
+  const [listSearch,  setListSearch]  = useState("");
+  const listLoaded = useRef(false);
+
   useEffect(() => {
     axios.get(`${API}/api/members/family-people`)
       .then(r => setAllPeople(r.data))
       .catch(() => {});
   }, []);
+
+  const loadList = async () => {
+    if (listLoaded.current) return;
+    setListLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/members/family-people-full`);
+      setListPeople(r.data);
+      listLoaded.current = true;
+    } catch { /* silent */ }
+    finally { setListLoading(false); }
+  };
+
+  const switchTab = tab => {
+    setActiveTab(tab);
+    if (tab === "list") loadList();
+  };
+
+  const filteredList = listSearch.trim()
+    ? listPeople.filter(p => {
+        const q = listSearch.toLowerCase();
+        return (
+          p.first_name?.toLowerCase().includes(q) ||
+          p.last_name?.toLowerCase().includes(q)  ||
+          p.nickname?.toLowerCase().includes(q)   ||
+          (`${p.first_name||""} ${p.middle_name||""} ${p.last_name||""}`).toLowerCase().includes(q)
+        );
+      })
+    : listPeople;
 
   const search = q => {
     setQuery(q);
@@ -76,6 +128,88 @@ export default function FamilyTree({ onBack }) {
         <h2 style={s.title}>🌳 Village Family Tree</h2>
         <div style={s.titleSub}>गाव कुटुंब वृक्ष · Ayarewadi</div>
       </div>
+
+      {/* Tab switcher */}
+      <div style={s.tabRow}>
+        <button style={{ ...s.tab, ...(activeTab === "tree" ? s.tabActive : {}) }} onClick={() => switchTab("tree")}>
+          🌳 Family Tree
+        </button>
+        <button style={{ ...s.tab, ...(activeTab === "list" ? s.tabActive : {}) }} onClick={() => switchTab("list")}>
+          📋 Members List
+        </button>
+      </div>
+
+      {/* ── LIST TAB ── */}
+      {activeTab === "list" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {/* Search */}
+          <div style={s.searchWrap}>
+            <span style={s.searchIcon}>🔍</span>
+            <input style={s.searchInput} placeholder="Search by name or nickname..."
+              value={listSearch} onChange={e => setListSearch(e.target.value)} autoFocus />
+            {listSearch && (
+              <button style={s.clearBtn} onClick={() => setListSearch("")}>✕</button>
+            )}
+          </div>
+
+          <div style={s.sectionLabel}>
+            All Members · सर्व सदस्य — {filteredList.length} / {listPeople.length}
+          </div>
+
+          {listLoading && (
+            <div style={{ textAlign: "center", padding: "2rem", color: "#aaa" }}>Loading…</div>
+          )}
+
+          {!listLoading && filteredList.length === 0 && (
+            <div style={s.emptyBox}>
+              {listPeople.length === 0
+                ? <><div style={{ fontSize: "2rem", marginBottom: 8 }}>🌳</div><div>Family tree is empty</div></>
+                : <div>No matching members found.</div>
+              }
+            </div>
+          )}
+
+          {!listLoading && filteredList.map((p, idx) => {
+            const sorted = [...(p.relations || [])].sort(
+              (a, b) => LIST_REL_ORDER.indexOf(a.relation_type) - LIST_REL_ORDER.indexOf(b.relation_type)
+            );
+            const summary = sorted.map(r => relSummaryLabel(r.relation_type, r)).join("  ·  ");
+            return (
+              <button key={p.id} style={s.listRow} onClick={() => { setPerson(null); openPerson(p.id); switchTab("tree"); }}>
+                {/* Avatar */}
+                <div style={{ flexShrink: 0 }}>
+                  {p.photo_url
+                    ? <img src={p.photo_url} alt="" style={{ ...s.listAvatar, opacity: p.is_deceased ? 0.65 : 1 }} />
+                    : <div style={{ ...s.listAvatarFb, opacity: p.is_deceased ? 0.65 : 1 }}>{p.first_name?.charAt(0)}</div>
+                  }
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                    <span style={s.listName}>{personName(p)}</span>
+                    {p.nickname && <span style={s.listNick}>"{p.nickname}"</span>}
+                    {p.is_deceased && <span style={{ fontSize: "0.65rem", color: "#9e9e9e" }}>✝</span>}
+                  </div>
+                  <div style={s.listMeta}>
+                    {p.gender && <span style={{ textTransform: "capitalize" }}>{p.gender}</span>}
+                    {p.dob && <span> · {new Date(p.dob).getFullYear()}</span>}
+                    {p.mobile && <span> · 📞 {p.mobile}</span>}
+                  </div>
+                  {summary && (
+                    <div style={s.listRelLine}>{summary}</div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: "0.75rem", color: "#ccc", flexShrink: 0 }}>→</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── TREE TAB ── */}
+      {activeTab === "tree" && <>
 
       {/* Info banner */}
       <div style={s.infoBanner}>
@@ -132,7 +266,7 @@ export default function FamilyTree({ onBack }) {
         <PersonDetail person={person} onClose={() => setPerson(null)} onOpenPerson={openPerson} />
       )}
 
-      {/* All people list (when no search/person) */}
+      {/* All people grid (when no search/person) */}
       {!person && !loading && query === "" && (
         <div style={{ marginTop: "0.5rem" }}>
           <div style={s.sectionLabel}>All Family Members · सर्व कुटुंब सदस्य ({allPeople.length})</div>
@@ -165,6 +299,8 @@ export default function FamilyTree({ onBack }) {
           )}
         </div>
       )}
+
+      </>}{/* end tree tab */}
     </div>
   );
 }
@@ -420,6 +556,11 @@ const s = {
   backBtn:  { background: "none", border: "none", color: "#2e7d32", fontWeight: 700, cursor: "pointer", fontSize: "0.85rem", padding: "0 0 6px 0" },
   title:    { fontSize: "1.2rem", fontWeight: 800, color: "#1b5e20", margin: "4px 0 2px" },
   titleSub: { fontSize: "0.78rem", color: "#888" },
+  // tabs
+  tabRow:   { display: "flex", gap: 0, background: "#f5f5f5", borderRadius: 12, padding: 4 },
+  tab:      { flex: 1, background: "none", border: "none", borderRadius: 9, padding: "9px 0", fontWeight: 700, fontSize: "0.82rem", color: "#888", cursor: "pointer", transition: "all 0.15s" },
+  tabActive:{ background: "#fff", color: "#1b5e20", boxShadow: "0 1px 6px rgba(0,0,0,0.1)" },
+  // shared
   infoBanner: { background: "#f1f8e9", border: "1px solid #dcedc8", borderRadius: 12, padding: "0.75rem 1rem", display: "flex", gap: 8, alignItems: "flex-start" },
   searchWrap: { display: "flex", alignItems: "center", background: "#fff", border: "2px solid #e0e0e0", borderRadius: 12, padding: "0 12px", gap: 8 },
   searchIcon: { fontSize: "1rem", color: "#bbb" },
@@ -431,6 +572,7 @@ const s = {
   miniAvatarFallback: { width: 36, height: 36, borderRadius: "50%", background: "#e8f5e9", color: "#2e7d32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1rem", flexShrink: 0 },
   sectionLabel: { fontSize: "0.7rem", fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 },
   emptyBox: { textAlign: "center", padding: "3rem 0", color: "#bbb" },
+  // tree grid
   peopleGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 },
   personCard: { background: "#fff", border: "1.5px solid #f0f0f0", borderRadius: 12, padding: "1rem 0.75rem", display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer", boxShadow: "0 1px 6px rgba(0,0,0,0.04)", textAlign: "center" },
   personAvatar: { width: 52, height: 52, borderRadius: "50%", objectFit: "cover", marginBottom: 8 },
@@ -438,6 +580,14 @@ const s = {
   personName: { fontWeight: 700, fontSize: "0.82rem", color: "#222", lineHeight: 1.3, marginBottom: 2 },
   personNickname: { fontSize: "0.7rem", color: "#999", fontStyle: "italic", marginBottom: 2 },
   personMeta: { fontSize: "0.68rem", color: "#aaa", textTransform: "capitalize" },
+  // list view
+  listRow:     { display: "flex", alignItems: "flex-start", gap: 12, background: "#fff", border: "1.5px solid #f0f0f0", borderRadius: 14, padding: "0.85rem 1rem", cursor: "pointer", textAlign: "left", width: "100%", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" },
+  listAvatar:  { width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid #e8f5e9" },
+  listAvatarFb:{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#1b5e20,#66bb6a)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1.1rem" },
+  listName:    { fontWeight: 800, fontSize: "0.9rem", color: "#1b5e20" },
+  listNick:    { fontSize: "0.72rem", color: "#999", fontStyle: "italic" },
+  listMeta:    { fontSize: "0.68rem", color: "#aaa", marginTop: 2, textTransform: "capitalize" },
+  listRelLine: { fontSize: "0.72rem", color: "#555", marginTop: 4, lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" },
 };
 
 const pd = {
