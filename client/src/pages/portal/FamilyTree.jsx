@@ -147,7 +147,7 @@ export default function FamilyTree({ onBack }) {
           ) : (
             <div style={s.peopleGrid}>
               {allPeople.map(p => (
-                <button key={p.id} style={s.personCard} onClick={() => openPerson(p.id)}>
+                <button key={p.id} style={{ ...s.personCard, opacity: p.is_deceased ? 0.72 : 1 }} onClick={() => openPerson(p.id)}>
                   {p.photo_url
                     ? <img src={p.photo_url} alt="" style={s.personAvatar} />
                     : <div style={s.personAvatarFallback}>{p.first_name?.charAt(0)}</div>
@@ -157,6 +157,7 @@ export default function FamilyTree({ onBack }) {
                   <div style={s.personMeta}>
                     {p.gender && <span style={{ textTransform: "capitalize" }}>{p.gender}</span>}
                     {p.dob && <span> · {new Date(p.dob).getFullYear()}</span>}
+                    {p.is_deceased && <span style={{ color: "#9e9e9e" }}> · ✝</span>}
                   </div>
                 </button>
               ))}
@@ -227,6 +228,9 @@ function TreeNode({ rel, isCenter, delay = 0, onClick }) {
         }}>
           {meta.label.split(" / ")[0]}
         </span>
+      )}
+      {!isCenter && rel.is_deceased && (
+        <span style={{ fontSize: "0.55rem", color: "#9e9e9e", fontWeight: 700, marginTop: -2 }}>✝</span>
       )}
     </button>
   );
@@ -364,7 +368,13 @@ function PersonDetail({ person, onClose, onOpenPerson }) {
               {person.gender && <InfoChip text={person.gender === "male" ? "👨 Male" : "👩 Female"} />}
               {person.dob && <InfoChip text={`📅 ${new Date(person.dob).toLocaleDateString("en-IN")}`} />}
               {person.mobile && <InfoChip text={`📞 ${person.mobile}`} />}
+              {person.is_deceased && <InfoChip text="✝ Deceased" color="#757575" bg="#f5f5f5" />}
             </div>
+            {person.notes && (
+              <div style={{ marginTop: 8, fontSize: "0.74rem", color: "#777", lineHeight: 1.5, fontStyle: "italic", borderTop: "1px solid #f0f0f0", paddingTop: 8 }}>
+                {person.notes}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -396,9 +406,9 @@ function PersonDetail({ person, onClose, onOpenPerson }) {
   );
 }
 
-function InfoChip({ text }) {
+function InfoChip({ text, color = "#555", bg = "#f5f5f5" }) {
   return (
-    <span style={{ background: "#f5f5f5", borderRadius: 20, padding: "2px 10px", fontSize: "0.7rem", color: "#555" }}>
+    <span style={{ background: bg, borderRadius: 20, padding: "2px 10px", fontSize: "0.7rem", color }}>
       {text}
     </span>
   );

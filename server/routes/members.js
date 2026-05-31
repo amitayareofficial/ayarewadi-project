@@ -63,6 +63,9 @@ const SECRET = process.env.JWT_SECRET;
       created_at   TIMESTAMPTZ DEFAULT NOW(),
       reviewed_at  TIMESTAMPTZ
     )`,
+    // Family people — extra columns
+    `ALTER TABLE family_people ADD COLUMN IF NOT EXISTS is_deceased BOOLEAN DEFAULT false`,
+    `ALTER TABLE family_people ADD COLUMN IF NOT EXISTS notes       TEXT`,
     // Password reset requests
     `CREATE TABLE IF NOT EXISTS password_reset_requests (
       id         SERIAL PRIMARY KEY,
@@ -476,14 +479,15 @@ router.post("/admin/family-people", authAdmin, upload.single("photo"), async (re
       photo_url = up.secure_url;
     }
 
-    const { first_name, middle_name, last_name, nickname, mobile, dob, gender } = req.body;
+    const { first_name, middle_name, last_name, nickname, mobile, dob, gender, is_deceased, notes } = req.body;
     if (!first_name?.trim()) return res.status(400).json({ error: "First name is required" });
     if (!last_name?.trim())  return res.status(400).json({ error: "Last name is required" });
 
     const r = await pool.query(
-      `INSERT INTO family_people (first_name, middle_name, last_name, nickname, photo_url, mobile, dob, gender)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [first_name.trim(), middle_name?.trim()||null, last_name.trim(), nickname?.trim()||null, photo_url, mobile||null, dob||null, gender||null]
+      `INSERT INTO family_people (first_name, middle_name, last_name, nickname, photo_url, mobile, dob, gender, is_deceased, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [first_name.trim(), middle_name?.trim()||null, last_name.trim(), nickname?.trim()||null, photo_url, mobile||null, dob||null, gender||null,
+       is_deceased === "true" || is_deceased === true || false, notes||null]
     );
     res.status(201).json(r.rows[0]);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -506,7 +510,7 @@ router.put("/admin/family-people/:id", authAdmin, upload.single("photo"), async 
       sets.push(`photo_url = ${p(up.secure_url)}`);
     }
 
-    const { first_name, middle_name, last_name, nickname, mobile, dob, gender } = req.body;
+    const { first_name, middle_name, last_name, nickname, mobile, dob, gender, is_deceased, notes } = req.body;
     if (first_name  !== undefined) sets.push(`first_name  = ${p(first_name)}`);
     if (middle_name !== undefined) sets.push(`middle_name = ${p(middle_name||null)}`);
     if (last_name   !== undefined) sets.push(`last_name   = ${p(last_name)}`);
@@ -514,6 +518,8 @@ router.put("/admin/family-people/:id", authAdmin, upload.single("photo"), async 
     if (mobile      !== undefined) sets.push(`mobile      = ${p(mobile||null)}`);
     if (dob         !== undefined) sets.push(`dob         = ${p(dob||null)}`);
     if (gender      !== undefined) sets.push(`gender      = ${p(gender||null)}`);
+    if (is_deceased !== undefined) sets.push(`is_deceased = ${p(is_deceased === "true" || is_deceased === true)}`);
+    if (notes       !== undefined) sets.push(`notes       = ${p(notes||null)}`);
 
     if (!sets.length) return res.status(400).json({ error: "Nothing to update" });
     params.push(req.params.id);
@@ -637,9 +643,10 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
 
       // Insert main person → capture their new ID
       const personResult = await pool.query(
-        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, created_by_member_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-        [first_name, middle_name||null, last_name, nickname||null, mobile||null, dob||null, gender||null, personData.photo_url||null, familyReq.member_id]
+        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, is_deceased, notes, created_by_member_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+        [first_name, middle_name||null, last_name, nickname||null, mobile||null, dob||null, gender||null, personData.photo_url||null,
+         personData.is_deceased||false, personData.notes||null, familyReq.member_id]
       );
       const personId = personResult.rows[0].id;
 
@@ -665,9 +672,10 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
 
       const insertPerson = async (d) => {
         const r = await pool.query(
-          `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, created_by_member_id)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-          [d.first_name, d.middle_name||null, d.last_name, d.nickname||null, d.mobile||null, d.dob||null, d.gender||null, d.photo_url||null, familyReq.member_id]
+          `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, is_deceased, notes, created_by_member_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+          [d.first_name, d.middle_name||null, d.last_name, d.nickname||null, d.mobile||null, d.dob||null, d.gender||null, d.photo_url||null,
+           d.is_deceased||false, d.notes||null, familyReq.member_id]
         );
         return r.rows[0].id;
       };
@@ -686,9 +694,10 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
       }
       const INVERSE = { father: "son", mother: "daughter", spouse: "spouse", brother: "brother", son: "father", daughter: "mother" };
       const relResult = await pool.query(
-        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, created_by_member_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-        [relation.first_name, relation.middle_name||null, relation.last_name, relation.nickname||null, relation.mobile||null, relation.dob||null, relation.gender||null, relation.photo_url||null, familyReq.member_id]
+        `INSERT INTO family_people (first_name, middle_name, last_name, nickname, mobile, dob, gender, photo_url, is_deceased, notes, created_by_member_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+        [relation.first_name, relation.middle_name||null, relation.last_name, relation.nickname||null, relation.mobile||null, relation.dob||null, relation.gender||null, relation.photo_url||null,
+         relation.is_deceased||false, relation.notes||null, familyReq.member_id]
       );
       const relId = relResult.rows[0].id;
       await pool.query(
@@ -714,7 +723,9 @@ router.put("/admin/family-requests/:id/approve", authAdmin, async (req, res) => 
       if (changes.mobile      !== undefined) sets.push(`mobile      = ${p(changes.mobile||null)}`);
       if (changes.dob         !== undefined) sets.push(`dob         = ${p(changes.dob||null)}`);
       if (changes.gender      !== undefined) sets.push(`gender      = ${p(changes.gender||null)}`);
-      if (changes.photo_url   )             sets.push(`photo_url   = ${p(changes.photo_url)}`);
+      if (changes.is_deceased !== undefined) sets.push(`is_deceased = ${p(changes.is_deceased)}`);
+      if (changes.notes       !== undefined) sets.push(`notes       = ${p(changes.notes||null)}`);
+      if (changes.photo_url)                sets.push(`photo_url   = ${p(changes.photo_url)}`);
       if (sets.length) {
         params.push(person_id);
         await pool.query(`UPDATE family_people SET ${sets.join(", ")} WHERE id = $${params.length}`, params);

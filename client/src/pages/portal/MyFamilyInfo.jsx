@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,8 +30,8 @@ const REQ_LABEL = {
   edit_person:  { text: "Edit Info",    color: "#e65100", bg: "#fff3e0" },
 };
 
-const emptyPerson = { first_name: "", middle_name: "", last_name: "", nickname: "", mobile: "", dob: "", gender: "" };
-const emptyRel    = { relation_type: "father", first_name: "", middle_name: "", last_name: "", nickname: "", mobile: "", dob: "", gender: "" };
+const emptyPerson = { first_name: "", middle_name: "", last_name: "", nickname: "", mobile: "", dob: "", gender: "", is_deceased: false, notes: "" };
+const emptyRel    = { relation_type: "father", first_name: "", middle_name: "", last_name: "", nickname: "", mobile: "", dob: "", gender: "", is_deceased: false, notes: "" };
 
 const pName = p => [p?.first_name, p?.middle_name, p?.last_name].filter(Boolean).join(" ");
 
@@ -51,6 +51,8 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [submitting,   setSubmitting]   = useState(false);
   const [error,        setError]        = useState("");
   const [success,      setSuccess]      = useState("");
+  const [dupeResults,  setDupeResults]  = useState([]);
+  const dupeTimerRef = useRef(null);
 
   // addPerson form
   const [person,      setPerson]      = useState({ ...emptyPerson });
@@ -63,7 +65,7 @@ export default function MyFamilyInfo({ member, onBack }) {
   const [relPhoto,    setRelPhoto]    = useState(null);
 
   // editPersonDetail form
-  const [editData,    setEditData]    = useState({ ...emptyPerson });
+  const [editData, setEditData] = useState({ ...emptyPerson });
   const [editPhoto,   setEditPhoto]   = useState(null);
 
   const authHeader = () => ({ Authorization: `Bearer ${getToken()}` });
@@ -87,6 +89,24 @@ export default function MyFamilyInfo({ member, onBack }) {
   };
 
   useEffect(() => { loadRequests(); loadMyPeople(); }, []);
+
+  // Duplicate detection when adding a person
+  useEffect(() => {
+    if (view !== "addPerson") return;
+    if (dupeTimerRef.current) clearTimeout(dupeTimerRef.current);
+    const fn = person.first_name.trim();
+    const ln = person.last_name.trim();
+    if (fn.length >= 2 && ln.length >= 1) {
+      dupeTimerRef.current = setTimeout(async () => {
+        try {
+          const r = await axios.get(`${API}/api/members/family-search?q=${encodeURIComponent(fn + " " + ln)}`);
+          setDupeResults(r.data.slice(0, 4));
+        } catch { setDupeResults([]); }
+      }, 600);
+    } else {
+      setDupeResults([]);
+    }
+  }, [person.first_name, person.last_name, view]);
 
   // ── Upload photo helper ──
   const uploadPhoto = async (file) => {
@@ -190,6 +210,8 @@ export default function MyFamilyInfo({ member, onBack }) {
       mobile:      personRow.mobile      || "",
       dob:         personRow.dob ? personRow.dob.split("T")[0] : "",
       gender:      personRow.gender      || "",
+      is_deceased: personRow.is_deceased || false,
+      notes:       personRow.notes       || "",
     });
     setEditPhoto(null); setError(""); setSuccess(""); setView("editPersonDetail");
   };
@@ -353,6 +375,37 @@ export default function MyFamilyInfo({ member, onBack }) {
             ))
           )}
         </div>
+
+        {dupeResults.length > 0 && (
+          <div style={s.dupeWarn}>
+            <div style={{ fontWeight: 800, fontSize: "0.82rem", color: "#7b1fa2", marginBottom: 8 }}>
+              ⚠️ Similar person(s) already in village tree — review before submitting
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {dupeResults.map(dp => (
+                <div key={dp.id} style={s.dupeRow}>
+                  {dp.photo_url
+                    ? <img src={dp.photo_url} alt="" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                    : <div style={{ ...s.personInitial, width: 36, height: 36, fontSize: "0.9rem", flexShrink: 0 }}>{dp.first_name?.charAt(0)}</div>
+                  }
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#222" }}>{[dp.first_name, dp.middle_name, dp.last_name].filter(Boolean).join(" ")}</div>
+                    {dp.nickname && <div style={{ fontSize: "0.68rem", color: "#888" }}>"{dp.nickname}"</div>}
+                    <div style={{ fontSize: "0.65rem", color: "#aaa" }}>
+                      {dp.gender && <span>{dp.gender} · </span>}
+                      {dp.dob && new Date(dp.dob).getFullYear()}
+                      {dp.mobile && ` · ${dp.mobile}`}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: "0.62rem", background: "#f3e5f5", color: "#7b1fa2", borderRadius: 20, padding: "2px 8px", fontWeight: 700, flexShrink: 0 }}>#{dp.id}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: "0.72rem", color: "#7b1fa2", marginTop: 8 }}>
+              If this is the same person, do not create a duplicate. If it is a different person, continue and add a nickname to distinguish them.
+            </div>
+          </div>
+        )}
 
         {error && <div style={s.errorMsg}>⚠️ {error}</div>}
         <button type="submit" disabled={submitting} style={s.submitBtn}>
@@ -568,11 +621,25 @@ function PersonFields({ data, setField, showLabels }) {
             onChange={e => setField("dob", e.target.value)} />
         </Field>
       </div>
-      <Field label="Gender" show={showLabels}>
-        <select style={inp} value={data.gender} onChange={e => setField("gender", e.target.value)}>
-          <option value="">— Select Gender —</option>
-          {GENDERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+      <div style={g2}>
+        <Field label="Gender" show={showLabels}>
+          <select style={inp} value={data.gender} onChange={e => setField("gender", e.target.value)}>
+            <option value="">— Select Gender —</option>
+            {GENDERS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </Field>
+        <Field label="Status" show={showLabels}>
+          <select style={inp} value={data.is_deceased ? "deceased" : "alive"}
+            onChange={e => setField("is_deceased", e.target.value === "deceased")}>
+            <option value="alive">✅ Alive / जिवंत</option>
+            <option value="deceased">✝ Deceased / दिवंगत</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="Notes (Optional)" show={showLabels}>
+        <textarea style={ta} rows={2} placeholder="Additional notes about this person (optional)..."
+          value={data.notes || ""}
+          onChange={e => setField("notes", e.target.value)} />
       </Field>
     </>
   );
@@ -610,8 +677,11 @@ const s = {
   personInitial:{ width: 44, height: 44, borderRadius: "50%", background: "#e8f5e9", color: "#2e7d32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "1.1rem", flexShrink: 0 },
   editBtn:    { background: "#fff3e0", color: "#e65100", border: "none", borderRadius: 8, padding: "6px 10px", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", whiteSpace: "nowrap" },
   addRelBtn2: { background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "6px 10px", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", whiteSpace: "nowrap" },
+  dupeWarn:   { background: "#f3e5f5", border: "1.5px solid #ce93d8", borderRadius: 12, padding: "0.9rem", marginBottom: 4 },
+  dupeRow:    { display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e1bee7", borderRadius: 8, padding: "7px 10px" },
 };
 
 const lbl = { fontSize: "0.73rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 4 };
 const inp = { width: "100%", height: 38, border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "0 10px", fontSize: "0.85rem", outline: "none", background: "#fafafa", boxSizing: "border-box", textTransform: "uppercase" };
+const ta  = { width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "8px 10px", fontSize: "0.82rem", outline: "none", background: "#fafafa", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.4 };
 const g2  = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 };
