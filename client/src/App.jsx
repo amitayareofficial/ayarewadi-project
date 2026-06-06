@@ -1055,6 +1055,22 @@ function HelpServices_Page({ lang }) {
   );
 }
 
+function CopyPhone({ number }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(number).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button onClick={copy} className="copy-phone-btn" title="Copy number">
+      📞 {number}
+      <span className={`copy-badge${copied ? " visible" : ""}`}>✓ Copied!</span>
+    </button>
+  );
+}
+
 function HsServiceGrid({ items, category, lang }) {
   const style = CAT_STYLE[category] || CAT_STYLE.important;
   const tab   = HS_TABS.find(t => t.id === category);
@@ -1092,15 +1108,10 @@ function HsServiceGrid({ items, category, lang }) {
             {item.description && <p className="srv-desc">{item.description}</p>}
             {item.specialist   && <p className="srv-meta">🩺 {item.specialist}</p>}
             {item.timing       && <p className="srv-meta">🕐 {item.timing}</p>}
-            {item.phone        && <p className="srv-meta">📞 <a href={`tel:${item.phone}`}>{item.phone}</a></p>}
             {item.working_hours && <p className="srv-meta">🕐 {item.working_hours}</p>}
             {item.address      && <p className="srv-meta">📍 {item.address}</p>}
             <div className="srv-links">
-              {item.phone && (
-                <a href={`tel:${item.phone}`} className="btn-call" style={{ fontSize: "0.8rem" }}>
-                  📞 Call
-                </a>
-              )}
+              {item.phone && <CopyPhone number={item.phone} />}
               {item.maps_url && (
                 <a href={item.maps_url} target="_blank" rel="noreferrer" className="btn-location">
                   🗺️ Directions
