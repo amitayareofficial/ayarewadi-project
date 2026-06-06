@@ -884,32 +884,6 @@ const REVEAL_VARIANTS = {
   hidden: { filter: "blur(8px)", y: 18, opacity: 0 },
 };
 
-const HOSPITALS = [
-  {
-    name:     "Rural Hospital Vaibhavwadi",
-    img:      IMG.ruralHosp,
-    addr:     "Khambalwadi, Maharashtra 416810",
-    phone:    "02367-237222",
-    tags:     ["Ambulance", "24/7"],
-    maps_url: "https://maps.google.com/?q=Rural+Hospital+Vaibhavwadi+Khambalwadi+Maharashtra",
-  },
-  {
-    name:     "Aanadi Hospital",
-    img:      IMG.aaaanadi,
-    addr:     "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-    phone:    null,
-    tags:     ["General"],
-    maps_url: "https://maps.google.com/?q=Aanadi+Hospital+Sindhudurg+Maharashtra",
-  },
-  {
-    name:     "Dr. Sanjay Marathe — Marathe Clinic",
-    img:      IMG.marathe,
-    addr:     "SH-115, Vijaydurg Gaganbawda Rd, Sindhudurg 416810",
-    phone:    null,
-    tags:     ["Clinic"],
-    maps_url: "https://maps.google.com/?q=Marathe+Clinic+Vaibhavwadi+Maharashtra",
-  },
-];
 
 /* ── Help & Services tabs config ── */
 const HS_TABS = [
@@ -938,7 +912,7 @@ function HelpServices_Page({ lang }) {
   const [loading, setLoading]     = useState(false);
 
   useEffect(() => {
-    if (activeTab === "emergency" || data[activeTab]) return;
+    if (data[activeTab]) return;
     setLoading(true);
     const url = activeTab === "healthcare"
       ? `${API}/medical`
@@ -991,33 +965,17 @@ function HelpServices_Page({ lang }) {
 
       {/* Tab content */}
       <div className="hs-content">
+        {loading
+          ? <p className="hs-loading">Loading…</p>
+          : <HsServiceGrid
+              items={data[activeTab] || []}
+              category={activeTab}
+              lang={lang}
+            />
+        }
+
         {activeTab === "emergency" && (
           <>
-            <h3 className="sub-title">{t.nearby}</h3>
-            <div className="hosp-cards">
-              {HOSPITALS.map(h => (
-                <div key={h.name} className="hosp-card">
-                  <div className="hosp-img-col">
-                    <img src={h.img} alt={h.name} loading="lazy" />
-                  </div>
-                  <div className="hosp-body">
-                    <h3>{h.name}</h3>
-                    <div className="tags">
-                      {h.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}
-                    </div>
-                    <p className="hosp-addr">📍 {h.addr}</p>
-                    <div className="hosp-actions">
-                      {h.phone && <a href={`tel:${h.phone}`} className="btn-call">📞 {h.phone}</a>}
-                      {h.maps_url && (
-                        <a href={h.maps_url} target="_blank" rel="noreferrer" className="btn-location">
-                          🗺️ Get Directions
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
             <div className="hosp-card ambulance-card" style={{ marginTop: 20 }}>
               <img src={IMG.ambulance} alt="Ambulance" className="ambulance-img" loading="lazy" />
               <div className="ambulance-body">
@@ -1038,16 +996,6 @@ function HelpServices_Page({ lang }) {
               </ul>
             </div>
           </>
-        )}
-
-        {activeTab !== "emergency" && (
-          loading
-            ? <p className="hs-loading">Loading…</p>
-            : <HsServiceGrid
-                items={data[activeTab] || []}
-                category={activeTab}
-                lang={lang}
-              />
         )}
       </div>
 
