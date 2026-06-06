@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Phone } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { memberApi } from "@/services/memberApi";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -70,19 +70,27 @@ const orbitIcons = [
 
 // ── Mobile number prefix input ────────────────────────────
 function MobileInput({ value, onChange, placeholder }) {
+  const done = value.length === 10;
   return (
-    <div className="flex rounded-lg overflow-hidden border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-green-400 transition-all duration-300">
-      <div className="flex items-center px-3 bg-green-50 border-r border-gray-200 text-green-800 font-bold text-sm whitespace-nowrap gap-1">
-        <Phone size={13} /> +91
+    <div className={`reg-mobile-wrap${done ? " reg-mobile-done" : ""}`}>
+      <div className="reg-mobile-prefix">
+        <span className="reg-mobile-flag">🇮🇳</span>
+        <span className="reg-mobile-code">+91</span>
       </div>
       <input
-        className="flex-1 h-11 px-3 text-sm bg-transparent outline-none text-black placeholder:text-neutral-400"
+        className="reg-mobile-input"
         value={value}
         onChange={e => onChange(e.target.value.replace(/\D/g, ""))}
         placeholder={placeholder}
         maxLength={10}
         inputMode="numeric"
       />
+      <div className="reg-mobile-right">
+        {done
+          ? <span className="reg-mobile-check">✓</span>
+          : <span className="reg-mobile-count">{value.length}/10</span>
+        }
+      </div>
     </div>
   );
 }

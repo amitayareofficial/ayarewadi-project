@@ -355,7 +355,7 @@ export default function App() {
           {section === "gallery"   && <Gallery_Page lang={lang} />}
           {section === "events"    && <Events_Page events={events} lang={lang} />}
           {section === "blog"      && <Blog_Page />}
-          {section === "members"   && <Members_Page lang={lang} />}
+          {section === "members"   && <Members_Page lang={lang} onPortalClick={() => setSection("portal")} />}
           {section === "admin"     && <Admin />}
         </Suspense>
       </main>

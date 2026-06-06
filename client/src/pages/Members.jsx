@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API = "https://ayarewadi-project.onrender.com";
 
-export default function Members_Page({ lang }) {
+export default function Members_Page({ lang, onPortalClick }) {
   const [members,    setMembers]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [activeRole, setActiveRole] = useState("All");
@@ -124,7 +124,7 @@ export default function Members_Page({ lang }) {
         {!loading && visible.length > 0 && (
           <div className="mem-grid">
             {visible.map((m, i) => (
-              <MemberCard key={m.id} member={m} index={i} />
+              <MemberCard key={m.id} member={m} index={i} onPortalClick={onPortalClick} />
             ))}
           </div>
         )}
@@ -133,7 +133,7 @@ export default function Members_Page({ lang }) {
   );
 }
 
-function MemberCard({ member: m, index }) {
+function MemberCard({ member: m, index, onPortalClick }) {
   const initials = m.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 
   const gradients = [
@@ -147,7 +147,7 @@ function MemberCard({ member: m, index }) {
   const grad = gradients[index % gradients.length];
 
   return (
-    <div className="mem-card">
+    <div className="mem-card" onClick={onPortalClick} style={{ cursor: "pointer" }}>
       <div className="mem-photo-ring" style={{ "--grad": grad }}>
         {m.photo_url
           ? <img src={m.photo_url} alt={m.name} className="mem-photo" loading="lazy" />
