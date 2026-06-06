@@ -937,18 +937,8 @@ function HelpServices_Page({ lang }) {
         </div>
       </TimelineContent>
 
-      {/* Alert banner */}
-      <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
-        <div className="alert-banner">
-          ⚠️ &nbsp;
-          <strong>108</strong> – {t.alertFreeAmb} &nbsp;|&nbsp;
-          <strong>102</strong> – {t.alertHelpline} &nbsp;|&nbsp;
-          {t.alertDistrict}: <strong>8149822015</strong>
-        </div>
-      </TimelineContent>
-
       {/* Tab bar */}
-      <TimelineContent animationNum={3} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
+      <TimelineContent animationNum={2} timelineRef={sectionRef} customVariants={REVEAL_VARIANTS} once>
         <div className="hs-tabs">
           {HS_TABS.map(tab => (
             <button
