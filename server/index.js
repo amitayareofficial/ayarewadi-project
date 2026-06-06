@@ -428,8 +428,9 @@ app.delete("/budget/:id", authAdmin, async (req, res) => {
 });
 
 // ── BLOG ──────────────────────────────────────────────────
-// Migration: add is_featured column if it doesn't exist yet
+// Migrations
 pool.query("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false").catch(() => {});
+pool.query("ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS content_mr TEXT").catch(() => {});
 
 app.get("/blog", async (req, res) => {
   try {
@@ -486,11 +487,11 @@ app.post("/services/upload-image", authAdmin, upload.single("image"), async (req
 
 app.post("/blog", authAdmin, async (req, res) => {
   try {
-    const { title, content, category, cover_image, published } = req.body;
+    const { title, content, content_mr, category, cover_image, published } = req.body;
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const r = await pool.query(
-      "INSERT INTO blog_posts (title,slug,content,category,cover_image,published) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
-      [title, slug, content, category || "Village News", cover_image || null, published || false]
+      "INSERT INTO blog_posts (title,slug,content,content_mr,category,cover_image,published) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+      [title, slug, content, content_mr || null, category || "Village News", cover_image || null, published || false]
     );
     res.status(201).json(r.rows[0]);
   } catch {
@@ -519,10 +520,10 @@ app.put("/blog/:id/feature", authAdmin, async (req, res) => {
 
 app.put("/blog/:id", authAdmin, async (req, res) => {
   try {
-    const { title, content, category, cover_image, published } = req.body;
+    const { title, content, content_mr, category, cover_image, published } = req.body;
     const r = await pool.query(
-      "UPDATE blog_posts SET title=$1,content=$2,category=$3,cover_image=$4,published=$5,updated_at=NOW() WHERE id=$6 RETURNING *",
-      [title, content, category, cover_image || null, published, req.params.id]
+      "UPDATE blog_posts SET title=$1,content=$2,content_mr=$3,category=$4,cover_image=$5,published=$6,updated_at=NOW() WHERE id=$7 RETURNING *",
+      [title, content, content_mr || null, category, cover_image || null, published, req.params.id]
     );
     if (!r.rows.length) return res.status(404).json({ error: "Post not found" });
     res.json(r.rows[0]);

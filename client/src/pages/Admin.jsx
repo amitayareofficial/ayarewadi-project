@@ -1235,7 +1235,7 @@ function AdminMedical() {
 
 /* ── BLOG MANAGER ────────────────────────────────────── */
 const BLOG_CATS  = ["Village News", "Announcement", "Development", "Culture", "Health", "Education"];
-const EMPTY_BLOG = { title: "", category: "Village News", content: "", cover_image: "", published: false };
+const EMPTY_BLOG = { title: "", category: "Village News", content: "", content_mr: "", cover_image: "", published: false };
 
 function calcReadTime(content = "") {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
@@ -1252,6 +1252,7 @@ function AdminBlog() {
   const [posts, setPosts]           = useState([]);
   const [form, setForm]             = useState(EMPTY_BLOG);
   const [editing, setEditing]       = useState(null);
+  const [editorLang, setEditorLang] = useState("en");
   const [mdPreview, setMdPreview]   = useState(false);
   const [saving, setSaving]         = useState(false);
   const [uploading, setUploading]   = useState(false);
@@ -1262,7 +1263,8 @@ function AdminBlog() {
   const [imgPreview, setImgPreview] = useState("");
   const imgInputRef = useRef(null);
 
-  const readTime = useMemo(() => calcReadTime(form.content), [form.content]);
+  const activeContent = editorLang === "en" ? form.content : form.content_mr;
+  const readTime = useMemo(() => calcReadTime(activeContent), [activeContent]);
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(""), 3500); };
 
@@ -1335,15 +1337,16 @@ function AdminBlog() {
 
   const edit = post => {
     setEditing(post.id);
-    setForm({ title: post.title, category: post.category, content: post.content, cover_image: post.cover_image || "", published: post.published });
+    setForm({ title: post.title, category: post.category, content: post.content, content_mr: post.content_mr || "", cover_image: post.cover_image || "", published: post.published });
     setImgFile(null);
     setImgPreview(post.cover_image || "");
+    setEditorLang("en");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const cancelEdit = () => {
     setEditing(null); setForm(EMPTY_BLOG);
-    setImgFile(null); setImgPreview("");
+    setImgFile(null); setImgPreview(""); setEditorLang("en");
   };
 
   const toggleFeatured = async (id, cur) => {
@@ -1407,10 +1410,27 @@ function AdminBlog() {
           <input ref={imgInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImgSelect} />
         </div>
 
-        {/* Markdown editor */}
+        {/* Language tabs + Markdown editor */}
+        <div className="blog-lang-tabs">
+          <button
+            type="button"
+            className={`blog-lang-tab${editorLang === "en" ? " active" : ""}`}
+            onClick={() => { setEditorLang("en"); setMdPreview(false); }}
+          >
+            🇬🇧 English {form.content.trim() && <span className="blog-lang-dot green" />}
+          </button>
+          <button
+            type="button"
+            className={`blog-lang-tab${editorLang === "mr" ? " active" : ""}`}
+            onClick={() => { setEditorLang("mr"); setMdPreview(false); }}
+          >
+            🇮🇳 मराठी {form.content_mr.trim() && <span className="blog-lang-dot green" />}
+          </button>
+        </div>
+
         <div className="blog-editor-header">
           <span className="blog-editor-label">
-            Content (Markdown)&nbsp;
+            {editorLang === "en" ? "English Content" : "Marathi Content"} (Markdown)&nbsp;
             <span className="blog-readtime-badge">~{readTime} min read</span>
           </span>
           <div style={{ display: "flex", gap: 6 }}>
@@ -1423,14 +1443,21 @@ function AdminBlog() {
 
         {mdPreview ? (
           <div className="blog-preview-box">
-            <ReactMarkdown>{form.content || "_Nothing to preview yet_"}</ReactMarkdown>
+            <ReactMarkdown>{activeContent || "_Nothing to preview yet_"}</ReactMarkdown>
           </div>
+        ) : editorLang === "en" ? (
+          <textarea
+            className="blog-md-editor"
+            placeholder={`Write English content in Markdown…\n\n## Heading\n\nParagraph text.\n\n- List item\n\n**Bold** and _italic_ supported.`}
+            value={form.content}
+            onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+          />
         ) : (
           <textarea
             className="blog-md-editor"
-            placeholder={`Write in Markdown…\n\n## Heading\n\nParagraph text.\n\n- List item\n\n**Bold** and _italic_ supported.`}
-            value={form.content}
-            onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+            placeholder={`मराठीत लिहा (Markdown)…\n\n## शीर्षक\n\nपरिच्छेद मजकूर.\n\n- यादी\n\n**ठळक** आणि _तिर्यक_ supported.`}
+            value={form.content_mr}
+            onChange={e => setForm(f => ({ ...f, content_mr: e.target.value }))}
           />
         )}
 

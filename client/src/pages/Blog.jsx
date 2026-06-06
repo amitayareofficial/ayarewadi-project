@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 
@@ -47,6 +47,75 @@ function BlogSkeleton() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+const SITE_URL = window.location.origin;
+
+function ShareBtn({ post, size = 'sm' }) {
+  const [open, setOpen]     = useState(false);
+  const [copied, setCopied] = useState(false);
+  const ref = useRef();
+
+  const shareText = `${post.title} — आयरेवाडी`;
+  const shareUrl  = SITE_URL;
+
+  const handleShare = async e => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try { await navigator.share({ title: post.title, text: shareText, url: shareUrl }); } catch {}
+      return;
+    }
+    setOpen(o => !o);
+  };
+
+  const copyLink = e => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => { setCopied(false); setOpen(false); }, 2000);
+    });
+  };
+
+  const toWhatsApp = e => {
+    e.stopPropagation();
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`, '_blank');
+    setOpen(false);
+  };
+
+  const toTwitter = e => {
+    e.stopPropagation();
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div className={`share-wrap${size === 'lg' ? ' lg' : ''}`} ref={ref}>
+      <button className="share-btn" onClick={handleShare} title="Share this post">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+        </svg>
+        {size === 'lg' && <span>Share</span>}
+      </button>
+      {open && (
+        <div className="share-popover" onClick={e => e.stopPropagation()}>
+          <button className="share-opt" onClick={copyLink}>
+            {copied ? '✓ Copied!' : '📋 Copy Link'}
+          </button>
+          <button className="share-opt green" onClick={toWhatsApp}>💬 WhatsApp</button>
+          <button className="share-opt blue"  onClick={toTwitter}>𝕏 Twitter</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -165,7 +234,10 @@ export default function Blog_Page() {
                 <p className="blog-feat-meta">
                   {fmtDate(featured.created_at)}&nbsp;&nbsp;·&nbsp;&nbsp;{calcReadTime(featured.content)}
                 </p>
-                <span className="blog-feat-btn">वाचा → Read More</span>
+                <div className="blog-feat-actions">
+                  <span className="blog-feat-btn">वाचा → Read More</span>
+                  <ShareBtn post={featured} size="lg" />
+                </div>
               </div>
             </article>
 
@@ -196,6 +268,7 @@ export default function Blog_Page() {
                       <div className="blog-card-meta">
                         <span>{fmtDate(post.created_at)}</span>
                         <span>{calcReadTime(post.content)}</span>
+                        <ShareBtn post={post} />
                       </div>
                     </div>
                   </article>
@@ -211,7 +284,10 @@ export default function Blog_Page() {
 }
 
 function BlogPost({ post, onBack }) {
-  const readTime = calcReadTime(post.content || '');
+  const hasMr    = !!(post.content_mr && post.content_mr.trim());
+  const [lang, setLang] = useState('en');
+  const content  = (lang === 'mr' && hasMr) ? post.content_mr : post.content;
+  const readTime = calcReadTime(content || '');
 
   return (
     <div className="blog-post-page">
@@ -223,7 +299,24 @@ function BlogPost({ post, onBack }) {
         )}
 
         <div className="blog-post-header">
-          <span className="blog-cat-badge">{post.category}</span>
+          <div className="blog-post-header-top">
+            <span className="blog-cat-badge">{post.category}</span>
+            <div className="blog-post-header-actions">
+              {hasMr && (
+                <div className="blog-lang-toggle">
+                  <button
+                    className={`blog-lang-btn${lang === 'en' ? ' active' : ''}`}
+                    onClick={() => setLang('en')}
+                  >English</button>
+                  <button
+                    className={`blog-lang-btn${lang === 'mr' ? ' active' : ''}`}
+                    onClick={() => setLang('mr')}
+                  >मराठी</button>
+                </div>
+              )}
+              <ShareBtn post={post} size="lg" />
+            </div>
+          </div>
           <h1 className="blog-post-title">{post.title}</h1>
           <p className="blog-post-date">
             {new Date(post.created_at).toLocaleDateString('en-IN', {
@@ -234,7 +327,7 @@ function BlogPost({ post, onBack }) {
         </div>
 
         <div className="blog-post-content">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
+          <ReactMarkdown>{content}</ReactMarkdown>
         </div>
 
         <div className="blog-post-footer">
