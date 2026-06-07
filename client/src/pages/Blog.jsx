@@ -51,7 +51,9 @@ function BlogSkeleton() {
   );
 }
 
-const SITE_URL = window.location.origin;
+function postUrl(post) {
+  return `${window.location.origin}?post=${post.slug}`;
+}
 
 function ShareBtn({ post, size = 'sm' }) {
   const [open, setOpen]     = useState(false);
@@ -59,7 +61,7 @@ function ShareBtn({ post, size = 'sm' }) {
   const ref = useRef();
 
   const shareText = `${post.title} — आयरेवाडी`;
-  const shareUrl  = SITE_URL;
+  const shareUrl  = postUrl(post);
 
   const handleShare = async e => {
     e.stopPropagation();
@@ -130,16 +132,37 @@ export default function Blog_Page() {
 
   useEffect(() => {
     axios.get(`${API}/blog`)
-      .then(r => { setPosts(r.data); setError(false); })
+      .then(r => {
+        setPosts(r.data);
+        setError(false);
+        // auto-open post from URL ?post=slug
+        const slug = new URLSearchParams(window.location.search).get('post');
+        if (slug) {
+          const match = r.data.find(p => p.slug === slug);
+          if (match) setSelected(match);
+        }
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  const openPost = post => {
+    setSelected(post);
+    window.history.pushState({ section: 'blog' }, '', `?post=${post.slug}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goBack = () => {
+    setSelected(null);
+    window.history.pushState({ section: 'blog' }, '', window.location.pathname);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const filtered = posts
     .filter(p => filterCat === 'All' || p.category === filterCat)
     .filter(p => !search.trim() || p.title.toLowerCase().includes(search.toLowerCase()));
 
-  if (selected) return <BlogPost post={selected} onBack={() => setSelected(null)} />;
+  if (selected) return <BlogPost post={selected} onBack={goBack} />;
 
   const [featured, ...rest] = filtered;
 
@@ -213,9 +236,9 @@ export default function Blog_Page() {
             {/* FEATURED */}
             <article
               className="blog-featured"
-              onClick={() => setSelected(featured)}
+              onClick={() => openPost(featured)}
               role="button" tabIndex={0}
-              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setSelected(featured)}
+              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && openPost(featured)}
             >
               <div className="blog-feat-img-col">
                 <img
@@ -248,9 +271,9 @@ export default function Blog_Page() {
                   <article
                     key={post.id}
                     className="blog-card"
-                    onClick={() => setSelected(post)}
+                    onClick={() => openPost(post)}
                     role="button" tabIndex={0}
-                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setSelected(post)}
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && openPost(post)}
                   >
                     <div className="blog-card-img-wrap">
                       <img

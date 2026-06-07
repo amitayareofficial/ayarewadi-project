@@ -316,9 +316,15 @@ export default function App() {
     return () => clearTimeout(t);
   }, [section]);
 
-  // Seed the initial history entry so the first browser back stays on "home"
+  // Seed the initial history entry; if ?post=slug is in URL, open blog section
   useEffect(() => {
-    window.history.replaceState({ section: "home" }, "");
+    const postSlug = new URLSearchParams(window.location.search).get("post");
+    if (postSlug) {
+      setSection("blog");
+      window.history.replaceState({ section: "blog" }, "");
+    } else {
+      window.history.replaceState({ section: "home" }, "");
+    }
   }, []);
 
   // Browser back/forward: sync state with history
