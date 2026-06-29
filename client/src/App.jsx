@@ -23,6 +23,12 @@ import galleryImg     from "./assets/images/gallery.png";
 import portalImg      from "./assets/images/portal.png";
 import templeImg      from "./assets/images/ravalnath_temple.png";
 import villageInfoImg from "./assets/images/village_info_iamge.png";
+import templeRenoImg  from "./assets/images/main-page-images/ravalnath_temple_renovation.jpeg";
+import busStandImg    from "./assets/images/main-page-images/bus-stand.jpeg";
+import sportsImg      from "./assets/images/main-page-images/play.jpeg";
+import festival1Img   from "./assets/images/main-page-images/festival-1.jpeg";
+import festival2Img   from "./assets/images/main-page-images/festival-2.jpeg";
+import festival3Img   from "./assets/images/main-page-images/festival-3.png";
 
 const API = "https://ayarewadi-project.onrender.com";
 
@@ -30,15 +36,12 @@ const IMG = {
   hero:       heroImg,
   heroMobile: heroMobileImg,
   temple:     templeImg,
-  templeReno: "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=165.20076481835565;0;479.08221797323137;0/YNq2a76xB3Ip7LZZ/img_20231008_171637-AMq8ka5gQ9T49MZn.jpg",
-  busStand:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=296.7117988394584;74.3175965665236;373.15280464216636;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-06-07-at-7.06.56-pm-mePJZ51Bekfgav0a.jpeg",
-  sports:     "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;83.42158859470469;0;329.5152749490835/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-1.24.58-am-mjEGa20ZkvuNlzg6.jpeg",
-  festival1:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;209.69450101832996;0;0/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.06.58-am-AzGNwDaNRWIk2lae.jpeg",
-  festival2:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;384.54211956521743;0;362.81657608695656/YNq2a76xB3Ip7LZZ/whatsapp-image-2025-08-10-at-12.07.00-am-1-mP4MkNVWqrTxwBb0.jpeg",
-  festival3:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=721,fit=crop,trim=0;117.31160896130346;0;463.3808553971487/YNq2a76xB3Ip7LZZ/img_20230923_151456-dOqDklw1xKup1yxM.jpg",
-  ruralHosp:  "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/rural-hospital-vaibhavwadi-mk3JOK95lPFqKXZx.webp",
-  aaaanadi:   "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop/YNq2a76xB3Ip7LZZ/anadi-hospital-A85VKX1j4xFDB4Zy.png",
-  marathe:    "https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=723,fit=crop,trim=0;81.04735062006765;0;158.608793686584/YNq2a76xB3Ip7LZZ/marathe-clinic-hospital-YanJ8K4l8pCllDbZ.png",
+  templeReno: templeRenoImg,
+  busStand:   busStandImg,
+  sports:     sportsImg,
+  festival1:  festival1Img,
+  festival2:  festival2Img,
+  festival3:  festival3Img,
   ambulance:  "https://images.unsplash.com/photo-1599700403969-f77b3aa74837?auto=format&fit=crop&w=612&h=576",
   logo:       logoImg,
 };
